@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Ignore Visual Studio folders and files
+.vs/
+*.suo
+*.user
+_ReSharper.*
+bin/
+obj/
+packages
