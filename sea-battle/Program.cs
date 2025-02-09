@@ -21,7 +21,8 @@
         {
 
             int.TryParse(Console.ReadLine(), out userChoice);
-            if (userChoice == fields[1]) {
+            if (userChoice == fields[1])
+            {
                 Console.WriteLine("You win!");
                 break;
             }
@@ -96,7 +97,7 @@
                 break;
             }
         }
-        return new int[2] { userField, compField};
+        return new int[2] { userField, compField };
     }
 
     private static int RandomFieldComp()
