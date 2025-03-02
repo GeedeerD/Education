@@ -56,8 +56,17 @@ internal class Program
         {
             Console.Write("\n\nWhere do you want to set your ship (1-16)? ");
             userField = UserFieldInput();
-            
-           
+            Console.WriteLine(@"
+┏━━━┳━━━┳━━━┳━━━┓
+┃ 1 ┃ 2 ┃ 3 ┃ 4 ┃
+┣━━━╋━━━╋━━━┫━━━┫
+┃ 5 ┃ 6 ┃ 7 ┃ 8 ┃
+┣━━━╋━━━╋━━━┫━━━┫
+┃ 9 ┃ 10┃ 11┃ 12┃
+┣━━━╋━━━╋━━━╋━━━┫
+┃ 13┃ 14┃ 15┃ 16┃
+┗━━━┻━━━┻━━━┻━━━┛");
+
             Console.Write("Do you want to start the game? (yes/no): ");
             var answer = Console.ReadLine();
             if (answer?.StartsWith("y", StringComparison.CurrentCultureIgnoreCase) == true)
