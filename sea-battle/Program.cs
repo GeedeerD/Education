@@ -1,117 +1,90 @@
-﻿internal class Program
+﻿using System;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
         var fields = FillGame();
+        int userField = fields[0]; // Корабль игрока
+        int compField = fields[1]; // Корабль компьютера
+        Random random = new Random();
 
-        // кто первый ходит
-        var firstStep = 0;
-        //    new Random().Next(0, 1);
-        //if(firstStep == 0)
-        //{
-        //    Console.WriteLine("You choise first!");
-        //}
-        //else
-        //{
-        //    Console.WriteLine("Computer first");
-        //}
+        Console.WriteLine("\nGame started! Try to guess the computer's ship position.");
 
-        var userChoice = 0;
         while (true)
         {
-
-            int.TryParse(Console.ReadLine(), out userChoice);
-            if (userChoice == fields[1])
+            // Ход игрока
+            Console.Write("\nYour turn: ");
+            if (!int.TryParse(Console.ReadLine(), out var userChoice) || userChoice < 1 || userChoice > 16)
             {
-                Console.WriteLine("You win!");
-                break;
+                Console.WriteLine("Invalid input. Enter a number between 1 and 16.");
+                continue;
             }
 
-            if (new Random().Next(1, 9) == fields[0])
+            if (userChoice == compField)
             {
-                Console.WriteLine("Computer win!");
+                Console.WriteLine("You win! ");
                 break;
+            }
+            else
+            {
+                Console.WriteLine("Miss! Computer's turn...");
+            }
+
+            // Ход компьютера
+            int botChoice = random.Next(0, 17);
+            Console.WriteLine($"Computer shoots at {botChoice}");
+
+            if (botChoice == userField)
+            {
+                Console.WriteLine("Computer win! ");
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Computer missed!");
             }
         }
-
-
-
-        //var t = 0+(7*5);
-        //Console.WriteLine("t = {0}", t); //35
-
-        //t++;
-
-        //Console.WriteLine("t = {0}", t); //36
-
-        //Console.WriteLine("t = {0}", t++); //36
-
-        //Console.WriteLine("t = {0}", ++t); //38 
-
-
-        //int[][] battleField = new int[2][];
-        //for (int i = 0; i< 2; i++)
-        //{
-        //    battleField[i] = new[] { ++t, ++t }; 
-        //}
-
-        //for (int i = 0; i < array.Length; i++) { 
-        //Console.WriteLine(i);
-
-        //}
-        //Console.WriteLine(array.Length);
-
-        //for (int i = 0; i < battleField.Length; i++)
-        //{
-        //    for (int j = 0; j < battleField[i].Length; j++)
-        //    {
-        //        Console.Write(battleField[i][j]);
-        //    }
-        //    Console.WriteLine();
-        //}
-
-
     }
 
     private static int[] FillGame()
     {
         int userField;
         int compField;
+
         while (true)
         {
-            Console.WriteLine("\r\n\r\nPlease create the field");
-            // логика создания поля
-            userField = UserFildInput();
-            Thread.Sleep(3_000);
+            Console.Write("\n\nWhere do you want to set your ship (1-16)? ");
+            userField = UserFieldInput();
 
-            Console.WriteLine("Field saved.");
-            Console.WriteLine("");
-            Console.WriteLine("");
-
-            Console.WriteLine("Do you want to start game? (yes/no)");
+            Console.Write("Do you want to start the game? (yes/no): ");
             var answer = Console.ReadLine();
-            if (answer != null && answer.StartsWith("y", StringComparison.CurrentCultureIgnoreCase))
+            if (answer?.StartsWith("y", StringComparison.CurrentCultureIgnoreCase) == true)
             {
-                // логика нашего расположения
                 compField = RandomFieldComp();
-                Console.WriteLine("Game started!");
                 break;
             }
         }
+
         return new int[2] { userField, compField };
     }
 
     private static int RandomFieldComp()
     {
-        return new Random().Next(1, 9);
+        return new Random().Next(1, 16);
     }
 
-    private static int UserFildInput()
+    private static int UserFieldInput()
     {
+        while (true)
+        {
+            if (int.TryParse(Console.ReadLine(), out var f) && f >= 1 && f <= 16)
+            {
+                Console.WriteLine("Field saved.");
+                return f;
+            }
 
-        var fieldUser = Console.ReadLine();
-        int.TryParse(fieldUser, out var f);
-        Console.WriteLine("Field saved.");
-
-        return f;
+            Console.Write("Invalid input. Enter a number between 1 and 16: ");
+        }
     }
 }
