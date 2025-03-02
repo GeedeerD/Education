@@ -1,9 +1,16 @@
-﻿using Numbers;
+﻿using Enums.Types;
+using Numbers;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+
+        var color = ColorFlag.Red | ColorFlag.Green;
+        var colors = new object[] { ColorFlag.Red, ColorFlag.Green, ColorFlag.Black, };
+
+        Console.WriteLine(color);
+
         var obj = new char[900];
 
 

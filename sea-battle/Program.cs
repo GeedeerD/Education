@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using System.Xml.Linq;
-
-internal class Program
+﻿internal class Program
 {
     private static void Main(string[] args)
     {

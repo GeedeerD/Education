@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sea-battle", "sea-battle\se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Numbers", "Numbers\Numbers.csproj", "{781F506B-D73C-47BC-98DA-FE6189063149}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enums", "Enums\Enums.csproj", "{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{781F506B-D73C-47BC-98DA-FE6189063149}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{781F506B-D73C-47BC-98DA-FE6189063149}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{781F506B-D73C-47BC-98DA-FE6189063149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
