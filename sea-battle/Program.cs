@@ -56,7 +56,8 @@ internal class Program
         {
             Console.Write("\n\nWhere do you want to set your ship (1-16)? ");
             userField = UserFieldInput();
-
+            
+           
             Console.Write("Do you want to start the game? (yes/no): ");
             var answer = Console.ReadLine();
             if (answer?.StartsWith("y", StringComparison.CurrentCultureIgnoreCase) == true)
