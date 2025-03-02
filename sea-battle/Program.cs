@@ -1,75 +1,113 @@
-﻿internal class Program
+﻿using System.Numerics;
+using System.Xml.Linq;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
         var fields = FillGame();
+        const int iComputer = 0;
+        const int iUser = 1;
 
-        // кто первый ходит
-        var firstStep = 0;
-        //    new Random().Next(0, 1);
-        //if(firstStep == 0)
-        //{
-        //    Console.WriteLine("You choise first!");
-        //}
-        //else
-        //{
-        //    Console.WriteLine("Computer first");
-        //}
+        var computerHits = new List<int>();
+        var userHits = new List<int>();
 
         var userChoice = 0;
-        while (true)
+        while (fields.Length > 1)
         {
+            DrowFields(fields, computerHits, userHits);
+            Console.WriteLine("Where did the computer place its ship?");
 
             int.TryParse(Console.ReadLine(), out userChoice);
-            if (userChoice == fields[1])
+            userHits.Add(userChoice);
+            if (userChoice == fields[iUser])
             {
+                DrowFields(fields, computerHits, userHits);
                 Console.WriteLine("You win!");
+
                 break;
             }
 
-            if (new Random().Next(1, 9) == fields[0])
+            var computerChoice = new Random().Next(1, 9);
+            computerHits.Add(computerChoice);
+            if (computerChoice == fields[iComputer])
             {
+                DrowFields(fields, computerHits, userHits);
                 Console.WriteLine("Computer win!");
+
                 break;
             }
         }
 
+        Console.WriteLine("Thanks!");
+        Console.ReadLine();
 
 
-        //var t = 0+(7*5);
-        //Console.WriteLine("t = {0}", t); //35
+    }
 
-        //t++;
+    private static void DrowFields(int[] fields, List<int> computerHits, List<int> userHits)
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("  You Fields   ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine(" Computer's Fields  ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┏━━━┳━━━┳━━━┓");
 
-        //Console.WriteLine("t = {0}", t); //36
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┏━━━┳━━━┳━━━┓");
 
-        //Console.WriteLine("t = {0}", t++); //36
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(1) ? DrawHit(fields[0], 1) : " 1 ", computerHits.Contains(2) ? DrawHit(fields[0], 2) : " 2 ", computerHits.Contains(3) ? DrawHit(fields[0], 3) : " 3 ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(1) ? DrawHit(fields[1], 1) : " 1 ", userHits.Contains(2) ? DrawHit(fields[1], 2) : " 2 ", userHits.Contains(3) ? DrawHit(fields[1], 3) : " 3 ");
 
-        //Console.WriteLine("t = {0}", ++t); //38 
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┣━━━╋━━━╋━━━┫");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┣━━━╋━━━╋━━━┫");
 
-
-        //int[][] battleField = new int[2][];
-        //for (int i = 0; i< 2; i++)
-        //{
-        //    battleField[i] = new[] { ++t, ++t }; 
-        //}
-
-        //for (int i = 0; i < array.Length; i++) { 
-        //Console.WriteLine(i);
-
-        //}
-        //Console.WriteLine(array.Length);
-
-        //for (int i = 0; i < battleField.Length; i++)
-        //{
-        //    for (int j = 0; j < battleField[i].Length; j++)
-        //    {
-        //        Console.Write(battleField[i][j]);
-        //    }
-        //    Console.WriteLine();
-        //}
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(4) ? DrawHit(fields[0], 4) : " 4 ", computerHits.Contains(5) ? DrawHit(fields[0], 5) : " 5 ", computerHits.Contains(6) ? DrawHit(fields[0], 6) : " 6 ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(4) ? DrawHit(fields[1], 4) : " 4 ", userHits.Contains(5) ? DrawHit(fields[1], 5) : " 5 ", userHits.Contains(6) ? DrawHit(fields[1], 6) : " 6 ");
 
 
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┣━━━╋━━━╋━━━┫");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┣━━━╋━━━╋━━━┫");
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(7) ? DrawHit(fields[0], 7) : " 7 ", computerHits.Contains(8) ? DrawHit(fields[0], 8) : " 8 ", computerHits.Contains(9) ? DrawHit(fields[0], 9) : " 9 ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(7) ? DrawHit(fields[1], 7) : " 7 ", userHits.Contains(8) ? DrawHit(fields[1], 8) : " 8 ", userHits.Contains(9) ? DrawHit(fields[1], 9) : " 9 ");
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("┗━━━┻━━━┻━━━┛");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("\t");
+        Console.WriteLine("┗━━━┻━━━┻━━━┛");
+
+        Console.ResetColor();
+
+    }
+
+    private static string DrawHit(int x, int hit)
+    {
+        if (hit == x)
+        {
+            return " X ";
+        }
+        return " • ";
     }
 
     private static int[] FillGame()
@@ -78,10 +116,17 @@
         int compField;
         while (true)
         {
-            Console.WriteLine("\r\n\r\nPlease create the field");
+            Console.WriteLine("\r\n\r\nPlease select a field for a single-deck ship.");
+            Console.WriteLine(@"
+┏━━━┳━━━┳━━━┓
+┃ 1 ┃ 2 ┃ 3 ┃
+┣━━━╋━━━╋━━━┫
+┃ 4 ┃ 5 ┃ 6 ┃
+┣━━━╋━━━╋━━━┫
+┃ 7 ┃ 8 ┃ 9 ┃
+┗━━━┻━━━┻━━━┛");
             // логика создания поля
             userField = UserFildInput();
-            Thread.Sleep(3_000);
 
             Console.WriteLine("Field saved.");
             Console.WriteLine("");
@@ -91,10 +136,14 @@
             var answer = Console.ReadLine();
             if (answer != null && answer.StartsWith("y", StringComparison.CurrentCultureIgnoreCase))
             {
-                // логика нашего расположения
+                // логика расположения корабля компьютера
                 compField = RandomFieldComp();
                 Console.WriteLine("Game started!");
                 break;
+            }
+            else
+            {
+                return new int[0];
             }
         }
         return new int[2] { userField, compField };
@@ -102,7 +151,7 @@
 
     private static int RandomFieldComp()
     {
-        return new Random().Next(1, 9);
+        return new Random().Next(1, 10);
     }
 
     private static int UserFildInput()
@@ -110,8 +159,6 @@
 
         var fieldUser = Console.ReadLine();
         int.TryParse(fieldUser, out var f);
-        Console.WriteLine("Field saved.");
-
         return f;
     }
 }
