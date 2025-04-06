@@ -8,7 +8,7 @@ using namespace std;
 
 int SumNumbers(int a);
 
-int main()
+int main1()
 {
 
     namespace cr = std::chrono;
@@ -52,6 +52,7 @@ int main()
 
     std::cout << "!!!!!!!!!!!!!!" << millisecond_count << '\n';
     cin >> number1;
+    return 1;
 }
 
 
