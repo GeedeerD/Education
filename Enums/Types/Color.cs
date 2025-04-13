@@ -1,4 +1,6 @@
-﻿namespace Enums.Types
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Enums.Types
 {
     public enum ColorFlag : int
     {
@@ -16,5 +18,13 @@
         First = 1,
         Second,
         Third,
+    }
+}
+
+namespace Enums
+{
+    public enum Form
+    {
+
     }
 }

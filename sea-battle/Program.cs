@@ -1,5 +1,12 @@
 ﻿internal class Program
 {
+    private const int FieldSize = 4;
+    private const int P1ShipAmount = 3;
+    private const int P2ShipAmount = 0;
+    private const int P3ShipAmount = 0;
+    private const int P4ShipAmount = 0;
+    private const int P5ShipAmount = 0;
+    private const int AllShipsAmout = P1ShipAmount + P2ShipAmount * 2 + P3ShipAmount * 3 + P4ShipAmount * 4 + P5ShipAmount * 5;
     private static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -11,14 +18,14 @@
         var userHits = new List<int>();
 
         var userChoice = 0;
-        while (fields.Length > 1)
+        while (fields.UserFields.Length > 0)
         {
             DrowFields(fields, computerHits, userHits);
             Console.WriteLine("Where did the computer place its ship?");
 
             int.TryParse(Console.ReadLine(), out userChoice);
             userHits.Add(userChoice);
-            if (userChoice == fields[iUser])
+            if (fields.ComputerFields.All(x=>userHits.Contains(x)))
             {
                 DrowFields(fields, computerHits, userHits);
                 Console.WriteLine("You win!");
@@ -26,9 +33,9 @@
                 break;
             }
 
-            var computerChoice = new Random().Next(1, 9);
+            var computerChoice = new Random().Next(1, 17);
             computerHits.Add(computerChoice);
-            if (computerChoice == fields[iComputer])
+            if (fields.UserFields.All(x => computerHits.Contains(x)))
             {
                 DrowFields(fields, computerHits, userHits);
                 Console.WriteLine("Computer win!");
@@ -43,7 +50,7 @@
 
     }
 
-    private static void DrowFields(int[] fields, List<int> computerHits, List<int> userHits)
+    private static void DrowFields((int[] UserFields, int[] ComputerFields) fields, List<int> computerHits, List<int> userHits)
     {
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Green;
@@ -51,79 +58,92 @@
         Console.ForegroundColor = ConsoleColor.DarkYellow;
         Console.WriteLine(" Computer's Fields  ");
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┏━━━┳━━━┳━━━┓");
-
+        Console.Write("┏━━━┳━━━┳━━━┳━━━┓");
         Console.ForegroundColor = ConsoleColor.DarkYellow;
         Console.Write("\t");
-        Console.WriteLine("┏━━━┳━━━┳━━━┓");
+        Console.WriteLine("┏━━━┳━━━┳━━━┳━━━┓");
 
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(1) ? DrawHit(fields[0], 1) : " 1 ", computerHits.Contains(2) ? DrawHit(fields[0], 2) : " 2 ", computerHits.Contains(3) ? DrawHit(fields[0], 3) : " 3 ");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(1) ? DrawHit(fields[1], 1) : " 1 ", userHits.Contains(2) ? DrawHit(fields[1], 2) : " 2 ", userHits.Contains(3) ? DrawHit(fields[1], 3) : " 3 ");
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┣━━━╋━━━╋━━━┫");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┣━━━╋━━━╋━━━┫");
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(4) ? DrawHit(fields[0], 4) : " 4 ", computerHits.Contains(5) ? DrawHit(fields[0], 5) : " 5 ", computerHits.Contains(6) ? DrawHit(fields[0], 6) : " 6 ");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(4) ? DrawHit(fields[1], 4) : " 4 ", userHits.Contains(5) ? DrawHit(fields[1], 5) : " 5 ", userHits.Contains(6) ? DrawHit(fields[1], 6) : " 6 ");
-
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┣━━━╋━━━╋━━━┫");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┣━━━╋━━━╋━━━┫");
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┃{0}┃{1}┃{2}┃", computerHits.Contains(7) ? DrawHit(fields[0], 7) : " 7 ", computerHits.Contains(8) ? DrawHit(fields[0], 8) : " 8 ", computerHits.Contains(9) ? DrawHit(fields[0], 9) : " 9 ");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┃{0}┃{1}┃{2}┃", userHits.Contains(7) ? DrawHit(fields[1], 7) : " 7 ", userHits.Contains(8) ? DrawHit(fields[1], 8) : " 8 ", userHits.Contains(9) ? DrawHit(fields[1], 9) : " 9 ");
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("┗━━━┻━━━┻━━━┛");
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.Write("\t");
-        Console.WriteLine("┗━━━┻━━━┻━━━┛");
+        var colors = new[] { ConsoleColor.Green, ConsoleColor.DarkYellow };
+        for (int i = 0; i < FieldSize; i++)
+        {
+            for (int u = 0; u < 2; u++)
+            {
+                Console.ForegroundColor = colors[u];
+                var hits = u == 0 ? computerHits : userHits;
+                var drawFields = u == 0 ? fields.UserFields : fields.ComputerFields;
+                for (int j = 0; j < FieldSize; j++)
+                {
+                    int item = (i) * FieldSize + (j + 1);
+                    Console.Write("┃{0}", hits.Contains(item) ? DrawHit(drawFields, item) : item.ToString().PadLeft(2).PadRight(3));
+                }
+                Console.Write("┃\t");
+            }
+            Console.WriteLine();
+            for (int u = 0; u < 2; u++)
+            {
+                Console.ForegroundColor = colors[u];
+                if (i == FieldSize - 1)
+                {
+                    Console.Write("┗━━━┻━━━┻━━━┻━━━┛\t");
+                }
+                else
+                {
+                    Console.Write("┣━━━╋━━━╋━━━╋━━━┫\t");
+                }
+            }
+            Console.WriteLine();
+        }
 
         Console.ResetColor();
 
     }
 
-    private static string DrawHit(int x, int hit)
+    private static string DrawHit(int[] fields, int hit)
     {
-        if (hit == x)
+        if (fields.Contains(hit))
         {
             return " X ";
         }
         return " • ";
     }
 
-    private static int[] FillGame()
+    private static (int[] UserFields, int[] ComputerFields) FillGame()
     {
-        int userField;
-        int compField;
+        int[] userFields = new int[AllShipsAmout];
+        int[] compFields = new int[AllShipsAmout];
+
+        int shipIndex = 0;
+
+        Console.WriteLine("\r\n\r\nPlease choose a field for a single-deck ship.");
+        Console.WriteLine(@"
+┏━━━┳━━━┳━━━┳━━━┓
+┃ 1 ┃ 2 ┃ 3 ┃ 4 ┃
+┣━━━╋━━━╋━━━╋━━━┫
+┃ 5 ┃ 6 ┃ 7 ┃ 8 ┃
+┣━━━╋━━━╋━━━╋━━━┫
+┃ 9 ┃10 ┃11 ┃12 ┃
+┣━━━╋━━━╋━━━╋━━━┫
+┃13 ┃14 ┃15 ┃16 ┃
+┗━━━┻━━━┻━━━┻━━━┛");
+
         while (true)
         {
-            Console.WriteLine("\r\n\r\nPlease select a field for a single-deck ship.");
-            Console.WriteLine(@"
-┏━━━┳━━━┳━━━┓
-┃ 1 ┃ 2 ┃ 3 ┃
-┣━━━╋━━━╋━━━┫
-┃ 4 ┃ 5 ┃ 6 ┃
-┣━━━╋━━━╋━━━┫
-┃ 7 ┃ 8 ┃ 9 ┃
-┗━━━┻━━━┻━━━┛");
             // логика создания поля
-            userField = UserFildInput();
+            var userField = UserFildInput();
+            var checkPosition = CheckField(userField, userFields);
+            if(checkPosition == false)
+            {
+                Console.WriteLine("Please insert correct value");
+                continue;
+            }
+
+            userFields[shipIndex++] = userField;
+            if(shipIndex < AllShipsAmout) 
+            { 
+                Console.WriteLine("Field saved. Please choose another one");
+                continue;
+            }
+
 
             Console.WriteLine("Field saved.");
             Console.WriteLine("");
@@ -134,26 +154,140 @@
             if (answer != null && answer.StartsWith("y", StringComparison.CurrentCultureIgnoreCase))
             {
                 // логика расположения корабля компьютера
-                compField = RandomFieldComp();
+                compFields = RandomFieldsComp();
                 Console.WriteLine("Game started!");
                 break;
             }
             else
             {
-                return new int[0];
+                return (new int[0], new int[0]);
             }
         }
-        return new int[2] { userField, compField };
+
+        return (userFields, compFields);
     }
 
-    private static int RandomFieldComp()
+    private static bool CheckField(int selectField, int[] anotherFields)
     {
-        return new Random().Next(1, 10);
+        if (anotherFields.Contains(selectField))
+        {
+            return false;
+        }
+
+        if (selectField == 0 || selectField > FieldSize * FieldSize)
+        {
+            return false;
+        }
+
+        int rowIndex = selectField / FieldSize;
+        int columnIndex = (selectField - 1) % FieldSize;
+        if(columnIndex == 3)
+        {
+            rowIndex--;
+        }
+
+
+        // *   *   *
+        // *  🚢   *
+        // *   *   *
+
+        var checkResult = true;
+        // проверка отсутствия кораблей на Севере (С)
+        if (checkResult && rowIndex > 0) 
+        {
+            if (anotherFields.Contains(selectField - FieldSize))
+            {
+                checkResult = false;
+            }
+
+            // СЗ
+            if(checkResult && columnIndex > 0)
+            {
+                if (anotherFields.Contains(selectField - FieldSize - 1))
+                {
+                    checkResult = false;
+                }
+            }
+
+            // СВ
+            if (checkResult && columnIndex + 1 < FieldSize)
+            {
+                if (anotherFields.Contains(selectField - FieldSize + 1))
+                {
+                    checkResult = false;
+                }
+            }
+        }
+
+        // проверка отсутствия кораблей на Юге (Ю)
+        if (checkResult && rowIndex + 1 < FieldSize)
+        {
+            if(anotherFields.Contains(selectField + FieldSize))
+            {
+                checkResult = false;
+            }
+
+            // ЮЗ
+            if (checkResult && columnIndex > 0)
+            {
+                if (anotherFields.Contains(selectField + FieldSize - 1))
+                {
+                    checkResult = false;
+                }
+            }
+
+            // ЮВ
+            if (checkResult && columnIndex + 1 < FieldSize)
+            {
+                if (anotherFields.Contains(selectField + FieldSize + 1))
+                {
+                    checkResult = false;
+                }
+            }
+        }
+
+        // проверка отсутствия кораблей на Западе (З)
+        if (checkResult && columnIndex > 0)
+        {
+            if (anotherFields.Contains(selectField - 1))
+            {
+                checkResult = false;
+            }
+        }
+
+        // проверка отсутствия кораблей на Востоке (В)
+        if (checkResult && columnIndex + 1 < FieldSize)
+        {
+            if (anotherFields.Contains(selectField + 1))
+            {
+                checkResult = false;
+            }
+        }
+
+
+        return checkResult;
+    }
+
+    private static int[] RandomFieldsComp()
+    {
+        var fields = new int[AllShipsAmout];
+        var maxSize = FieldSize * FieldSize;
+        var shipIndex = 0;
+        while (shipIndex < AllShipsAmout)
+        {
+            var t = new Random().Next(1, maxSize + 1);
+            if (CheckField(t, fields))
+            {
+                fields[shipIndex++] = t;
+            }
+            continue;
+        }
+
+        return fields;
     }
 
     private static int UserFildInput()
     {
-
         var fieldUser = Console.ReadLine();
         int.TryParse(fieldUser, out var f);
         return f;
