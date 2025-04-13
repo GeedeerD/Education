@@ -1,10 +1,26 @@
 ﻿using System.Diagnostics;
 using Enums.Types;
+using System.Collections.Generic;
+
+using System.Linq;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+        string toChtoNadaNapisat = "{0}, {1}, {2}, {3}";
+
+        int magicValue = 5363;
+        ChangeParam(magicValue);
+
+
+        TestString(ref toChtoNadaNapisat);
+        //TestString(toChtoNadaNapisat2);
+
+        int a2 = 234 + (Int16)LayerType.First;
+        Console.Write(toChtoNadaNapisat, LayerType.First, LayerType.Second, LayerType.Third, a2);
+
+        return;
         var sw = Stopwatch.StartNew();
         GetMinNumbers(14, 15_000_000);
 
@@ -78,7 +94,10 @@ internal class Program
 
     private static void ChangeParam(int x)
     {
-        //throw new TestException("This method only for test");
         x = 1;
+    }
+    private static void TestString(ref string aa)
+    {
+        aa = "";
     }
 }
