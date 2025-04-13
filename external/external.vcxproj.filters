@@ -18,5 +18,8 @@
     <ClCompile Include="external.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="examples.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
