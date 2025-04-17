@@ -1,4 +1,6 @@
-﻿namespace Enums.Types
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Enums.Types
 {
     public enum ColorFlag : int
     {
@@ -9,5 +11,20 @@
         Pink = 16,
         Red = 32,
         Green = 64,
+    }
+
+    public enum LayerType: short
+    {
+        First = 1,
+        Second,
+        Third,
+    }
+}
+
+namespace Enums
+{
+    public enum Form
+    {
+
     }
 }
