@@ -3,19 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sea-battle", "sea-battle\sea-battle.csproj", "{464C9EBF-4CD7-402C-B1C8-331A7D89DF11}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sea-battle", "sea-battle\sea-battle.csproj", "{464C9EBF-4CD7-402C-B1C8-331A7D89DF11}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Numbers", "Numbers\Numbers.csproj", "{781F506B-D73C-47BC-98DA-FE6189063149}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Numbers", "Numbers\Numbers.csproj", "{781F506B-D73C-47BC-98DA-FE6189063149}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Enums", "Enums\Enums.csproj", "{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enums", "Enums\Enums.csproj", "{6CB2ADD6-C022-40CF-B7F1-27F7ED9A2F06}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{E7B277AF-1EEE-4CF4-9F85-A55788AA7E52}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{E7B277AF-1EEE-4CF4-9F85-A55788AA7E52}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cpp", "cpp", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "external", "external\external.vcxproj", "{E94ED620-008D-452F-A14B-6133EE2C6C9A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dz_229", "dz_229\dz_229.csproj", "{F71CA512-3D0B-43C4-BF02-87C8C70D1122}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misha", "misha", "{21F4D5BE-34D9-4B9B-ABB9-FBFA279C3632}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,7 +107,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E94ED620-008D-452F-A14B-6133EE2C6C9A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{F71CA512-3D0B-43C4-BF02-87C8C70D1122} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F71CA512-3D0B-43C4-BF02-87C8C70D1122} = {21F4D5BE-34D9-4B9B-ABB9-FBFA279C3632}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {731CB3B0-5A9A-4BBE-88B2-7DFD8D2627E0}
