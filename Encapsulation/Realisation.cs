@@ -18,12 +18,10 @@ namespace Encapsulation
             _userException.CountOfElements = 5;
 
             var battery1 = new C32Battery();
-            Console.WriteLine("Type:{0}, voltage:{1}", battery1.FormType, battery1.Voltage);
-            
-            //battery1.Voltage = 4;
+            Console.WriteLine("Type:{0}, voltage:{1}", battery1.FormTypePublic, battery1.VoltagePublic);
 
             var battery2 = new AaBattery();
-            Console.WriteLine("Type:{0}, voltage:{1}", battery2.FormType, battery2.Voltage);
+            Console.WriteLine("Type:{0}, voltage:{1}", battery2.FormTypePublic, battery2.VoltagePublic);
         }
     }
 
@@ -31,9 +29,12 @@ namespace Encapsulation
     {
         protected double Voltage { get; set; }
         protected FormType FormType { get; set; }
+
+        public double VoltagePublic => Voltage;
+        public FormType FormTypePublic => FormType;
     }
 
-    public enum FormType : int  // int byte short long
+    public enum FormType : int
     {
         unknown = 0,
         C32 = 1,
@@ -42,7 +43,6 @@ namespace Encapsulation
 
     public class C32Battery : Battery
     {
-
         public C32Battery()
         {
             Voltage = 3.65;
