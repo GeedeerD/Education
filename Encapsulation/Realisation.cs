@@ -29,8 +29,8 @@ namespace Encapsulation
 
     public abstract class Battery
     {
-        protected double Voltage { get; set; }
-        protected FormType FormType { get; set; }
+        public double Voltage { get; protected set; }
+        public FormType FormType { get; set; }
     }
 
     public enum FormType : int  // int byte short long
