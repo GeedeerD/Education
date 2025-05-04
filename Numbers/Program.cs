@@ -16,7 +16,6 @@ internal class Program
         int magicValue = 5363;
         ChangeParam(magicValue);
 
-
         TestString(ref toChtoNadaNapisat);
         //TestString(toChtoNadaNapisat2);
 
