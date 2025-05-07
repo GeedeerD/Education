@@ -1,5 +1,8 @@
 ﻿namespace Enums.Types
 {
+    /// <summary>
+    /// Типы машин
+    /// </summary>
     public enum CarType : byte
     {
         None = 0,
