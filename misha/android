@@ -1,0 +1,54 @@
+using System;
+using System.Windows.Forms;
+
+namespace GeometryFormulas
+{
+    public class MainForm : Form
+    {
+        private Button btnSquare;
+        private Button btnTriangle;
+        private Button btnCircle;
+        private Button btnPolygon;
+        private Label lblFormula;
+
+        public MainForm()
+        {
+            // Налаштування форми
+            this.Text = "Формули площі фігур";
+            this.Size = new System.Drawing.Size(300, 250);
+
+            // Кнопка для квадрата
+            btnSquare = new Button { Text = "Квадрат", Top = 20, Left = 30, Width = 100 };
+            btnSquare.Click += (sender, e) => lblFormula.Text = "Площа квадрата: S = a²";
+
+            // Кнопка для трикутника
+            btnTriangle = new Button { Text = "Трикутник", Top = 60, Left = 30, Width = 100 };
+            btnTriangle.Click += (sender, e) => lblFormula.Text = "Площа трикутника: S = (a * h) / 2";
+
+            // Кнопка для круга
+            btnCircle = new Button { Text = "Коло", Top = 100, Left = 30, Width = 100 };
+            btnCircle.Click += (sender, e) => lblFormula.Text = "Площа кола: S = π * r²";
+
+            // Кнопка для багатокутника
+            btnPolygon = new Button { Text = "Багатокутник", Top = 140, Left = 30, Width = 100 };
+            btnPolygon.Click += (sender, e) => lblFormula.Text = "Площа правильного багатокутника: S = (n * a²) / (4 * tan(π/n))";
+
+            // Поле для виводу формули
+            lblFormula = new Label { Top = 180, Left = 30, Width = 220, Height = 40 };
+
+            // Додавання елементів
+            this.Controls.Add(btnSquare);
+            this.Controls.Add(btnTriangle);
+            this.Controls.Add(btnCircle);
+            this.Controls.Add(btnPolygon);
+            this.Controls.Add(lblFormula);
+        }
+
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.Run(new MainForm());
+        }
+    }
+}
