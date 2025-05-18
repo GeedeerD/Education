@@ -3,47 +3,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MobileFirst.MainPage"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             Title="Image Dropdown">
+             Title="Shapes">
 
-    <VerticalStackLayout Padding="20">
-        <!-- Текущий выбор -->
-        <Image x:Name="SelectedImage"
-               HeightRequest="100"
-               WidthRequest="100"
-               Aspect="AspectFill"
-               Source="image1.png">
-            <Image.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnImageTapped" />
-            </Image.GestureRecognizers>
-        </Image>
+    <VerticalStackLayout Padding="20" Spacing="30" Background="DimGray">
 
-        <!-- Popup -->
-        <toolkit:Popup x:Name="ImagePopup">
-            <toolkit:Popup.Content>
-                <Frame BackgroundColor="White"
-                       BorderColor="Gray"
-                       Padding="10">
-                    <CollectionView x:Name="ImageList"
-                                    SelectionMode="Single"
-                                    SelectionChanged="OnImageSelected">
-                        <CollectionView.ItemsSource>
-                            <x:Array Type="{x:Type ImageSource}">
-                                <ImageSource>image1.png</ImageSource>
-                                <ImageSource>image2.png</ImageSource>
-                                <ImageSource>image3.png</ImageSource>
-                            </x:Array>
-                        </CollectionView.ItemsSource>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding}"
-                                       HeightRequest="80"
-                                       WidthRequest="80"
-                                       Margin="5" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </Frame>
-            </toolkit:Popup.Content>
-        </toolkit:Popup>
+        <!-- Заголовок -->
+        <Label Text="Выберите фигуру:" 
+               FontSize="20"
+               HorizontalOptions="Center"/>
+
+        <!-- Выпадающий список -->
+        <Picker x:Name="ShapePicker"
+                Title="Фигура"
+                SelectedIndexChanged="OnShapeSelected">
+            <Picker.Items>
+                <x:String>Треугольник</x:String>
+                <x:String>Круг</x:String>
+                <x:String>Квадрат</x:String>
+                <x:String>Полигон</x:String>
+            </Picker.Items>
+        </Picker>
+
+        <!-- Картинка выбранной фигуры -->
+        <Image x:Name="ShapeImage"
+               WidthRequest="504"
+               Aspect="AspectFit"
+               VerticalOptions="Start"/>
     </VerticalStackLayout>
 </ContentPage>
