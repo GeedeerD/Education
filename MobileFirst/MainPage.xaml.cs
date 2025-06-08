@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Xaml;
 using CommunityToolkit.Maui.Views;
+using MobileFirst;
 
 namespace MobileFirst
 {
@@ -13,18 +14,27 @@ namespace MobileFirst
             InitializeComponent();
         }
 
-        private void OnImageTapped(object sender, EventArgs e)
+        private void OnShapeSelected(object sender, EventArgs e)
         {
-            // Показать popup
-            this.ShowPopup(ImagePopup);
-        }
+            string selectedShape = ShapePicker.SelectedItem as string;
 
-        private void OnImageSelected(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.CurrentSelection.FirstOrDefault() is ImageSource selected)
+            switch (selectedShape)
             {
-                SelectedImage.Source = selected;
-                ImagePopup.Close(); // Закрыть popup
+                case "Треугольник":
+                    ShapeImage.Source = "triangle.png";
+                    break;
+                case "Круг":
+                    ShapeImage.Source = "circle.png";
+                    break;
+                case "Квадрат":
+                    ShapeImage.Source = "square.png";
+                    break;
+                case "Полигон":
+                    ShapeImage.Source = "polygon.png";
+                    break;
+                default:
+                    ShapeImage.Source = null;
+                    break;
             }
         }
     }
