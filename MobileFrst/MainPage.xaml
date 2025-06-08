@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FigureApp.MainPage">
+
+    <VerticalStackLayout Padding="20" Spacing="25">
+
+        <Label 
+            Text="Выберите фигуру"
+            FontSize="24"
+            HorizontalOptions="Center" />
+
+        <Picker 
+            x:Name="FigurePicker"
+            Title="Фигуры"
+            SelectedIndexChanged="OnFigureSelected">
+            <Picker.Items>
+                <x:String>Квадрат</x:String>
+                <x:String>Круг</x:String>
+                <x:String>Куб</x:String>
+                <x:String>Сфера</x:String>
+                <x:String>Цилиндр</x:String>
+            </Picker.Items>
+        </Picker>
+
+    </VerticalStackLayout>
+</ContentPage>
