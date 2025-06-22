@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fiwe", "fiwe\fiwe.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBase", "Server\DataBase\DataBase.csproj", "{98693E2A-AA03-4390-BD49-24A34BD6556F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DI", "DI\DI.csproj", "{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{98693E2A-AA03-4390-BD49-24A34BD6556F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98693E2A-AA03-4390-BD49-24A34BD6556F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98693E2A-AA03-4390-BD49-24A34BD6556F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +103,7 @@ Global
 		{A4658A1F-6A58-EA0B-E54B-16E4034F3A28} = {F5C19DC1-9B35-42A9-82C9-03DE9ACAB6A9}
 		{38844E0C-321F-46C8-B2EF-A2E371300993} = {070D52D0-1312-483E-94FE-169A635D651D}
 		{98693E2A-AA03-4390-BD49-24A34BD6556F} = {070D52D0-1312-483E-94FE-169A635D651D}
+		{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB} = {070D52D0-1312-483E-94FE-169A635D651D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {731CB3B0-5A9A-4BBE-88B2-7DFD8D2627E0}

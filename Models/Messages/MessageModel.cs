@@ -3,7 +3,7 @@
     public class MessageModel
     {
         public int Id { get; set; }
-        public int ChatId { get; set; }
+        public Guid? ChatId { get; set; }
         public string FromName { get; set; }
         public string ToName { get; set; }
         public string MessageBody { get; set; }

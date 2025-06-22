@@ -1,4 +1,6 @@
 ﻿using DataBase;
+using DataBase.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Messages;
 
@@ -8,16 +10,15 @@ namespace fiwe.Controllers
     [Route("[controller]")]
     public class MessagesController : Controller
     {
-        private readonly MessageRepository _messageRepository;
-        public MessagesController()
+        private readonly IMessageRepository _messageRepository;
+        public MessagesController(IMessageRepository messageRepository)
         {
-            _messageRepository = new MessageRepository();
+            _messageRepository = messageRepository;
         }
         public IActionResult Index()
         {
             return View();
         }
-
 
         [HttpGet(Name = "GetAllMyMessages")]
         public IActionResult Get()
