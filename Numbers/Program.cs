@@ -1,16 +1,27 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using Enums.Types;
 using Models;
+using Models.Messages;
 using Numbers;
-using System.Collections.Generic;
-
-using System.Linq;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+
+        var pen = new TestPen(); // Green
+        var printer = new Printer3D(); // Yellow
+
+
+        var rc = new RealClass("Test");
+        //var i1 = new IInterface
+        var i1 = (IInterface1)rc;
+        var i2 = (IInterface2)rc;
+
+        return;
         string toChtoNadaNapisat = "{0}, {1}, {2}, {3}";
 
         int magicValue = 5363;

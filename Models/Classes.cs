@@ -1,10 +1,16 @@
 ﻿using Enums.Types;
+using Models.Messages;
 
 namespace Models
 {
 
     public class TestPen
     {
+        public TestPen()
+        {
+            Color = ColorFlag.Green;
+        }
+
         public int LengthMm { get; set; }
         public ColorFlag Color { get; set; }
         public Enums.Form Form { get; set; }
@@ -14,6 +20,7 @@ namespace Models
     {
         public Printer3D() : base()
         {
+            Color = ColorFlag.Yellow;
         }
 
         public int Temperature { get; set; }
@@ -31,5 +38,14 @@ namespace Models
             var printer3D = new Printer3D();
             printer3D.Temperature = -44;
         }
+    }
+
+    public class RealClass : IInterface1
+    {
+        public RealClass(string name)
+        {
+            Name = name;
+        }
+        public string Name { get; set; }
     }
 }
