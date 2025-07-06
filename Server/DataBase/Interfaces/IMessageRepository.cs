@@ -1,4 +1,5 @@
-﻿using Models.Messages;
+﻿using DataBase.Models;
+using Models.Messages;
 
 namespace DataBase.Interfaces
 {

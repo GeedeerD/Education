@@ -1,4 +1,5 @@
 ﻿using DataBase.Interfaces;
+using DataBase.Models;
 using Models.Messages;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -15,7 +16,7 @@ namespace DataBase
         public MessageRepository()
         {
             var client = new MongoClient(ConnectionString);
-            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+            
             _db = client.GetDatabase("Education");
         }
         public IEnumerable<MessageModel> GetAllMessages(IndividualMessageFilter filter)

@@ -12,8 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddScoped<IMessageRepository, MessageRepository>();
-            
+            services.AddScoped<IMessageRepository, MessageRepository>()
+                .AddScoped<IMongoDbContext, MongoDbContext>();
 
             return services;
         }

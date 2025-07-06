@@ -7,10 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.Identity.Mongo" Version="10.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Configurations\Configurations.csproj" />
     <ProjectReference Include="..\DI\DI.csproj" />
     <ProjectReference Include="..\Server\DataBase\DataBase.csproj" />
   </ItemGroup>

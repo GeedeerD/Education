@@ -1,6 +1,5 @@
-﻿using DataBase;
-using DataBase.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using DataBase.Interfaces;
+using DataBase.Models;
 using Microsoft.AspNetCore.Mvc;
 using Models.Messages;
 

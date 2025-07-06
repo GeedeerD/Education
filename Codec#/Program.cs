@@ -7,7 +7,10 @@ namespace Codec_
     {
         public static object ProgramHelpers { get; private set; }
 
-        static object Main() => ProgramHelpers;//TestIf();//TestSwitch();//TestLoop();//TestLoopBreak();
+        static void Main()
+        {
+            //TestIf();//TestSwitch();//TestLoop();//TestLoopBreak();
+        }
 
         static void TestLoopBreak()
         {

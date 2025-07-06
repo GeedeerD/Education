@@ -1,4 +1,4 @@
-﻿namespace DataBase
+﻿namespace DataBase.Models
 {
     public class IndividualMessageFilter
     {
