@@ -1,5 +1,6 @@
 ﻿using DataBase.Interfaces;
 using DataBase.Models;
+using fiwe.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Models.Messages;
 
@@ -7,6 +8,7 @@ namespace fiwe.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [AuthorizationFilter]
     public class MessagesController : Controller
     {
         private readonly IMessageRepository _messageRepository;

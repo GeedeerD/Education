@@ -33,15 +33,25 @@ builder.Services
         mongoIdentityOptions.UsersCollection = "Users";
     });
 
+
+
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 var app = builder.Build();
 
+//app.UseRouting();
+//app.UseEndpoints(routeBuilder =>
+//{
+//    routeBuilder.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Home}/{action=Index}/{id?}");
+//});
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 

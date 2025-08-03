@@ -11,7 +11,21 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        TestFuncDelegate((ftr1, ftr2) =>
+        {
+            Console.WriteLine(ftr1);
+            return 2;
+        });
+        //DelegateName2("et", "re");
 
+        //int FunctionToRun(string var1){
+        //    Console.WriteLine(var1);
+
+        //    return 2;
+        //}
+
+
+        return;
         var pen = new TestPen(); // Green
         var printer = new Printer3D(); // Yellow
 
@@ -172,6 +186,18 @@ internal class Program
             sum += int.Parse(c.ToString());
         }
         return sum;
+    }
+
+    private static void TestDelegate(Action<string, string> runMe)
+    {
+        runMe("yes", "YES!!!");
+    }
+
+
+
+    private static void TestFuncDelegate(Func<string, string, int> runMe)
+    {
+        var result = runMe("yes", "YES!!!");
     }
 
     private static void ChangeParam(int x)
