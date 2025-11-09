@@ -1,36 +1,32 @@
 ﻿using DataBase.Interfaces;
 using DataBase.Models;
-using fiwe.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Messages;
 
 namespace fiwe.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("[controller]")]
-    [AuthorizationFilter]
-    public class MessagesController : Controller
+    public class MessagesController : ControllerBase
     {
         private readonly IMessageRepository _messageRepository;
         public MessagesController(IMessageRepository messageRepository)
         {
             _messageRepository = messageRepository;
         }
-        public IActionResult Index()
-        {
-            return View();
-        }
 
-        [HttpGet(Name = "GetAllMyMessages")]
-        public IActionResult Get()
+        [HttpGet, Route("GetAllMyMessages")]
+        public IActionResult GetAllMyMessages()
         {
-            var from = Request.Headers["x-from"];
-            if (from.Any() == false )
+            var currentUser = User.Identity?.Name;
+            if (currentUser == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
-            var messages = _messageRepository.GetAllMessages(new IndividualMessageFilter() { FromName = from.First(), ToName = from.First() });
+            var messages = _messageRepository.GetAllMessages(new IndividualMessageFilter() { FromName = currentUser, ToName = currentUser });
             return Ok(messages);
         }
 

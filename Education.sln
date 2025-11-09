@@ -30,9 +30,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codec#", "Codec#\Codec#.csproj", "{A4658A1F-6A58-EA0B-E54B-16E4034F3A28}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{070D52D0-1312-483E-94FE-169A635D651D}"
-	ProjectSection(SolutionItems) = preProject
-		MongoDbSettings.cs = MongoDbSettings.cs
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fiwe", "fiwe\fiwe.csproj", "{38844E0C-321F-46C8-B2EF-A2E371300993}"
 EndProject
@@ -41,6 +38,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DI", "DI\DI.csproj", "{E41F37D0-A58B-4EDA-83F6-7396D97CF2DB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configurations", "Configurations\Configurations.csproj", "{86F68158-E536-4312-8522-57BF277E6ECA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptions", "Exceptions\Exceptions.csproj", "{9CCD7986-18F6-4A71-9970-0E9FE0D3A058}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExceptions", "TestExceptions\TestExceptions.csproj", "{898DDE02-0DEC-489B-9F63-76650D7B8028}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ca_Collections", "ca_Collections\ca_Collections.csproj", "{041F88FC-B629-41B5-8D6F-9F8942EC5E7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +103,18 @@ Global
 		{86F68158-E536-4312-8522-57BF277E6ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86F68158-E536-4312-8522-57BF277E6ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86F68158-E536-4312-8522-57BF277E6ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CCD7986-18F6-4A71-9970-0E9FE0D3A058}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CCD7986-18F6-4A71-9970-0E9FE0D3A058}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CCD7986-18F6-4A71-9970-0E9FE0D3A058}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CCD7986-18F6-4A71-9970-0E9FE0D3A058}.Release|Any CPU.Build.0 = Release|Any CPU
+		{898DDE02-0DEC-489B-9F63-76650D7B8028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{898DDE02-0DEC-489B-9F63-76650D7B8028}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{898DDE02-0DEC-489B-9F63-76650D7B8028}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{898DDE02-0DEC-489B-9F63-76650D7B8028}.Release|Any CPU.Build.0 = Release|Any CPU
+		{041F88FC-B629-41B5-8D6F-9F8942EC5E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{041F88FC-B629-41B5-8D6F-9F8942EC5E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{041F88FC-B629-41B5-8D6F-9F8942EC5E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{041F88FC-B629-41B5-8D6F-9F8942EC5E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

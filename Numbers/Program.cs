@@ -11,21 +11,55 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        TestFuncDelegate((ftr1, ftr2) =>
-        {
-            Console.WriteLine(ftr1);
-            return 2;
-        });
-        //DelegateName2("et", "re");
+        TestMethod1();
+        var testItem1 = new TestItem1();
+        var testStruct1 = new TestStruct1();
 
-        //int FunctionToRun(string var1){
-        //    Console.WriteLine(var1);
+        //var pen = new Pen();
+        //var steelId = (int)Material.Steel;
 
-        //    return 2;
+        //S.Write("asd");
+
+        //var aaa = new A();
+        //aaa.Name = "asd";
+        //var bbbb = new B();
+
+        //var ccc = new C();
+
+
+        //if (aaa is Object) {
         //}
 
+        //var color = bbbb.Color;
+        //var aa1 = bbbb as A;
+        //var color1 = ((B)aa1).Color;
+
+
+        //var id = ((B)ccc).Id;
+            
+        //return;
+
+
+        IItem[] biTems = new BaseItem[5];
+
+        biTems[0] = new TestItem0();
+        biTems[1] = new TestItem1();
+        biTems[2] = new TestItem1() { Id = 188 };
+
+        //string name = 1;
 
         return;
+
+
+
+
+
+
+
+
+
+
+
         var pen = new TestPen(); // Green
         var printer = new Printer3D(); // Yellow
 
@@ -141,6 +175,25 @@ internal class Program
         //obj[8] = str;
     }
 
+    private static void TestMethod1()
+    {
+        List<TestStruct1> list = new List<TestStruct1>();
+        foreach(var i in Enumerable.Range(1, 1000000))
+        {
+            list.Add(new TestStruct1() { Id = 011111 + 1});
+        }
+
+        TestStruct1 testStruct1 = new() { Id = 3 };
+        TestMethod3(testStruct1);
+
+        Console.WriteLine("Used Memory Point");
+    }
+
+    private static void TestMethod3(TestStruct1 testStruct1)
+    {
+        testStruct1.Id = 12123;
+    }
+
     private static bool CheckLowerThanZero(int r)
     {
         return r < 0;
@@ -208,4 +261,94 @@ internal class Program
     {
         aa = "";
     }
+
+
+    public class Pen
+    {
+        public Material Meaterial { get; set; }
+    }
+    public class Wall
+    {
+
+    }
+
+    public class Pan
+    {
+        public Bottom Bottom { get; set; }
+        public Pen[] Pens { get; set; }
+        public Wall Wall { get; set; }
+
+    }
+
+
+    struct St
+    {
+        public int X;
+        public int Y;
+
+        public int Add()
+        {
+            return X + Y;
+        }
+    }
+
+
+
+    struct St2
+    {
+        public int X;
+        public int Y;
+
+        public int Add()
+        {
+            return X + Y;
+        }
+    }
+
+    static class S
+    {
+        public static void Write(string a)
+        {
+
+        }
+    }
+
+    class A
+    {
+        public A()
+        {
+            Console.WriteLine("A created");
+        }
+
+        public A(int i)
+        {
+            Id = i;
+        }
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    class C : B
+    {
+
+    }
+
+    class B : A
+    {
+        public B() : base()
+        {
+            Console.WriteLine("B created");
+        }
+
+
+        public Color Color { get; set; }
+    }
+
+}
+
+public enum Material : int //
+{
+    Steel,
+    Plastic,
+    Glass
 }

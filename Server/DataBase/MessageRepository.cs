@@ -11,6 +11,7 @@ namespace DataBase
     public class MessageRepository : IMessageRepository
     {
         private const string ConnectionString = "mongodb://localhost:27017";
+        private const string _dbName = "Messages";
         private readonly IMongoDatabase _db;
 
         public MessageRepository()
@@ -22,7 +23,7 @@ namespace DataBase
         public IEnumerable<MessageModel> GetAllMessages(IndividualMessageFilter filter)
         {
             var result = new List<MessageModel>();
-            result.AddRange(_db.GetCollection<MessageModel>("Messages").AsQueryable()
+            result.AddRange(_db.GetCollection<MessageModel>(_dbName).AsQueryable()
                 .Where(x => x.ChatId == filter.ChatId)
                 //.Where(x => x.FromName == filter.FromName || x.ToName == filter.ToName)
                 .ToList().OrderBy(x => x.SentAt));
@@ -32,8 +33,8 @@ namespace DataBase
 
         public void AddMessage(MessageModel message) 
         {
-            _db.CreateCollection("Messages");
-            _db.GetCollection<MessageModel>("Messages").InsertOne(message);
+            _db.CreateCollection(_dbName);
+            _db.GetCollection<MessageModel>(_dbName).InsertOne(message);
         }
 
         public int GetId()
