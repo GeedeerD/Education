@@ -1,10 +1,17 @@
-﻿using AspNetCore.Identity.Mongo.Model;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace fiwe.Models
 {
-    public class ApplicationUser : MongoUser
+    public class ApplicationUser
     {
-        //public string UserName { get; set; }
-        //public required string Password { get; set; }
+        [BsonId]
+        public ObjectId Id { get; set; }
+
+        [BsonElement("username")]
+        public string Username { get; set; } = null!;
+
+        [BsonElement("passwordHash")]
+        public string PasswordHash { get; set; } = null!;
     }
 }
