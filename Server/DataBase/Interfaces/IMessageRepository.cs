@@ -1,12 +1,15 @@
 ﻿using DataBase.Models;
-using Models.Messages;
+using MongoDB.Bson;
 
 namespace DataBase.Interfaces
 {
     public interface IMessageRepository
     {
-        IEnumerable<MessageModel> GetAllMessages(IndividualMessageFilter filter);
-        void AddMessage(MessageModel message);
-        int GetId();
+        Task CreateChatAsync(ObjectId userId, ChatModelDto chat);
+        Task<IEnumerable<ChatModelDto>> GetChatsAsync(ObjectId userId);
+        Task SendMessageAsync(MessageModelDto message);
+        Task<MessageModelDto?> ReadMessageAsync(ObjectId userId, ObjectId messageId);
+        Task<ChatModelDto> GetChatByUserOjectIdsAsync(ObjectId userId, ObjectId contactUserId);
+        Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId);
     }
 }

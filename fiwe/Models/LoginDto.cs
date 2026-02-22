@@ -1,4 +1,4 @@
-﻿namespace fiwe.Controllers
+﻿namespace fiwe.Models
 {
     public class LoginDto
     {

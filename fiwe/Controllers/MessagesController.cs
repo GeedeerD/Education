@@ -1,61 +1,32 @@
-﻿using DataBase.Interfaces;
-using DataBase.Models;
+﻿using fiwe.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Models.Messages;
 
 namespace fiwe.Controllers
 {
     [ApiController]
     [Authorize]
     [Route("[controller]")]
-    public class MessagesController : ControllerBase
+    public class MessagesController : BaseApiController
     {
-        private readonly IMessageRepository _messageRepository;
-        public MessagesController(IMessageRepository messageRepository)
+        private readonly IMessageService _messageService;
+        public MessagesController(IMessageService messageService)
         {
-            _messageRepository = messageRepository;
+            _messageService = messageService;
+            
         }
 
-        [HttpGet, Route("GetAllMyMessages")]
-        public IActionResult GetAllMyMessages()
+        [HttpGet, Route("GetAllMyChats")]
+        public async Task<IActionResult> GetAllMyChats()
         {
-            var currentUser = User.Identity?.Name;
-            if (currentUser == null)
+            if (string.IsNullOrEmpty(CurrentUserId))
             {
                 return Unauthorized();
             }
 
-            var messages = _messageRepository.GetAllMessages(new IndividualMessageFilter() { FromName = currentUser, ToName = currentUser });
-            return Ok(messages);
-        }
-
-
-        [HttpPut(Name = "SendMessage")]
-        public IActionResult SendMessage([FromBody] MessageViewModel viewModel)
-        {
-            var from = Request.Headers["x-from"];
-            if (from.Any() == false)
-            {
-                return NotFound();
-            }
-
-
-            var model = new MessageModel
-            {
-                Id = GenerateNewId(),
-                FromName = from.First(),
-                ToName = viewModel.ToName,
-                MessageBody = viewModel.MessageBody
-            };
-
-            _messageRepository.AddMessage(model);
-            return Ok();
-        }
-
-        private int GenerateNewId()
-        {
-            return _messageRepository.GetId();
+            var chats = await _messageService.GetChatsByUserIdAsync(CurrentUserId);
+            
+            return Ok(chats);
         }
     }
 }

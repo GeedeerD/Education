@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace DataBase.Models
 {
+
     public class UserDto
     {
         [BsonId]
@@ -10,6 +11,7 @@ namespace DataBase.Models
 
         [BsonElement("UserName")]
         public string UserName { get; set; } = null!;
+        public string PublicUserName { get; set; } = null!;
 
         [BsonElement("PasswordHash")]
         public string PasswordHash { get; set; } = null!;
@@ -25,5 +27,18 @@ namespace DataBase.Models
         public DateTime? LockoutEnd { get; set; }
         public bool LockoutEnabled { get; set; }
         public byte AccessFailedCount { get; set; }
+        public ObjectId ContactListId { get; set; }
+        public IEnumerable<string> AvatarUrls { get; set; }
+    }
+
+    public class UserSearchResultDto
+    {
+        public ObjectId UserId { get; set; }
+        public required string PublicUserName { get; set; }
+        public string AvatarUrl { get; set; }
+        public static UserSearchResultDto WrapModel(UserDto user)
+        {
+            return new UserSearchResultDto { UserId = user.Id, PublicUserName = user.PublicUserName, AvatarUrl = user.AvatarUrls?.LastOrDefault() };
+        }
     }
 }
