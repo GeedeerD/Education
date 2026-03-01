@@ -42,7 +42,7 @@ namespace Tests
         {
             var userId = ObjectId.GenerateNewId();
             // Arrange
-            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId() };
+            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId(), ChatId = ObjectId.GenerateNewId() };
             await _repo.CreateContactAsync(contact);
 
             // Action
@@ -58,7 +58,7 @@ namespace Tests
         {
             var userId = ObjectId.GenerateNewId();
             // Arrange
-            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId() };
+            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId(), ChatId = ObjectId.GenerateNewId() };
             await _repo.CreateContactAsync(contact);
 
             // Action
@@ -74,7 +74,7 @@ namespace Tests
         {
             var userId = ObjectId.GenerateNewId();
             // Arrange
-            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId() };
+            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId(), ChatId = ObjectId.GenerateNewId() };
             await _repo.CreateContactAsync(contact);
             const string newContactName = "Test - Udated";
             contact.Name = newContactName;
@@ -93,9 +93,9 @@ namespace Tests
         {
             var contactListId = ObjectId.GenerateNewId();
             // Arrange
-            var contact1 = new ContactDto { Name = "Test1", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId };
-            var contact2 = new ContactDto { Name = "Test2", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId };
-            var contact3 = new ContactDto { Name = "Test2", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId };
+            var contact1 = new ContactDto { Name = "Test1", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId, ChatId = ObjectId.GenerateNewId() };
+            var contact2 = new ContactDto { Name = "Test2", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId, ChatId = ObjectId.GenerateNewId() };
+            var contact3 = new ContactDto { Name = "Test2", UserId = ObjectId.GenerateNewId(), ContactListId = contactListId, ChatId = ObjectId.GenerateNewId() };
             await _repo.CreateContactAsync(contact1);
             await _repo.CreateContactAsync(contact2);
             await _repo.CreateContactAsync(contact3);
