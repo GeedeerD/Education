@@ -29,7 +29,7 @@ namespace fiwe.Models
 
     public class MessageViewModel
     {
-        public ObjectId ChatId { get; set; }
+        public string ChatId { get; set; }
         public string MessageBody { get; set; }
     }
 }

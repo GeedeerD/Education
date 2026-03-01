@@ -94,5 +94,11 @@ namespace DataBase
             var users = await _users.Find(u => u.Email == email).ToListAsync();
             return users.Select(UserSearchResultDto.WrapModel);
         }
+
+        public async Task<ObjectId> GetContactListIdAsync(ObjectId userId)
+        {
+            var user = await _users.Find(u => u.Id == userId).FirstAsync();
+            return user.ContactListId;
+        }
     }
 }

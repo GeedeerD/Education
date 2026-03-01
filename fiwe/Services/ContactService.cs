@@ -1,13 +1,12 @@
 ﻿using DataBase.Interfaces;
 using DataBase.Models;
-using fiwe.Models;
 using MongoDB.Bson;
 
 namespace fiwe.Services
 {
     public interface IContactService
     {
-        Task<string> AddContatAsync(string contactListId, string userId);
+        Task<string> AddContatAsync(string currentUserId, string userId, string contactName);
         Task<IEnumerable<UserViewModel>> FindUsersByUserNameAsync(string userName);
     }
 
@@ -26,16 +25,22 @@ namespace fiwe.Services
     {
         private readonly IContactRepository _contactRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMessageRepository _messageRepository;
 
-        public ContactService(IContactRepository contactRepository, IUserRepository userRepository)
+        public ContactService(IContactRepository contactRepository, IUserRepository userRepository, IMessageRepository messageRepository)
         {
             _contactRepository = contactRepository;
             _userRepository = userRepository;
+            _messageRepository = messageRepository;
         }
 
-        public async Task<string> AddContatAsync(string contactListId, string userId)
+        public async Task<string> AddContatAsync(string currentUserId, string userId, string contactName)
         {
-            var contactDto = new ContactDto { ContactListId = ObjectId.Parse(contactListId), UserId = ObjectId.Parse(userId) };
+            var userContactListId = await _userRepository.GetContactListIdAsync(ObjectId.Parse(currentUserId));
+            var chatDto = new ChatModelDto() { UserObjectIds = [ObjectId.Parse(currentUserId), ObjectId.Parse(userId)] };
+            await _messageRepository.CreateChatAsync(ObjectId.Parse(currentUserId), chatDto);
+            
+            var contactDto = new ContactDto { ContactListId = userContactListId, UserId = ObjectId.Parse(userId), ChatId = chatDto.ObjectId, Name = contactName };
             await _contactRepository.CreateContactAsync(contactDto);
             return contactDto.Id.ToString();
         }

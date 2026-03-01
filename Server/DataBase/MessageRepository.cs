@@ -1,4 +1,5 @@
-﻿using DataBase.Interfaces;
+﻿using System.Linq;
+using DataBase.Interfaces;
 using DataBase.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -33,7 +34,16 @@ namespace DataBase
         {
             if (chat.UserObjectIds.Contains(userId))
             {
-                chat.ActiveDate = DateTime.UtcNow;
+                var existingChat = await _chats.Find(x => x.UserObjectIds.Contains(userId) && chat.UserObjectIds.Count() == x.UserObjectIds.Count() && x.UserObjectIds.All(o => chat.UserObjectIds.Contains(o))).FirstOrDefaultAsync();
+                if (existingChat != null)
+                {
+                    var update = Builders<ChatModelDto>.Update
+                        .Set(u => u.ActiveDate, DateTime.UtcNow);
+                    await _chats.FindOneAndUpdateAsync(x => x.ObjectId == existingChat.ObjectId, update);
+                    chat.ActiveDate = DateTime.UtcNow;
+                    chat.ObjectId = existingChat.ObjectId;
+                    return;
+                }
                 await _chats.InsertOneAsync(chat);
             }
             else

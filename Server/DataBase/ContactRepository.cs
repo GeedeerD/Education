@@ -44,7 +44,17 @@ namespace DataBase
 
             if (contact.ChatId == ObjectId.Empty)
             {
-                contact.ChatId = ObjectId.GenerateNewId();
+                throw new ArgumentNullException(nameof(contact.ChatId));
+            }
+
+            var existingContact = await _contacts.Find(x=>x.UserId == contact.UserId && x.ContactListId == contact.ContactListId && x.ChatId == contact.ChatId).FirstOrDefaultAsync();
+            if (existingContact != null)
+            {
+                var update = Builders<ContactDto>.Update
+                        .Set(u => u.Name, contact.Name);
+                await _contacts.FindOneAndUpdateAsync(x => x.Id == existingContact.Id, update);
+                contact.Id = existingContact.Id;
+                return;
             }
 
             await _contacts.InsertOneAsync(contact);

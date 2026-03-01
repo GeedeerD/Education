@@ -11,5 +11,6 @@ namespace DataBase.Interfaces
         Task<IEnumerable<UserSearchResultDto>> SearchByPublicUserNameAsync(string publicUserName);
         Task<IEnumerable<UserSearchResultDto>> SearchByPhoneAsync(string phone);
         Task<IEnumerable<UserSearchResultDto>> SearchByEmailAsync(string email);
+        Task<ObjectId> GetContactListIdAsync(ObjectId userId);
     }
 }

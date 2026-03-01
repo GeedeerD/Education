@@ -1,4 +1,5 @@
-﻿using fiwe.Services;
+﻿using fiwe.Models;
+using fiwe.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,19 @@ namespace fiwe.Controllers
 
             var chats = await _messageService.GetChatsByUserIdAsync(CurrentUserId);
             
+            return Ok(chats);
+        }
+
+        [HttpPost, Route("SendMessage")]
+        public async Task<IActionResult> SendMessageAsync([FromBody] MessageViewModel model)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId))
+            {
+                return Unauthorized();
+            }
+
+            var chats = await _messageService.SendMessageAsync(CurrentUserId, model);
+
             return Ok(chats);
         }
     }

@@ -2,6 +2,7 @@
 using System.Text;
 using DataBase.Interfaces;
 using fiwe.Models;
+using MongoDB.Bson;
 
 namespace fiwe.Services
 {
