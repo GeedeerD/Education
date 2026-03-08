@@ -11,6 +11,7 @@ namespace fiwe.Services
         Task<ApplicationUser?> GetByUsernameAsync(string username);
         Task CreateUserAsync(string username, string password);
         bool VerifyPassword(string password, string hash);
+        Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName);
     }
     public class UserService : IUserService
     {
@@ -50,6 +51,11 @@ namespace fiwe.Services
             using var sha = SHA3_512.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
+        }
+
+        public async Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName)
+        {
+            await _userRepository.UpdateUserInfoAsync(ObjectId.Parse(userId), phone, email, publicUserName);
         }
     }
 }

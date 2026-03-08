@@ -7,7 +7,7 @@ namespace fiwe.Services
     public interface IContactService
     {
         Task<string> AddContatAsync(string currentUserId, string userId, string contactName);
-        Task<IEnumerable<UserViewModel>> FindUsersByUserNameAsync(string userName);
+        Task<IEnumerable<UserViewModel>> FindUsersByUserNameAsync(string publicUserName);
     }
 
     public class UserViewModel
@@ -37,7 +37,7 @@ namespace fiwe.Services
         public async Task<string> AddContatAsync(string currentUserId, string userId, string contactName)
         {
             var userContactListId = await _userRepository.GetContactListIdAsync(ObjectId.Parse(currentUserId));
-            var chatDto = new ChatModelDto() { UserObjectIds = [ObjectId.Parse(currentUserId), ObjectId.Parse(userId)] };
+            var chatDto = new ChatModelDto() { UserObjectIds = new HashSet<ObjectId>() { ObjectId.Parse(currentUserId), ObjectId.Parse(userId) } };
             await _messageRepository.CreateChatAsync(ObjectId.Parse(currentUserId), chatDto);
             
             var contactDto = new ContactDto { ContactListId = userContactListId, UserId = ObjectId.Parse(userId), ChatId = chatDto.ObjectId, Name = contactName };
@@ -45,9 +45,9 @@ namespace fiwe.Services
             return contactDto.Id.ToString();
         }
 
-        public async Task<IEnumerable<UserViewModel>> FindUsersByUserNameAsync(string userName)
+        public async Task<IEnumerable<UserViewModel>> FindUsersByUserNameAsync(string publicUserName)
         {
-            var userDtos = await _userRepository.SearchByPublicUserNameAsync(userName);
+            var userDtos = await _userRepository.SearchByPublicUserNameAsync(publicUserName);
             return userDtos.Select(UserViewModel.WrapModel);
         }
     }
