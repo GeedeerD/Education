@@ -11,5 +11,6 @@ namespace DataBase.Interfaces
         Task<MessageModelDto?> ReadMessageAsync(ObjectId userId, ObjectId messageId);
         Task<ChatModelDto> GetChatByUserOjectIdsAsync(ObjectId userId, ObjectId contactUserId);
         Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId);
+        Task<AccessInfo> GetChatAccessInfoAsync(string userId, string chatId);
     }
 }
