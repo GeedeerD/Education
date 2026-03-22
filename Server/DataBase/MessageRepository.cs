@@ -126,5 +126,16 @@ namespace DataBase
                 .Set(u => u.ActiveDate, DateTime.UtcNow);
             var chat = await _chats.FindOneAndUpdateAsync(x => x.ObjectId == chatId, update);
         }
+
+        public async Task<AccessInfo> GetChatAccessInfoAsync(string userId, string chatId)
+        {
+            var chat = await GetChatAsync(ObjectId.Parse(chatId));
+            if (chat != null && chat.UserObjectIds.Any(x => x == ObjectId.Parse(userId)))
+            {
+                return new AccessInfo { Type = AccessType.General };
+            }
+
+            return new AccessInfo();
+        }
     }
 }

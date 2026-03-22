@@ -52,6 +52,27 @@ namespace Tests
             Assert.That(contact.Id, Is.Not.EqualTo(ObjectId.Empty));
             Assert.That(newContact.Name, Is.EqualTo(contact.Name));
         }
+        [Test]
+        
+        public async Task CreateContact_ShouldSaveContactToDatabase()
+        {
+            // Arrange
+            var contact = new ContactDto
+            {
+                Name = "Test",
+                UserId = ObjectId.GenerateNewId(),
+                ContactListId = ObjectId.GenerateNewId(),
+                ChatId = ObjectId.GenerateNewId()
+            };
+
+            // Action
+            await _repo.CreateContactAsync(contact);
+
+            // Assert
+            var savedContact = await _repo.GetContactByObjectIdAsync(contact.ContactListId, contact.Id);
+            Assert.That(savedContact, Is.Not.Null);
+            Assert.That(savedContact.Name, Is.EqualTo(contact.Name));
+        }
 
         [Test]
         public async Task DeleteContact_ByContact_ShouldNotReturnContactAfterDeletion()
@@ -70,22 +91,24 @@ namespace Tests
         }
 
         [Test]
-        public async Task UpdateContact_ByContact_ShouldReturnContactWithNewName()
+        public async Task CreateContactAsync_WhenContactAlreadyExists_ShouldEnterExistingContact()
         {
-            var userId = ObjectId.GenerateNewId();
             // Arrange
-            var contact = new ContactDto { Name = "Test", UserId = userId, ContactListId = ObjectId.GenerateNewId(), ChatId = ObjectId.GenerateNewId() };
+            var contact = new ContactDto
+            {
+                Name = "Test",
+                UserId = ObjectId.GenerateNewId(),
+                ContactListId = ObjectId.GenerateNewId(),
+                ChatId = ObjectId.GenerateNewId()
+            };
             await _repo.CreateContactAsync(contact);
-            const string newContactName = "Test - Udated";
-            contact.Name = newContactName;
+            var duplicate = new ContactDto { Name = "New Name", UserId = contact.UserId, ContactListId = contact.ContactListId, ChatId = contact.ChatId };
 
-            // Action
-            await _repo.UpdateContactAsync(contact);
+            // Act
+            await _repo.CreateContactAsync(duplicate);
 
             // Assert
-            var contactAfterUpdate = await _repo.GetContactByObjectIdAsync(contact.ContactListId, contact.Id);
-            Assert.That(contactAfterUpdate, Is.Not.Null);
-            Assert.That(contactAfterUpdate.Name, Is.EqualTo(newContactName));
+            Assert.That(duplicate.Id, Is.EqualTo(contact.Id));
         }
 
         [Test]

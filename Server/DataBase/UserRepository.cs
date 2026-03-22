@@ -51,6 +51,12 @@ namespace DataBase
 
             if (!string.IsNullOrWhiteSpace(publicUserName))
             {
+                var existsUser = await _users.Find(u => u.PublicUserName == publicUserName && u.Id != userId).FirstOrDefaultAsync();
+                if (existsUser != null)
+                {
+                    throw new Exception("User with public user name already exists");
+                }
+
                 update = update.Set(u => u.PublicUserName, publicUserName);
             }
 
