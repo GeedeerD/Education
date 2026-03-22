@@ -23,12 +23,8 @@ namespace fiwe.Controllers
             _userService = userService;
         }
 
-        //key
-
-
-        //password
-        //userName
-        [HttpPost(Name = "Register")]
+        //[AllowAnonymous]
+        [Route("Register"), HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync(RegisterUser model)
         {
             var existing = await _userService.GetByUsernameAsync(model.UserName);
@@ -56,7 +52,7 @@ namespace fiwe.Controllers
         {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 

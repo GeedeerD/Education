@@ -13,6 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddScoped<IMessageRepository, MessageRepository>()
+                .AddScoped<IContactRepository, ContactRepository>()
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped<IMongoDbContext, MongoDbContext>();
 

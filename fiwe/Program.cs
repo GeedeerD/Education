@@ -55,7 +55,9 @@ builder.Services.AddEndpointsApiExplorer()
                 .AddSwaggerGen()
                 .AddCommonDependency()
                 .Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
-builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IUserService, UserService>()
+    .AddTransient<IMessageService, MessageService>()
+    .AddTransient<IContactService, ContactService>();
 
 var options = builder.Configuration["MongoDbSettings:ConnectionString"];
 
