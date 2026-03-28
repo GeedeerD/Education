@@ -113,5 +113,43 @@ namespace Tests
         {
             _runner.Dispose();
         }
+        [Test]
+        public async Task CreateChatAsync_WhenExistingChatExists_ShouldUseExistingChat()
+        {
+            // Arrange
+            var userId = ObjectId.GenerateNewId();
+
+            var existingChat = new ChatModelDto
+            {
+                ObjectId = ObjectId.GenerateNewId(),
+                UserObjectIds = new List<ObjectId> { userId },
+                ActiveDate = DateTime.UtcNow.AddDays(-1)
+            };
+
+            var chats = _database.GetCollection<ChatModelDto>("Chats");
+
+            await chats.InsertOneAsync(existingChat);
+
+            var newChat = new ChatModelDto
+            {
+                UserObjectIds = new List<ObjectId> { userId }
+            };
+
+            // Act
+            await _repo.CreateChatAsync(userId, newChat);
+
+            // Assert
+
+            // 1️⃣ проверяем что взялся старый чат
+            Assert.That(newChat.ObjectId, Is.EqualTo(existingChat.ObjectId));
+
+            // 2️⃣ проверяем что новый чат НЕ создался
+            var allChats = await chats.Find(_ => true).ToListAsync();
+            Assert.That(allChats.Count, Is.EqualTo(1));
+
+            // 3️⃣ проверяем что обновилась дата активности
+            var updatedChat = allChats.First();
+            Assert.That(updatedChat.ActiveDate, Is.GreaterThan(existingChat.ActiveDate));
+        }
     }
 }
