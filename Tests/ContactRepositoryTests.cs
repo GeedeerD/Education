@@ -109,6 +109,27 @@ namespace Tests
             Assert.That(contact3.Name, Is.EqualTo(contacts.First(x => x.Id == contact3.Id).Name));
         }
 
+        [Test]
+        public async Task CreateContactAsync_WhenContactAlreadyExists_ShouldEnterExistingContact()
+        {
+            // Arrange
+            var contact = new ContactDto
+            {
+                Name = "Test",
+                UserId = ObjectId.GenerateNewId(),
+                ContactListId = ObjectId.GenerateNewId(),
+                ChatId = ObjectId.GenerateNewId()
+            };
+            await _repo.CreateContactAsync(contact);
+            var duplicate = new ContactDto { Name = "New Name", UserId = contact.UserId, ContactListId = contact.ContactListId, ChatId = contact.ChatId };
+
+            // Act
+            await _repo.CreateContactAsync(duplicate);
+
+            // Assert
+            Assert.That(duplicate.Id, Is.EqualTo(contact.Id));
+        }
+
         public void Dispose()
         {
             _runner.Dispose();
