@@ -159,6 +159,26 @@ namespace Tests
             Assert.That(chat3.ObjectId, Is.AnyOf(result.Select(x => x.ObjectId).ToArray()));
         }
 
+
+        [Test]
+        public async Task CreateChatAsync_WhenExistingChatExists_ShouldUseExistingChat()
+        {
+            // Arrange
+            var userId = ObjectId.GenerateNewId();
+            var chat = new ChatModelDto() { UserObjectIds = [userId] };
+            var chat2 = new ChatModelDto() { UserObjectIds = [userId] };
+
+            await _repo.CreateChatAsync(userId, chat);
+
+            // Action
+            await _repo.CreateChatAsync(userId, chat2);
+
+            // Assert
+            Assert.That(ObjectId.Empty, Is.Not.EqualTo(chat.ObjectId));
+            Assert.That(ObjectId.Empty, Is.Not.EqualTo(chat2.ObjectId));
+            Assert.That(chat.ObjectId, Is.EqualTo(chat2.ObjectId));
+        }
+
         public void Dispose()
         {
             _runner.Dispose();
