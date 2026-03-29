@@ -89,7 +89,6 @@ namespace Tests
             var contactAfterRemove = await _repo.GetContactByObjectIdAsync(contact.ContactListId, contact.Id);
             Assert.That(contactAfterRemove, Is.Null);
         }
-        //112
 
         [Test]
         public async Task CreateContactAsync_WhenContactAlreadyExists_ShouldEnterExistingContact()
