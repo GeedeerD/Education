@@ -33,7 +33,7 @@ namespace Tests
             Assert.That(result, Is.Not.Null);
             Assert.That(userName, Is.EqualTo(result!.UserName));
         }
-
+        //vld
 
         [Test]
         public async Task CreateAndSearchUser_ByPublicUserName_ShouldReturnUserSearchResult()
