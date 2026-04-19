@@ -10,6 +10,7 @@ namespace fiwe.Controllers
     [Route("[controller]")]
     public class MessagesController : BaseApiController
     {
+        private const int MessagesCountByChatDueLoading = 5;
         private readonly IMessageService _messageService;
         public MessagesController(IMessageService messageService)
         {
@@ -29,6 +30,20 @@ namespace fiwe.Controllers
             
             return Ok(chats);
         }
+
+        [HttpGet, Route("{chatId}/Messages")]
+        public async Task<IActionResult> SendMessageAsync(string chatId)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId))
+            {
+                return Unauthorized();
+            }
+
+            var messages = await _messageService.GetMessagesFromChatAsync(CurrentUserId, chatId, MessagesCountByChatDueLoading);
+
+            return Ok(messages);
+        }
+
 
         [HttpPost, Route("SendMessage")]
         public async Task<IActionResult> SendMessageAsync([FromBody] MessageViewModel model)

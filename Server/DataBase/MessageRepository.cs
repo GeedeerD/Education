@@ -90,7 +90,7 @@ namespace DataBase
             return null;
         }
 
-        public async Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId)
+        public async Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId, int? messageCount = null)
         {
             var chat = await GetChatAsync(chatId);
             if (!chat.UserObjectIds.Contains(userId))

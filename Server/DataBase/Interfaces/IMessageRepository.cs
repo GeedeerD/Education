@@ -10,7 +10,7 @@ namespace DataBase.Interfaces
         Task SendMessageAsync(MessageModelDto message);
         Task<MessageModelDto?> ReadMessageAsync(ObjectId userId, ObjectId messageId);
         Task<ChatModelDto> GetChatByUserOjectIdsAsync(ObjectId userId, ObjectId contactUserId);
-        Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId);
+        Task<IEnumerable<MessageModelDto>> GetMessagesAsync(ObjectId userId, ObjectId chatId, int? messageCount = null);
         Task<AccessInfo> GetChatAccessInfoAsync(string userId, string chatId);
     }
 }

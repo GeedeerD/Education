@@ -32,4 +32,11 @@ namespace fiwe.Models
         public string ChatId { get; set; }
         public string MessageBody { get; set; }
     }
+
+    public class PreviewMessageViewModel
+    {
+        public DateTime SentAt { get; set; }
+        public string SenderObjectId { get; set; }
+        public string MessageBody { get; set; }
+    }
 }
