@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using System.Numerics;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using DataBase.Interfaces;
 using fiwe.Models;
@@ -12,6 +14,8 @@ namespace fiwe.Services
         Task CreateUserAsync(string username, string password);
         bool VerifyPassword(string password, string hash);
         Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName);
+        Task SetUserPublicKeyAsync(string userId, string publicKey);
+        Task<string> GetUserPublicKeyAsync(string userId);
     }
     public class UserService : IUserService
     {
@@ -56,6 +60,16 @@ namespace fiwe.Services
         public async Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName)
         {
             await _userRepository.UpdateUserInfoAsync(ObjectId.Parse(userId), phone, email, publicUserName);
+        }
+
+        public async Task SetUserPublicKeyAsync(string userId, string publicKey)
+        {
+            await _userRepository.SetUserPublicKeyAsync(ObjectId.Parse(userId), publicKey);
+        }
+
+        public async Task<string> GetUserPublicKeyAsync(string userId)
+        {
+            return await _userRepository.GetUserPublicKeyAsync(ObjectId.Parse(userId));
         }
     }
 }

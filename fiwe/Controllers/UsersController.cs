@@ -13,13 +13,28 @@ namespace fiwe.Controllers
         public UsersController(IUserService userService)
         {
             _userService = userService;
-            
         }
 
         [HttpPost, Route("ChangePublicName")]
         public async Task<IActionResult> ChangePublicUserAsync([FromBody]string publicUserName)
         {
             await _userService.UpdateUserInfoAsync(CurrentUserId, phone: null, email: null, publicUserName: publicUserName);
+
+            return Ok();
+        }
+
+        [HttpPost, Route("SetPublicKey")]
+        public async Task<IActionResult> SetUserPublicKeyAsync([FromBody] string publicKey)
+        {
+            await _userService.SetUserPublicKeyAsync(CurrentUserId, publicKey);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("{userId}/GetPublicKey")]
+        public async Task<IActionResult> GetUserPublicKeyAsync(string userId)
+        {
+            var publicKey = await _userService.GetUserPublicKeyAsync(userId);
 
             return Ok();
         }

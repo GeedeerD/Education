@@ -106,5 +106,17 @@ namespace DataBase
             var user = await _users.Find(u => u.Id == userId).FirstAsync();
             return user.ContactListId;
         }
+
+        public async Task SetUserPublicKeyAsync(ObjectId userId, string publicKey)
+        {
+            var update = Builders<UserDto>.Update.Set(u => u.PublicKey, publicKey);
+            var user = await _users.FindOneAndUpdateAsync(x => x.Id == userId, update);
+        }
+
+        public async Task<string> GetUserPublicKeyAsync(ObjectId userId)
+        {
+            var user = await _users.Find(u => u.Id == userId).FirstAsync();
+            return user.PublicKey;
+        }
     }
 }
