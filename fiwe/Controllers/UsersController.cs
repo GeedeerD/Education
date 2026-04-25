@@ -34,7 +34,7 @@ namespace fiwe.Controllers
         [HttpGet, Route("{userId}/PublicKey")]
         public async Task<IActionResult> GetUserPublicKeyAsync(string userId)
         {
-            var publicKey = await _userService.GetUserPublicKeyAsync(userId);
+            var publicKey = await _userService.GetUserPublicKeyAsync(CurrentUserId, userId);
 
             return Ok(new { PublicKeyBase64 = publicKey });
         }

@@ -62,6 +62,7 @@ namespace FiweClient.Crypto
         /// </summary>
         public async Task SaveKeyPairAsync(KeyPair keyPair, string userPassword)
         {
+            userPassword = string.Empty;
             var salt = GenerateSalt();
             var encryptionKey = DeriveKey(userPassword, salt);
 
@@ -91,6 +92,7 @@ namespace FiweClient.Crypto
             if (!KeystoreExists())
                 return null;
 
+            userPassword = string.Empty;
             try
             {
                 var fileContent = await File.ReadAllBytesAsync(_keystorePath);

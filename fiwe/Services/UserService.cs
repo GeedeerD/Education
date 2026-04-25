@@ -15,7 +15,7 @@ namespace fiwe.Services
         bool VerifyPassword(string password, string hash);
         Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName);
         Task SetUserPublicKeyAsync(string userId, string publicKey);
-        Task<string> GetUserPublicKeyAsync(string userId);
+        Task<string> GetUserPublicKeyAsync(string currentUserId, string userId);
     }
     public class UserService : IUserService
     {
@@ -67,9 +67,10 @@ namespace fiwe.Services
             await _userRepository.SetUserPublicKeyAsync(ObjectId.Parse(userId), publicKey);
         }
 
-        public async Task<string> GetUserPublicKeyAsync(string userId)
+        public async Task<string> GetUserPublicKeyAsync(string currentUserId, string userId)
         {
-            return await _userRepository.GetUserPublicKeyAsync(ObjectId.Parse(userId));
+            
+            return await _userRepository.GetUserPublicKeyAsync(ObjectId.Parse(userId) != default ? ObjectId.Parse(userId) : ObjectId.Parse(currentUserId));
         }
     }
 }

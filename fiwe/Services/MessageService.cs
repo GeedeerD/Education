@@ -24,7 +24,7 @@ namespace fiwe.Services
         public async Task<IEnumerable<ChatViewModel>> GetChatsByUserIdAsync(string userId)
         {
             var chats = await _messageRepository.GetChatsAsync(ObjectId.Parse(userId));
-            return chats.Select(ChatViewModel.WrapModel);
+            return chats.Select(c => ChatViewModel.WrapModel(c, userId));
         }
 
         public async Task<IEnumerable<PreviewMessageViewModel>> GetMessagesFromChatAsync(string currentUserId, string chatId, int messageCount)
