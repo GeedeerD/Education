@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Contacts"
+             x:Class="FiweClient.Views.ContactListView"
+             x:DataType="vm:ContactListViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Шапка -->
+        <Border Grid.Row="0" Padding="20,16"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+            <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Grid.Column="0"
+                           Text="Контакты"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Content="＋ Добавить"
+                        Command="{Binding OpenAddContactCommand}"
+                        Padding="14,8" />
+            </Grid>
+        </Border>
+
+        <!-- Пустое состояние -->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="8">
+            <TextBlock Text="👥" FontSize="48" HorizontalAlignment="Center" />
+            <TextBlock Text="Список контактов пуст"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="Нажмите «Добавить» чтобы найти пользователей"
+                       FontSize="13"
+                       Opacity="0.5"
+                       HorizontalAlignment="Center" />
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>

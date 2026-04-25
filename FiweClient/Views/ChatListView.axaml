@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Chats"
+             x:Class="FiweClient.Views.ChatListView"
+             x:DataType="vm:ChatListViewModel">
+
+    <!-- Триггер загрузки при открытии экрана --> 
+    <Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded">
+            <InvokeCommandAction Command="{Binding LoadChatsCommand}" />
+        </EventTriggerBehavior>
+    </Interaction.Behaviors>
+
+    <Grid ColumnDefinitions="280, *">
+
+        <!-- ── Левая панель: список чатов ── -->
+        <Border Grid.Column="0"
+                BorderThickness="0,0,1,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                Opacity="0.15">
+
+            <Grid RowDefinitions="Auto, *">
+
+                <!-- Шапка -->
+                <Border Grid.Row="0" Padding="16,12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Text="Чаты"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+
+                        <Button Grid.Column="1"
+                                Content="＋ Контакт"
+                                FontSize="12"
+                                Padding="10,6"
+                                VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Список чатов -->
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding Chats}"
+                         SelectedItem="{Binding SelectedChat}"
+                         SelectionMode="Single">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ChatPreviewViewModel">
+                            <Grid ColumnDefinitions="*, Auto" Margin="0,4">
+                                <StackPanel Grid.Column="0" Spacing="3">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               FontSize="14"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding LastMessage}"
+                                               FontSize="12"
+                                               Opacity="0.6"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding LastMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding TimeLabel}"
+                                           FontSize="11"
+                                           Opacity="0.5"
+                                           VerticalAlignment="Top" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </Grid>
+        </Border>
+
+        <!-- ── Правая панель: подсказка пока чат не выбран ── -->
+        <Grid Grid.Column="1">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="8">
+                <TextBlock Text="🔒"
+                           FontSize="48"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Выберите чат"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Все сообщения зашифрованы End-to-End"
+                           FontSize="13"
+                           Opacity="0.5"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+
+</UserControl>
