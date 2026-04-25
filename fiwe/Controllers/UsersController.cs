@@ -31,12 +31,12 @@ namespace fiwe.Controllers
             return Ok();
         }
 
-        [HttpGet, Route("{userId}/GetPublicKey")]
+        [HttpGet, Route("{userId}/PublicKey")]
         public async Task<IActionResult> GetUserPublicKeyAsync(string userId)
         {
             var publicKey = await _userService.GetUserPublicKeyAsync(userId);
 
-            return Ok();
+            return Ok(new { PublicKeyBase64 = publicKey });
         }
     }
 }

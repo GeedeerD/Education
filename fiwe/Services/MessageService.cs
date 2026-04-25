@@ -10,7 +10,7 @@ namespace fiwe.Services
     {
         Task<IEnumerable<ChatViewModel>> GetChatsByUserIdAsync(string userId);
         Task<IEnumerable<PreviewMessageViewModel>> GetMessagesFromChatAsync(string currentUserId, string chatId, int messageCount);
-        Task<string> SendMessageAsync(string userId, MessageViewModel model);
+        Task<(string MessageId, IEnumerable<string> Recipients)> SendMessageAsync(string userId, MessageViewModel model);
     }
     public class MessageService : IMessageService
     {
@@ -34,7 +34,7 @@ namespace fiwe.Services
             return previewMessages.Select(x => new PreviewMessageViewModel { MessageBody = x.MessageBody, SentAt = x.SentAt, SenderObjectId = x.FromUserObjectId.ToString() });
         }
 
-        public async Task<string> SendMessageAsync(string userId, MessageViewModel model)
+        public async Task<(string MessageId, IEnumerable<string> Recipients)> SendMessageAsync(string userId, MessageViewModel model)
         {
             var accessInfo = await _messageRepository.GetChatAccessInfoAsync(userId, model.ChatId);
             if (accessInfo.IsDeny)
@@ -44,7 +44,7 @@ namespace fiwe.Services
 
             var messageDto = new MessageModelDto() { MessageBody = model.MessageBody, ChatId = ObjectId.Parse(model.ChatId), FromUserObjectId = ObjectId.Parse(userId), SentAt = DateTime.UtcNow };
             await _messageRepository.SendMessageAsync(messageDto);
-            return messageDto.ObjectId.ToString();
+            return (messageDto.ObjectId.ToString(), accessInfo.Recipients);
         }
     }
 }

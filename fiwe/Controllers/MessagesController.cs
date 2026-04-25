@@ -2,6 +2,7 @@
 using fiwe.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace fiwe.Controllers
 {
@@ -12,6 +13,7 @@ namespace fiwe.Controllers
     {
         private const int MessagesCountByChatDueLoading = 5;
         private readonly IMessageService _messageService;
+        private readonly IHubContext<ChatHub> _hubContext;
         public MessagesController(IMessageService messageService)
         {
             _messageService = messageService;
@@ -32,7 +34,7 @@ namespace fiwe.Controllers
         }
 
         [HttpGet, Route("{chatId}/Messages")]
-        public async Task<IActionResult> SendMessageAsync(string chatId)
+        public async Task<IActionResult> GetMessagesAsync(string chatId)
         {
             if (string.IsNullOrEmpty(CurrentUserId))
             {
@@ -53,9 +55,10 @@ namespace fiwe.Controllers
                 return Unauthorized();
             }
 
-            var chats = await _messageService.SendMessageAsync(CurrentUserId, model);
+            var sendMessageResult = await _messageService.SendMessageAsync(CurrentUserId, model);
+            await _hubContext.Clients.Group(model.ChatId).SendAsync("ReceiveMessage", model.ChatId, sendMessageResult.Recipients, sendMessageResult.MessageId);
 
-            return Ok(chats);
+            return Ok(sendMessageResult.MessageId);
         }
     }
 }

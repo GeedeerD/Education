@@ -4,6 +4,7 @@
     {
         public AccessType Type { get; set; }
         public bool IsDeny => Type == 0;
+        public IEnumerable<string> Recipients { get; set; } = [];
     }
 
     public enum AccessType : byte

@@ -132,7 +132,7 @@ namespace DataBase
             var chat = await GetChatAsync(ObjectId.Parse(chatId));
             if (chat != null && chat.UserObjectIds.Any(x => x == ObjectId.Parse(userId)))
             {
-                return new AccessInfo { Type = AccessType.General };
+                return new AccessInfo { Type = AccessType.General, Recipients = chat.UserObjectIds.Where(x => x != ObjectId.Parse(userId)).Select(x => x.ToString()) };
             }
 
             return new AccessInfo();
