@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Chats"
+             x:Class="FiweClient.Views.ChatView"
+             x:DataType="vm:ChatViewModel">
+
+    <Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded">
+            <InvokeCommandAction Command="{Binding LoadMessagesCommand}" />
+        </EventTriggerBehavior>
+    </Interaction.Behaviors>
+
+    <Grid RowDefinitions="Auto, *, Auto">
+
+        <!-- ── Шапка чата ── -->
+        <Border Grid.Row="0"
+                Padding="16,12"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+
+                <!-- Иконка замка E2EE -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource SystemAccentColor}"
+                        CornerRadius="20"
+                        Width="40" Height="40"
+                        Margin="0,0,12,0">
+                    <TextBlock Text="🔒"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="{Binding ChatName}"
+                               FontSize="16"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="End-to-End Encrypted"
+                               FontSize="11"
+                               Foreground="Green"
+                               Opacity="0.8" />
+                </StackPanel>
+
+                <!-- Индикатор загрузки -->
+                <ProgressBar Grid.Column="2"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}"
+                             Width="80" Height="3"
+                             VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- ── Список сообщений ── -->
+        <ScrollViewer Grid.Row="1" Padding="12">
+            <ItemsControl ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MessageBubbleViewModel">
+
+                        <!-- Контейнер пузыря: выравнивание по IsMine -->
+                        <Grid Margin="0,3">
+                            <Border MaxWidth="480"
+                                    Padding="12,8"
+                                    CornerRadius="12"
+                                    HorizontalAlignment="{Binding IsMine, Converter={StaticResource BoolToAlignmentConverter}}"
+									Background="{Binding IsMine, Converter={StaticResource BubbleColorConverter}}">
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding Text}"
+                                               TextWrapping="Wrap"
+                                               FontSize="14"
+                                               Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
+                                    <TextBlock Text="{Binding TimeLabel}"
+                                               FontSize="10"
+                                               Opacity="0.65"
+                                               HorizontalAlignment="Right" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- ── Ошибка ── -->
+        <Border Grid.Row="1"
+                VerticalAlignment="Bottom"
+                Margin="12"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontSize="12" />
+        </Border>
+
+        <!-- ── Поле ввода сообщения ── -->
+        <Border Grid.Row="2"
+                Padding="12,10"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+            <Grid ColumnDefinitions="*, Auto">
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding MessageInput}"
+                         Watermark="Введите сообщение..."
+                         AcceptsReturn="False"
+                         Height="44"
+                         VerticalContentAlignment="Center">
+                    <!-- Отправка по Enter -->
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Return" Command="{Binding SendMessageCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+
+                <Button Grid.Column="1"
+                        Content="Отправить"
+                        Command="{Binding SendMessageCommand}"
+                        Height="44"
+                        Padding="18,0"
+                        IsEnabled="{Binding !IsBusy}" />
+
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</UserControl>

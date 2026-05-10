@@ -92,6 +92,46 @@ namespace Tests
             Assert.That(user.Id, Is.AnyOf(result.Select(x => x.UserId).ToArray()));
         }
 
+        [Test]
+        public async Task CreateNewUserAndSetPublicKey_GetUserPublicKey_ShouldReturnUserPublicKeyResult()
+        {
+            // Arrange
+            const string userName = "test34@mail.com";
+            string publicKey = Guid.NewGuid().ToString();
+
+            var user = new UserDto { Email = userName, UserName = userName };
+
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            await _repo.SetUserPublicKeyAsync(user.Id, publicKey);
+
+            // Action
+            var result = await _repo.GetUserPublicKeyAsync(user.Id);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.EqualTo(publicKey));
+        }
+
+
+
+        [Test]
+        public async Task CreateNewUserWithoutPublicKey_SetUserPublicKey_ShouldReturnUserWithPublicKeyResult()
+        {
+            // Arrange
+            const string userName = "test34@mail.com";
+            string publicKey = Guid.NewGuid().ToString();
+
+            var user = new UserDto { Email = userName, UserName = userName };
+
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            await _repo.SetUserPublicKeyAsync(user.Id, publicKey);
+
+            // Action
+            var result = await _repo.GetByUsernameAsync(userName);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.PublicKey, Is.EqualTo(publicKey));
+        }
+
         public void Dispose()
         {
             _runner.Dispose();

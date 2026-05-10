@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels"
+             xmlns:chats="clr-namespace:FiweClient.ViewModels.Chats"
+             xmlns:contacts="clr-namespace:FiweClient.ViewModels.Contacts"
+             xmlns:views="clr-namespace:FiweClient.Views"
+             x:Class="FiweClient.Views.ShellView"
+             x:DataType="vm:ShellViewModel">
+
+    <!-- DataTemplates для контентной области -->
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="chats:ChatListViewModel">
+            <views:ChatListView />
+        </DataTemplate>
+        <DataTemplate DataType="chats:ChatViewModel">
+            <views:ChatView />
+        </DataTemplate>
+        <DataTemplate DataType="contacts:ContactListViewModel">
+            <views:ContactListView />
+        </DataTemplate>
+        <DataTemplate DataType="contacts:AddContactViewModel">
+            <views:AddContactView />
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <Grid ColumnDefinitions="72, *">
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- БОКОВАЯ ПАНЕЛЬ (узкая иконочная)           -->
+        <!-- ══════════════════════════════════════════ -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                BorderThickness="0,0,1,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+
+                <!-- Логотип -->
+                <Border Grid.Row="0" Padding="0,20,0,16">
+                    <TextBlock Text="F"
+                               FontSize="26"
+                               FontWeight="Black"
+                               Foreground="{DynamicResource SystemAccentColor}"
+                               HorizontalAlignment="Center" />
+                </Border>
+
+                <!-- Кнопки навигации -->
+                <StackPanel Grid.Row="1" Spacing="4" Margin="8,0">
+
+                    <!-- Чаты -->
+                    <Button Command="{Binding OpenChatsCommand}"
+                            ToolTip.Tip="Чаты"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Height="52"
+                            CornerRadius="10">
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel Spacing="3" HorizontalAlignment="Center">
+                            <TextBlock Text="💬" FontSize="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Чаты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Контакты -->
+                    <Button Command="{Binding OpenContactsCommand}"
+                            ToolTip.Tip="Контакты"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Height="52"
+                            CornerRadius="10">
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel Spacing="3" HorizontalAlignment="Center">
+                            <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Контакты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+                <!-- Низ: юзер + выход -->
+                <StackPanel Grid.Row="2" Spacing="4" Margin="8,0,8,12">
+
+                    <!-- Аватар / инициал -->
+                    <Border Width="44" Height="44"
+                            CornerRadius="22"
+                            Background="{DynamicResource SystemAccentColor}"
+                            HorizontalAlignment="Center"
+                            ToolTip.Tip="{Binding Username}">
+                        <TextBlock Text="{Binding Username[0]}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <!-- Выход -->
+                    <Button Command="{Binding LogoutCommand}"
+                            ToolTip.Tip="Выйти"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Height="44"
+                            CornerRadius="10">
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="🚪" FontSize="20" HorizontalAlignment="Center" />
+                    </Button>
+
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- ОБЛАСТЬ КОНТЕНТА                           -->
+        <!-- ══════════════════════════════════════════ -->
+        <ContentControl Grid.Column="1"
+                        Content="{Binding CurrentContent}" />
+
+    </Grid>
+
+</UserControl>

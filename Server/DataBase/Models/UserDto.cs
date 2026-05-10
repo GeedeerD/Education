@@ -12,6 +12,7 @@ namespace DataBase.Models
         [BsonElement("UserName")]
         public string UserName { get; set; } = null!;
         public string PublicUserName { get; set; } = null!;
+        public string PublicKey { get; set; }
 
         [BsonElement("PasswordHash")]
         public string PasswordHash { get; set; } = null!;

@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Auth"
+             x:Class="FiweClient.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+
+    <Grid RowDefinitions="*, Auto, *">
+        <StackPanel Grid.Row="1"
+                    Width="360"
+                    Spacing="16"
+                    HorizontalAlignment="Center">
+
+            <!-- Логотип / заголовок -->
+            <TextBlock Text="Fiwe"
+                       FontSize="36"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SystemAccentColor}" />
+
+            <TextBlock Text="Зашифрованный мессенджер"
+                       FontSize="13"
+                       HorizontalAlignment="Center"
+                       Opacity="0.6" />
+
+            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumBrush}" Opacity="0.2" Margin="0,8" />
+
+            <!-- Поля ввода -->
+            <TextBox Text="{Binding Username}"
+                     Watermark="Имя пользователя"
+                     Height="44" />
+
+            <TextBox Text="{Binding Password}"
+                     Watermark="Пароль"
+                     PasswordChar="●"
+                     Height="44" />
+
+            <!-- Ошибка -->
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       FontSize="13"
+                       TextWrapping="Wrap" />
+
+            <!-- Кнопка входа -->
+            <Button Content="Войти"
+                    Command="{Binding LoginCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Height="44"
+                    IsEnabled="{Binding !IsBusy}" />
+
+            <!-- Индикатор загрузки -->
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsBusy}"
+                         Height="3" />
+
+            <!-- Переход к регистрации -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <TextBlock Text="Нет аккаунта?" Opacity="0.6" />
+                <Button Content="Зарегистрироваться"
+                        Command="{Binding GoToRegisterCommand}"
+                        Classes="Hyperlink" />
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+
+</UserControl>

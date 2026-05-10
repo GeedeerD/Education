@@ -13,7 +13,6 @@ namespace fiwe.Controllers
         public UsersController(IUserService userService)
         {
             _userService = userService;
-            
         }
 
         [HttpPost, Route("ChangePublicName")]
@@ -22,6 +21,22 @@ namespace fiwe.Controllers
             await _userService.UpdateUserInfoAsync(CurrentUserId, phone: null, email: null, publicUserName: publicUserName);
 
             return Ok();
+        }
+
+        [HttpPost, Route("SetPublicKey")]
+        public async Task<IActionResult> SetUserPublicKeyAsync([FromBody] string publicKey)
+        {
+            await _userService.SetUserPublicKeyAsync(CurrentUserId, publicKey);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("{userId}/PublicKey")]
+        public async Task<IActionResult> GetUserPublicKeyAsync(string userId)
+        {
+            var publicKey = await _userService.GetUserPublicKeyAsync(CurrentUserId, userId);
+
+            return Ok(new { PublicKeyBase64 = publicKey });
         }
     }
 }

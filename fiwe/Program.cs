@@ -54,7 +54,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer()
                 .AddSwaggerGen()
                 .AddCommonDependency()
-                .Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+                .Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"))
+                .AddSignalR();
 builder.Services.AddTransient<IUserService, UserService>()
     .AddTransient<IMessageService, MessageService>()
     .AddTransient<IContactService, ContactService>();
@@ -113,6 +114,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<ChatHub>("/chatHub");
 app.MapControllers();
 
 app.Run();

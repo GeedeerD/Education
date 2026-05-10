@@ -45,6 +45,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ca_Collections", "ca_Collec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{9F450CD9-CAF1-464A-ACAD-D191B8C3FBAB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiweClient.Crypto", "FiweClient.Crypto\FiweClient.Crypto.csproj", "{9CBB7022-07B2-9CF3-5361-829CEEEB53EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiweClient.App", "FiweClient\FiweClient.App.csproj", "{4870B1B3-C584-5F5F-77F4-2A99E68DBA14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,6 +119,14 @@ Global
 		{9F450CD9-CAF1-464A-ACAD-D191B8C3FBAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F450CD9-CAF1-464A-ACAD-D191B8C3FBAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F450CD9-CAF1-464A-ACAD-D191B8C3FBAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CBB7022-07B2-9CF3-5361-829CEEEB53EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CBB7022-07B2-9CF3-5361-829CEEEB53EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CBB7022-07B2-9CF3-5361-829CEEEB53EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CBB7022-07B2-9CF3-5361-829CEEEB53EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4870B1B3-C584-5F5F-77F4-2A99E68DBA14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4870B1B3-C584-5F5F-77F4-2A99E68DBA14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4870B1B3-C584-5F5F-77F4-2A99E68DBA14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4870B1B3-C584-5F5F-77F4-2A99E68DBA14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
