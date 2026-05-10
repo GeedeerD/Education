@@ -20,7 +20,7 @@ public class MessageApiService : BaseApiService, IMessageApiService
     public async Task<IEnumerable<ChatDto>> GetAllMyChatsAsync()
         => await GetAsync<IEnumerable<ChatDto>>("Messages/GetAllMyChats") ?? [];
 
-    public async Task<string> GetMessageByIdAsync(string messageId)
+    public async Task<string    > GetMessageByIdAsync(string messageId)
     => await GetAsync<string>($"Messages/{messageId}/GetMessage");
 
     public async Task<IEnumerable<MessageDto>> GetMessagesAsync(string chatId)

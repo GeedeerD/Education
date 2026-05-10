@@ -37,6 +37,11 @@ public abstract class BaseApiService
         var client = CreateClient();
         var response = await client.GetAsync(url);
         response.EnsureSuccessStatusCode();
+        if (typeof(string) == typeof(T))
+        {
+            var str = await response.Content.ReadAsStringAsync();
+            return (T)(object)str;
+        }
         return await response.Content.ReadFromJsonAsync<T>();
     }
 
