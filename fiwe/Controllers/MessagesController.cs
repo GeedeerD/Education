@@ -60,5 +60,18 @@ namespace fiwe.Controllers
 
             return Ok(sendMessageResult.MessageId);
         }
+
+
+        [HttpGet, Route("{messageId}/GetMessage")]
+        public async Task<IActionResult> GetMessageByIdAsync(string messageId)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId))
+            {
+                return Unauthorized();
+            }
+
+            var encriptedMessage = await _messageService.GetMessageByIdAsync(CurrentUserId, messageId);
+            return Ok(encriptedMessage);
+        }
     }
 }

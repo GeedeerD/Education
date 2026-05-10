@@ -153,14 +153,15 @@ public partial class ChatViewModel : ObservableObject
         try
         {
             var sharedSecret = await GetOrComputeSharedSecretAsync();
-            //var decrypted = DecryptSafe(encryptedBody, sharedSecret);
+            var encripted = await _messageApi.GetMessageByIdAsync(messageId);
+            var decrypted = DecryptSafe(encripted, sharedSecret);
 
             // UI поток — Avalonia требует обновления коллекций из UI потока
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 Messages.Add(new MessageBubbleViewModel
                 {
-                    Text = "decrypted",
+                    Text = decrypted,
                     SenderId = "",
                     SentAt = DateTime.UtcNow,
                     IsMine = false,

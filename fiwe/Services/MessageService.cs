@@ -9,6 +9,7 @@ namespace fiwe.Services
     public interface IMessageService
     {
         Task<IEnumerable<ChatViewModel>> GetChatsByUserIdAsync(string userId);
+        Task<string> GetMessageByIdAsync(string userId, string messageId);
         Task<IEnumerable<PreviewMessageViewModel>> GetMessagesFromChatAsync(string currentUserId, string chatId, int messageCount);
         Task<(string MessageId, IEnumerable<string> Recipients)> SendMessageAsync(string userId, MessageViewModel model);
     }
@@ -25,6 +26,11 @@ namespace fiwe.Services
         {
             var chats = await _messageRepository.GetChatsAsync(ObjectId.Parse(userId));
             return chats.Select(c => ChatViewModel.WrapModel(c, userId));
+        }
+
+        public async Task<string> GetMessageByIdAsync(string userId, string messageId)
+        {
+            return await _messageRepository.GetMessageByIdAsync(ObjectId.Parse(userId), ObjectId.Parse(messageId));
         }
 
         public async Task<IEnumerable<PreviewMessageViewModel>> GetMessagesFromChatAsync(string currentUserId, string chatId, int messageCount)

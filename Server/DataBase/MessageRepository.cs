@@ -137,5 +137,11 @@ namespace DataBase
 
             return new AccessInfo();
         }
+
+        public async Task<string> GetMessageByIdAsync(ObjectId userId, ObjectId messageId)
+        {
+            var message = await _messages.Find(x=>x.ObjectId == messageId).FirstOrDefaultAsync();
+            return message.MessageBody;
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace FiweClient.Services.Api;
 public interface IMessageApiService
 {
     Task<IEnumerable<ChatDto>> GetAllMyChatsAsync();
+    Task<string> GetMessageByIdAsync(string messageId);
     Task<IEnumerable<MessageDto>> GetMessagesAsync(string chatId);
     Task<string?> SendMessageAsync(string chatId, string encryptedBody);
 }
@@ -18,6 +19,9 @@ public class MessageApiService : BaseApiService, IMessageApiService
 
     public async Task<IEnumerable<ChatDto>> GetAllMyChatsAsync()
         => await GetAsync<IEnumerable<ChatDto>>("Messages/GetAllMyChats") ?? [];
+
+    public async Task<string> GetMessageByIdAsync(string messageId)
+    => await GetAsync<string>($"Messages/{messageId}/GetMessage");
 
     public async Task<IEnumerable<MessageDto>> GetMessagesAsync(string chatId)
         => await GetAsync<IEnumerable<MessageDto>>($"Messages/{chatId}/Messages") ?? [];
