@@ -9,10 +9,11 @@ namespace FiweClient.Services.Realtime;
 public interface IRealtimeService
 {
     /// <summary>Новое зашифрованное сообщение пришло в чат</summary>
-    event Action<string, string, string>? MessageReceived; // chatId, senderId, encryptedBody
+    event Action<string, IEnumerable<string>, string>? MessageReceived; // chatId, senderId, encryptedBody
 
     Task ConnectAsync(string token);
     Task DisconnectAsync();
+    Task JoinChatAsync(string chatId);
 }
 
 public class SignalRService : IRealtimeService, IAsyncDisposable
@@ -20,7 +21,7 @@ public class SignalRService : IRealtimeService, IAsyncDisposable
     private HubConnection? _connection;
     private readonly ISessionService _session;
 
-    public event Action<string, string, string>? MessageReceived;
+    public event Action<string, IEnumerable<string>, string>? MessageReceived;
 
     public SignalRService(ISessionService session)
     {
@@ -45,10 +46,10 @@ public class SignalRService : IRealtimeService, IAsyncDisposable
 
         // Слушаем событие "ReceiveMessage" от сервера
         // Сервер должен вызывать: Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, senderId, encryptedBody)
-        _connection.On<string, string, string>("ReceiveMessage",
-            (chatId, senderId, encryptedBody) =>
+        _connection.On<string, IEnumerable<string>, string>("ReceiveMessage",
+            (chatId, recipients, messageId) =>
             {
-                MessageReceived?.Invoke(chatId, senderId, encryptedBody);
+                MessageReceived?.Invoke(chatId, recipients, messageId);
             });
 
         _connection.Reconnected += async _ =>

@@ -78,6 +78,7 @@ public partial class ChatViewModel : ObservableObject
         try
         {
             var sharedSecret = await GetOrComputeSharedSecretAsync();
+            await _realtime.JoinChatAsync(ChatId);
             var dtos = await _messageApi.GetMessagesAsync(ChatId);
 
             foreach (var dto in dtos)
@@ -141,26 +142,26 @@ public partial class ChatViewModel : ObservableObject
 
     // ── Входящие сообщения через SignalR ──────────────────────────
 
-    private async void OnMessageReceived(string chatId, string senderId, string encryptedBody)
+    private async void OnMessageReceived(string chatId, IEnumerable<string> recipients, string messageId)
     {
         // Фильтруем — только сообщения в текущий открытый чат
-        if (chatId != ChatId) return;
+        // if (chatId != ChatId) return;
 
         // Своё сообщение уже добавлено локально — пропускаем
-        if (senderId == _session.UserId) return;
+        if (!recipients.Contains(_session.UserId)) return;
 
         try
         {
             var sharedSecret = await GetOrComputeSharedSecretAsync();
-            var decrypted = DecryptSafe(encryptedBody, sharedSecret);
+            //var decrypted = DecryptSafe(encryptedBody, sharedSecret);
 
             // UI поток — Avalonia требует обновления коллекций из UI потока
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 Messages.Add(new MessageBubbleViewModel
                 {
-                    Text = decrypted,
-                    SenderId = senderId,
+                    Text = "decrypted",
+                    SenderId = "",
                     SentAt = DateTime.UtcNow,
                     IsMine = false,
                 });

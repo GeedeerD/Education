@@ -14,10 +14,10 @@ namespace fiwe.Controllers
         private const int MessagesCountByChatDueLoading = 5;
         private readonly IMessageService _messageService;
         private readonly IHubContext<ChatHub> _hubContext;
-        public MessagesController(IMessageService messageService)
+        public MessagesController(IMessageService messageService, IHubContext<ChatHub> hubContext)
         {
             _messageService = messageService;
-            
+            _hubContext = hubContext;
         }
 
         [HttpGet, Route("GetAllMyChats")]
