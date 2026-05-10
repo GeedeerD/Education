@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:FiweClient"
+        xmlns:auth="clr-namespace:FiweClient.ViewModels.Auth"
+        xmlns:shell="clr-namespace:FiweClient.ViewModels"
+        xmlns:views="clr-namespace:FiweClient.Views"
+        x:Class="FiweClient.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Fiwe"
+        Width="1000" Height="680"
+        MinWidth="700" MinHeight="500"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.DataTemplates>
+        <!-- Auth экраны -->
+        <DataTemplate DataType="auth:LoginViewModel">
+            <views:LoginView />
+        </DataTemplate>
+        <DataTemplate DataType="auth:RegisterViewModel">
+            <views:RegisterView />
+        </DataTemplate>
+
+        <!-- Shell — главная оболочка с боковой панелью -->
+        <DataTemplate DataType="shell:ShellViewModel">
+            <views:ShellView />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <ContentControl Content="{Binding CurrentView}" />
+</Window>

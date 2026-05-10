@@ -1,0 +1,42 @@
+﻿using fiwe.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace fiwe.Controllers
+{
+    [ApiController]
+    [Authorize]
+    [Route("[controller]")]
+    public partial class UsersController : BaseApiController
+    {
+        private readonly IUserService _userService;
+        public UsersController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+        [HttpPost, Route("ChangePublicName")]
+        public async Task<IActionResult> ChangePublicUserAsync([FromBody]string publicUserName)
+        {
+            await _userService.UpdateUserInfoAsync(CurrentUserId, phone: null, email: null, publicUserName: publicUserName);
+
+            return Ok();
+        }
+
+        [HttpPost, Route("SetPublicKey")]
+        public async Task<IActionResult> SetUserPublicKeyAsync([FromBody] string publicKey)
+        {
+            await _userService.SetUserPublicKeyAsync(CurrentUserId, publicKey);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("{userId}/PublicKey")]
+        public async Task<IActionResult> GetUserPublicKeyAsync(string userId)
+        {
+            var publicKey = await _userService.GetUserPublicKeyAsync(CurrentUserId, userId);
+
+            return Ok(new { PublicKeyBase64 = publicKey });
+        }
+    }
+}

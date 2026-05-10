@@ -1,0 +1,6 @@
+@fiwe_HostAddress = http://localhost:5063
+
+GET {{fiwe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Auth"
+             x:Class="FiweClient.Views.RegisterView"
+             x:DataType="vm:RegisterViewModel">
+
+    <Grid RowDefinitions="*, Auto, *">
+        <StackPanel Grid.Row="1"
+                    Width="360"
+                    Spacing="16"
+                    HorizontalAlignment="Center">
+
+            <TextBlock Text="Регистрация"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Создайте аккаунт чтобы начать общение"
+                       FontSize="13"
+                       HorizontalAlignment="Center"
+                       Opacity="0.6"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+
+            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumBrush}" Opacity="0.2" Margin="0,8" />
+
+            <TextBox Text="{Binding Username}"
+                     Watermark="Имя пользователя"
+                     Height="44" />
+
+            <TextBox Text="{Binding Password}"
+                     Watermark="Пароль"
+                     PasswordChar="●"
+                     Height="44" />
+
+            <TextBox Text="{Binding ConfirmPassword}"
+                     Watermark="Повторите пароль"
+                     PasswordChar="●"
+                     Height="44" />
+
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       FontSize="13"
+                       TextWrapping="Wrap" />
+
+            <Button Content="Создать аккаунт"
+                    Command="{Binding RegisterCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Height="44"
+                    IsEnabled="{Binding !IsBusy}" />
+
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsBusy}"
+                         Height="3" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <TextBlock Text="Уже есть аккаунт?" Opacity="0.6" />
+                <Button Content="Войти"
+                        Command="{Binding GoToLoginCommand}"
+                        Classes="Hyperlink" />
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+
+</UserControl>
