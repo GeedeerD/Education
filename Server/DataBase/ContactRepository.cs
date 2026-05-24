@@ -1,5 +1,7 @@
-﻿using DataBase.Interfaces;
+﻿using Configurations;
+using DataBase.Interfaces;
 using DataBase.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -7,19 +9,18 @@ namespace DataBase
 {
     public class ContactRepository : IContactRepository
     {
-        private readonly string ConnectionString = "mongodb://localhost:27017";
         private readonly IMongoDatabase _db;
         private readonly IMongoCollection<ContactDto> _contacts;
 
-        public ContactRepository()
+        public ContactRepository(IOptions<MongoDbSettings> mongoDbSettings)
         {
-            var client = new MongoClient(ConnectionString);
+            var client = new MongoClient(mongoDbSettings.Value.ConnectionString);
 
-            _db = client.GetDatabase("Education");
+            _db = client.GetDatabase(mongoDbSettings.Value.DatabaseName);
             _contacts = _db.GetCollection<ContactDto>("Contacts");
         }
 
-        public ContactRepository(IMongoDatabase db) : this()
+        public ContactRepository(IMongoDatabase db)
         {
             _db = db;
             _contacts = _db.GetCollection<ContactDto>("Contacts");

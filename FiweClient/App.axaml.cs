@@ -82,7 +82,7 @@ public class App : Application
         // ── HTTP ──────────────────────────────────────
         services.AddHttpClient("FiweApi", client =>
         {
-            client.BaseAddress = new Uri("https://6092-91-247-76-23.ngrok-free.app/");
+            client.BaseAddress = new Uri("https://fiwe-api-dgabh9axgnhagqhg.italynorth-01.azurewebsites.net/");
         });
 
         // ── Крипто ───────────────────────────────────

@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Configurations;
 using fiwe.Models;
 using fiwe.Services;
 using Microsoft.AspNetCore.Mvc;
