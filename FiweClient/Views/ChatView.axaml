@@ -38,6 +38,7 @@
                     <TextBlock Text="End-to-End Encrypted"
                                FontSize="11"
                                Foreground="Green"
+							   IsVisible="False"
                                Opacity="0.8" />
                 </StackPanel>
 
@@ -51,7 +52,7 @@
         </Border>
 
         <!-- ── Список сообщений ── -->
-        <ScrollViewer Grid.Row="1" Padding="12">
+        <ScrollViewer Grid.Row="1" Padding="15,0,15,0">
             <ItemsControl ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:MessageBubbleViewModel">

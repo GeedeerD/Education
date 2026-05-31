@@ -7,7 +7,6 @@
              x:Class="FiweClient.Views.ShellView"
              x:DataType="vm:ShellViewModel">
 
-    <!-- DataTemplates для контентной области -->
     <UserControl.DataTemplates>
         <DataTemplate DataType="chats:ChatListViewModel">
             <views:ChatListView />
@@ -21,12 +20,15 @@
         <DataTemplate DataType="contacts:AddContactViewModel">
             <views:AddContactView />
         </DataTemplate>
+        <DataTemplate DataType="vm:SettingsViewModel">
+            <views:SettingsView />
+        </DataTemplate>
     </UserControl.DataTemplates>
 
     <Grid ColumnDefinitions="72, *">
 
         <!-- ══════════════════════════════════════════ -->
-        <!-- БОКОВАЯ ПАНЕЛЬ (узкая иконочная)           -->
+        <!-- БОКОВАЯ ПАНЕЛЬ                             -->
         <!-- ══════════════════════════════════════════ -->
         <Border Grid.Column="0"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
@@ -44,7 +46,7 @@
                                HorizontalAlignment="Center" />
                 </Border>
 
-                <!-- Кнопки навигации -->
+                <!-- Навигация -->
                 <StackPanel Grid.Row="1" Spacing="4" Margin="8,0">
 
                     <!-- Чаты -->
@@ -58,8 +60,16 @@
                             <Style Selector="Button">
                                 <Setter Property="Background" Value="Transparent" />
                             </Style>
+                            <Style Selector="Button[Tag=active]">
+                                <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}" />
+                            </Style>
                         </Button.Styles>
-                        <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <Button.Tag>
+                            <Binding Path="ActiveTab"
+                                     Converter="{StaticResource EqualityConverter}"
+                                     ConverterParameter="chats" />
+                        </Button.Tag>
+                        <StackPanel Spacing="3">
                             <TextBlock Text="💬" FontSize="20" HorizontalAlignment="Center" />
                             <TextBlock Text="Чаты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
                         </StackPanel>
@@ -77,7 +87,7 @@
                                 <Setter Property="Background" Value="Transparent" />
                             </Style>
                         </Button.Styles>
-                        <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <StackPanel Spacing="3">
                             <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" />
                             <TextBlock Text="Контакты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
                         </StackPanel>
@@ -85,10 +95,28 @@
 
                 </StackPanel>
 
-                <!-- Низ: юзер + выход -->
+                <!-- Низ: настройки + выход -->
                 <StackPanel Grid.Row="2" Spacing="4" Margin="8,0,8,12">
 
-                    <!-- Аватар / инициал -->
+                    <!-- Настройки -->
+                    <Button Command="{Binding OpenSettingsCommand}"
+                            ToolTip.Tip="Настройки"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Height="52"
+                            CornerRadius="10">
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="⚙️" FontSize="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Настройки" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Аватар -->
                     <Border Width="44" Height="44"
                             CornerRadius="22"
                             Background="{DynamicResource SystemAccentColor}"

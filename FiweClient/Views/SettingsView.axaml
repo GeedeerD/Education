@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels"
+             x:Class="FiweClient.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Шапка -->
+        <Border Grid.Row="0" Padding="20,16"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+            <TextBlock Text="Настройки"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
+        </Border>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="24,20" Spacing="28" MaxWidth="480">
+
+                <!-- Блок: профиль -->
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="ПРОФИЛЬ"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Opacity="0.5"
+                               LetterSpacing="1.5" />
+
+                    <!-- Аватар + имя аккаунта -->
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <Border Width="56" Height="56"
+                                CornerRadius="28"
+                                Background="{DynamicResource SystemAccentColor}">
+                            <TextBlock Text="{Binding Username[0]}"
+                                       FontSize="22"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="4">
+                            <TextBlock Text="{Binding Username}"
+                                       FontSize="16"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Имя аккаунта (логин)"
+                                       FontSize="12"
+                                       Opacity="0.5" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Публичное имя -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Публичное имя"
+                                   FontSize="13"
+                                   FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Opacity="0.55">
+                            <Run Text="По публичному имени вас смогут найти другие пользователи." />
+                            <Run Text="Оно не должно совпадать с именем аккаунта." />
+                        </TextBlock>
+
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding PublicName}"
+                                     Watermark="Например: john_doe"
+                                     Height="44" />
+                            <Button Grid.Column="1"
+                                    Content="Сохранить"
+                                    Command="{Binding SavePublicNameCommand}"
+                                    Height="44"
+                                    Padding="18,0"
+                                    IsEnabled="{Binding !IsBusy}" />
+                        </Grid>
+
+                        <ProgressBar IsIndeterminate="True"
+                                     IsVisible="{Binding IsBusy}"
+                                     Height="2" />
+
+                        <!-- Успех -->
+                        <Border IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Background="#1A4CAF50"
+                                CornerRadius="6"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="✓" Foreground="#4CAF50" FontWeight="Bold" />
+                                <TextBlock Text="{Binding SuccessMessage}"
+                                           Foreground="#4CAF50"
+                                           FontSize="13" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Ошибка -->
+                        <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Background="#1AF44336"
+                                CornerRadius="6"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="✕" Foreground="#F44336" FontWeight="Bold" />
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Foreground="#F44336"
+                                           FontSize="13"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+
+</UserControl>

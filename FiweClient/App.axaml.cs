@@ -115,5 +115,6 @@ public class App : Application
         services.AddTransient<ChatViewModel>();
         services.AddSingleton<ContactListViewModel>();
         services.AddTransient<AddContactViewModel>();
+        services.AddTransient<SettingsViewModel>();
     }
 }
