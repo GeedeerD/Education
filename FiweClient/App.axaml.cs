@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using FiweClient.Crypto;
@@ -13,6 +12,8 @@ using FiweClient.ViewModels.Contacts;
 using FiweClient.Views;
 using Microsoft.Extensions.DependencyInjection;
 
+using Application = Avalonia.Application;
+
 namespace FiweClient;
 
 public class App : Application
@@ -23,26 +24,51 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var services = new ServiceCollection();
-        ConfigureServices(services);
-        Services = services.BuildServiceProvider();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        try
         {
-            var mainWindow = new MainWindow
+            Console.WriteLine("=== FiweClient: App starting ===");
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            Services = services.BuildServiceProvider();
+
+            Console.WriteLine("=== FiweClient: Services ready ===");
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                DataContext = Services.GetRequiredService<MainWindowViewModel>()
-            };
+                Console.WriteLine("=== FiweClient: Desktop ===");
+                var mainWindow = new MainWindow
+                {
+                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                };
 
-            var nav = Services.GetRequiredService<INavigationService>();
-            nav.SetHost(mainWindow);
+                var nav = Services.GetRequiredService<INavigationService>();
+                nav.SetHost(mainWindow);
 
-            desktop.MainWindow = mainWindow;
+                desktop.MainWindow = mainWindow;
 
-            // Запускаем авто-логин асинхронно
-            _ = TryAutoLoginAsync();
+                // Запускаем авто-логин асинхронно
+                _ = TryAutoLoginAsync();
+            }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                Console.WriteLine("=== FiweClient: SingleView ===");
+                // Android использует SingleView а не Desktop!
+                var mainView = new MainView
+                {
+                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                };
+                var nav = Services.GetRequiredService<INavigationService>();
+                nav.SetHost(mainView);
+                singleView.MainView = mainView;
+                _ = TryAutoLoginAsync();
+            }
         }
-
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== FiweClient CRASH: {ex} ===");
+            throw;
+        }
         base.OnFrameworkInitializationCompleted();
     }
 

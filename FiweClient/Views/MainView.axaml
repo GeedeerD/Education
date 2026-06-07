@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient"
+             xmlns:auth="clr-namespace:FiweClient.ViewModels.Auth"
+             xmlns:shell="clr-namespace:FiweClient.ViewModels"
+             xmlns:views="clr-namespace:FiweClient.Views"
+             x:Class="FiweClient.Views.MainView"
+             x:DataType="vm:MainWindowViewModel">
+
+	<UserControl.DataTemplates>
+		<DataTemplate DataType="auth:LoginViewModel">
+			<views:LoginView />
+		</DataTemplate>
+		<DataTemplate DataType="auth:RegisterViewModel">
+			<views:RegisterView />
+		</DataTemplate>
+		<DataTemplate DataType="shell:ShellViewModel">
+			<views:ShellView />
+		</DataTemplate>
+	</UserControl.DataTemplates>
+
+	<ContentControl Content="{Binding CurrentView}" />
+
+</UserControl>

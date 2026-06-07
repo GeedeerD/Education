@@ -44,8 +44,7 @@ namespace FiweClient.Crypto
 
         public KeyStorageService()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var fiweDir = Path.Combine(appData, "Fiwe");
+            var fiweDir = GetStorageDir();
             Directory.CreateDirectory(fiweDir);
             _keystorePath = Path.Combine(fiweDir, "keystore.dat");
         }
@@ -146,6 +145,16 @@ namespace FiweClient.Crypto
                 hashAlgorithm: HashAlgorithmName.SHA256,
                 outputLength: AesKeySize
             );
+        }
+
+        private static string GetStorageDir()
+        {
+            //return Environment.SpecialFolder.ApplicationData;
+#if ANDROID
+    return Android.App.Application.Context.FilesDir!.AbsolutePath;
+#else
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fiwe");
+#endif
         }
 
         private static byte[] EncryptData(byte[] data, byte[] key)

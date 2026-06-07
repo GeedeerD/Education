@@ -4,12 +4,6 @@
              x:Class="FiweClient.Views.ChatView"
              x:DataType="vm:ChatViewModel">
 
-    <Interaction.Behaviors>
-        <EventTriggerBehavior EventName="Loaded">
-            <InvokeCommandAction Command="{Binding LoadMessagesCommand}" />
-        </EventTriggerBehavior>
-    </Interaction.Behaviors>
-
     <Grid RowDefinitions="Auto, *, Auto">
 
         <!-- ── Шапка чата ── -->
