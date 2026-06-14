@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using FiweClient.Crypto;
 using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
+using FiweClient.Services.QrScanner;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
 
@@ -16,10 +17,13 @@ public partial class KeyTransferViewModel : ObservableObject
     private readonly ICryptoService _crypto;
     private readonly IUserApiService _userApi;
     private readonly IRealtimeService _realtime;
+    private readonly IQrScannerService _qrScanner;
 
     [ObservableProperty] private string _transferCode = "";
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
+
+    public bool IsScannerAvailable => _qrScanner.IsAvailable;
 
     public KeyTransferViewModel(
         IKeyStorageService keyStorage,
@@ -27,7 +31,8 @@ public partial class KeyTransferViewModel : ObservableObject
         INavigationService navigation,
         ICryptoService crypto,
         IUserApiService userApi,
-        IRealtimeService realtime)
+        IRealtimeService realtime,
+        IQrScannerService qrScanner)
     {
         _keyStorage = keyStorage;
         _session = session;
@@ -35,6 +40,24 @@ public partial class KeyTransferViewModel : ObservableObject
         _crypto = crypto;
         _userApi = userApi;
         _realtime = realtime;
+        _qrScanner = qrScanner;
+    }
+
+    [RelayCommand]
+    private async Task ScanQrAsync()
+    {
+        IsBusy = true;
+        ErrorMessage = null;
+        try
+        {
+            var result = await _qrScanner.ScanAsync();
+            if (result != null)
+                TransferCode = result;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     /// <summary>

@@ -48,6 +48,15 @@
                          AcceptsReturn="False" />
             </StackPanel>
 
+            <!-- Кнопка сканирования (только на Android, где есть камера) -->
+            <Button Content="Сканировать QR-код"
+                    Command="{Binding ScanQrCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Height="44"
+                    IsVisible="{Binding IsScannerAvailable}"
+                    IsEnabled="{Binding !IsBusy}" />
+
             <!-- Ошибка -->
             <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                     Background="#1AF44336"

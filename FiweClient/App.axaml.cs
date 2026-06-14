@@ -5,6 +5,7 @@ using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
+using FiweClient.Services.QrScanner;
 using FiweClient.Services.Settings;
 using FiweClient.ViewModels;
 using FiweClient.ViewModels.Auth;
@@ -141,6 +142,13 @@ public class App : Application
 
         // ── Настройки приложения ──────────────────────
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
+
+        // ── QR-сканер ─────────────────────────────────
+#if ANDROID
+        services.AddSingleton<IQrScannerService, AndroidQrScannerService>();
+#else
+        services.AddSingleton<IQrScannerService, DesktopQrScannerService>();
+#endif
 
         // ── Навигация ─────────────────────────────────
         services.AddSingleton<INavigationService, NavigationService>();
