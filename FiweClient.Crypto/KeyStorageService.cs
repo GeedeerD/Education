@@ -7,19 +7,15 @@ namespace FiweClient.Crypto
     public interface IKeyStorageService
     {
         /// <summary>Существует ли уже сохранённая ключевая пара на этом устройстве</summary>
-        bool KeystoreExists();
+        bool KeystoreExists(string userId);
 
         /// <summary>Сохраняет ключевую пару, зашифровав паролем пользователя</summary>
-        Task SaveKeyPairAsync(KeyPair keyPair, string userPassword);
+        Task SaveKeyPairAsync(KeyPair keyPair, string userId);
 
         /// <summary>
-        /// Загружает ключевую пару, расшифровав паролем.
-        /// Возвращает null если пароль неверный или файл не найден.
+        /// Загружает ключевую пару.
         /// </summary>
-        Task<KeyPair?> LoadKeyPairAsync(string userPassword);
-
-        /// <summary>Удаляет хранилище (выход из аккаунта)</summary>
-        void DeleteKeystore();
+        Task<KeyPair?> LoadKeyPairAsync(string userId);
     }
     /// <summary>
     /// Безопасно хранит приватный ключ пользователя на диске.
@@ -46,22 +42,27 @@ namespace FiweClient.Crypto
         {
             var fiweDir = GetStorageDir();
             Directory.CreateDirectory(fiweDir);
-            _keystorePath = Path.Combine(fiweDir, "keystore.dat");
+            _keystorePath = fiweDir;
         }
 
         // ─────────────────────────────────────────────
         // Публичный API
         // ─────────────────────────────────────────────
 
-        public bool KeystoreExists() => File.Exists(_keystorePath);
+        public bool KeystoreExists(string userId) => File.Exists(GetKeystorePath(userId));
+
+        private string GetKeystorePath(string userId)
+        {
+            return Path.Combine(_keystorePath, $"{userId}.dat");
+        }
 
         /// <summary>
-        /// Сохраняет ключевую пару, зашифровав её паролем пользователя.
+        /// Сохраняет ключевую пару
         /// Вызывается один раз при первом запуске.
         /// </summary>
-        public async Task SaveKeyPairAsync(KeyPair keyPair, string userPassword)
+        public async Task SaveKeyPairAsync(KeyPair keyPair, string userId)
         {
-            userPassword = string.Empty;
+            var userPassword = string.Empty;
             var salt = GenerateSalt();
             var encryptionKey = DeriveKey(userPassword, salt);
 
@@ -79,22 +80,21 @@ namespace FiweClient.Crypto
             Buffer.BlockCopy(salt, 0, fileContent, 0, SaltSize);
             Buffer.BlockCopy(encrypted, 0, fileContent, SaltSize, encrypted.Length);
 
-            await File.WriteAllBytesAsync(_keystorePath, fileContent);
+            await File.WriteAllBytesAsync(GetKeystorePath(userId), fileContent);
         }
 
         /// <summary>
         /// Загружает и расшифровывает ключевую пару.
-        /// Возвращает null если пароль неверный.
         /// </summary>
-        public async Task<KeyPair?> LoadKeyPairAsync(string userPassword)
+        public async Task<KeyPair?> LoadKeyPairAsync(string userId)
         {
-            if (!KeystoreExists())
+            if (!KeystoreExists(userId))
                 return null;
 
-            userPassword = string.Empty;
+            var userPassword = string.Empty;
             try
             {
-                var fileContent = await File.ReadAllBytesAsync(_keystorePath);
+                var fileContent = await File.ReadAllBytesAsync(GetKeystorePath(userId));
 
                 // Читаем salt из начала файла
                 var salt = new byte[SaltSize];
@@ -117,15 +117,6 @@ namespace FiweClient.Crypto
                 // Неверный пароль или повреждённый файл
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Удаляет хранилище ключей (например при выходе из аккаунта)
-        /// </summary>
-        public void DeleteKeystore()
-        {
-            if (File.Exists(_keystorePath))
-                File.Delete(_keystorePath);
         }
 
         // ─────────────────────────────────────────────

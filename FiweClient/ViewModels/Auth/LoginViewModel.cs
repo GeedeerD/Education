@@ -76,7 +76,7 @@ public partial class LoginViewModel : ObservableObject
             await _tokenStorage.SaveTokenAsync(response.Token, userId, Username);
 
             // Инициализируем крипто-ключи
-            await InitializeCryptoAsync();
+            await InitializeCryptoAsync(userId);
 
             // Подключаемся к SignalR
             await _realtime.ConnectAsync(response.Token);
@@ -99,17 +99,17 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand]
     private void GoToRegister() => _navigation.NavigateTo<RegisterViewModel>();
 
-    private async Task InitializeCryptoAsync()
+    private async Task InitializeCryptoAsync(string userId)
     {
         KeyPair keyPair;
 
-        if (_keyStorage.KeystoreExists())
+        if (_keyStorage.KeystoreExists(userId))
         {
-            var loaded = await _keyStorage.LoadKeyPairAsync(Password);
+            var loaded = await _keyStorage.LoadKeyPairAsync(userId);
             if (loaded is null)
             {
                 keyPair = _crypto.GenerateKeyPair();
-                await _keyStorage.SaveKeyPairAsync(keyPair, Password);
+                await _keyStorage.SaveKeyPairAsync(keyPair, userId);
                 await _userApi.SetPublicKeyAsync(keyPair.PublicKeyBase64);
             }
             else
@@ -120,7 +120,7 @@ public partial class LoginViewModel : ObservableObject
         else
         {
             keyPair = _crypto.GenerateKeyPair();
-            await _keyStorage.SaveKeyPairAsync(keyPair, Password);
+            await _keyStorage.SaveKeyPairAsync(keyPair, userId);
             await _userApi.SetPublicKeyAsync(keyPair.PublicKeyBase64);
         }
     }

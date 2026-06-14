@@ -195,7 +195,7 @@ public partial class ChatViewModel : ObservableObject
 
         // Загружаем свой приватный ключ
         // Пароль для расшифровки keystore = пароль от аккаунта (хранится в сессии)
-        var keyPair = await _keyStorage.LoadKeyPairAsync(_session.Token!)
+        var keyPair = await _keyStorage.LoadKeyPairAsync(_session.UserId!)
             ?? throw new Exception("Не удалось загрузить ключевую пару");
 
         // Получаем публичный ключ собеседника
