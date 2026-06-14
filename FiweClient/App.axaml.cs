@@ -5,6 +5,7 @@ using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
+using FiweClient.Services.Settings;
 using FiweClient.ViewModels;
 using FiweClient.ViewModels.Auth;
 using FiweClient.ViewModels.Chats;
@@ -82,7 +83,9 @@ public class App : Application
         var nav = Services.GetRequiredService<INavigationService>();
         var realtime = Services.GetRequiredService<IRealtimeService>();
         var keyStorage = Services.GetRequiredService<IKeyStorageService>();
+        var appSettings = Services.GetRequiredService<IAppSettingsService>();
 
+        await appSettings.LoadAsync();
         var saved = await tokenStorage.LoadTokenAsync();
 
         if (saved is not null && session.IsTokenValid(saved.Token))
@@ -135,6 +138,9 @@ public class App : Application
 
         // ── SignalR ───────────────────────────────────
         services.AddSingleton<IRealtimeService, SignalRService>();
+
+        // ── Настройки приложения ──────────────────────
+        services.AddSingleton<IAppSettingsService, AppSettingsService>();
 
         // ── Навигация ─────────────────────────────────
         services.AddSingleton<INavigationService, NavigationService>();

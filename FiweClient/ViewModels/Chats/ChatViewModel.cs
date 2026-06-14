@@ -6,6 +6,7 @@ using FiweClient.Crypto;
 using FiweClient.Services.Api;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
+using FiweClient.Services.Settings;
 
 namespace FiweClient.ViewModels.Chats;
 
@@ -24,6 +25,7 @@ public partial class ChatViewModel : ObservableObject
     private readonly IKeyStorageService _keyStorage;
     private readonly ISharedSecretCache _secretCache;
     private readonly IRealtimeService _realtime;
+    private readonly IAppSettingsService _appSettings;
 
     // ── Состояние ─────────────────────────────────────────────────
     [ObservableProperty] private string _chatId = "";
@@ -43,7 +45,8 @@ public partial class ChatViewModel : ObservableObject
         ICryptoService crypto,
         IKeyStorageService keyStorage,
         ISharedSecretCache secretCache,
-        IRealtimeService realtime)
+        IRealtimeService realtime,
+        IAppSettingsService appSettings)
     {
         _messageApi = messageApi;
         _userApi = userApi;
@@ -52,6 +55,7 @@ public partial class ChatViewModel : ObservableObject
         _keyStorage = keyStorage;
         _secretCache = secretCache;
         _realtime = realtime;
+        _appSettings = appSettings;
 
         // Подписываемся на входящие сообщения от SignalR
         _realtime.MessageReceived += OnMessageReceived;
@@ -88,8 +92,9 @@ public partial class ChatViewModel : ObservableObject
                 {
                     Text = decrypted,
                     SenderId = dto.SenderObjectId,
-                    SentAt = dto.SentAt,
+                    SentAt = DateTime.SpecifyKind(dto.SentAt, DateTimeKind.Utc),
                     IsMine = dto.SenderObjectId == _session.UserId,
+                    UtcOffsetHours = _appSettings.UtcOffsetHours,
                 });
             }
         }
@@ -129,8 +134,9 @@ public partial class ChatViewModel : ObservableObject
             {
                 Text = plainText,
                 SenderId = _session.UserId ?? "",
-                SentAt = DateTime.Now,
+                SentAt = DateTime.UtcNow,
                 IsMine = true,
+                UtcOffsetHours = _appSettings.UtcOffsetHours,
             });
         }
         catch (Exception ex)
@@ -165,6 +171,7 @@ public partial class ChatViewModel : ObservableObject
                     SenderId = "",
                     SentAt = DateTime.UtcNow,
                     IsMine = false,
+                    UtcOffsetHours = _appSettings.UtcOffsetHours,
                 });
             });
         }

@@ -112,6 +112,54 @@
                         Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                         Opacity="0.15" />
 
+                <!-- Блок: часовой пояс -->
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="ЧАСОВОЙ ПОЯС"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Opacity="0.5"
+                               LetterSpacing="1.5" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Смещение UTC для времени сообщений"
+                                   FontSize="13"
+                                   FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Opacity="0.55">
+                            Выберите смещение относительно UTC. Применяется к отображению времени всех сообщений.
+                        </TextBlock>
+
+                        <Grid ColumnDefinitions="*, Auto" Margin="0,4,0,0">
+                            <Slider Grid.Column="0"
+                                    Value="{Binding UtcOffsetHours}"
+                                    Minimum="-12"
+                                    Maximum="14"
+                                    TickFrequency="0.5"
+                                    IsSnapToTickEnabled="True"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding OffsetLabel}"
+                                       Width="72"
+                                       TextAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       FontSize="14"
+                                       FontWeight="SemiBold" />
+                        </Grid>
+
+                        <Button Content="Сохранить"
+                                Command="{Binding SaveTimezoneCommand}"
+                                Height="44"
+                                Padding="18,0" />
+                    </StackPanel>
+
+                </StackPanel>
+
+                <Border Height="1"
+                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Opacity="0.15" />
+
                 <!-- Блок: безопасность -->
                 <StackPanel Spacing="16">
 

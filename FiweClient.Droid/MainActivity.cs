@@ -1,5 +1,6 @@
 ﻿using Android.Content.PM;
 using Android.Util;
+using Android.Views;
 using Avalonia;
 using Avalonia.Android;
 
@@ -9,6 +10,7 @@ namespace FiweClient.Droid;
     Label = "Fiwe",
     Theme = "@style/Theme.AppCompat.NoActionBar",
     MainLauncher = true,
+    WindowSoftInputMode = SoftInput.AdjustResize,
     ConfigurationChanges =
         ConfigChanges.Orientation |
         ConfigChanges.ScreenSize |
@@ -35,6 +37,7 @@ public class MainActivity : AvaloniaMainActivity<App>
 
             Log.Debug("FIWE", "=== Calling base.OnCreate ===");
             base.OnCreate(savedInstanceState);
+            Window?.SetSoftInputMode(SoftInput.AdjustResize);
             Log.Debug("FIWE", "=== OnCreate DONE ===");
         }
         catch (Exception ex)

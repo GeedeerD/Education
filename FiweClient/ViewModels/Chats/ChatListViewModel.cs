@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
+using FiweClient.Services.Settings;
 
 namespace FiweClient.ViewModels.Chats;
 
@@ -12,7 +13,8 @@ public partial class MessageBubbleViewModel : ObservableObject
     public string SenderId { get; init; } = "";
     public DateTime SentAt { get; init; }
     public bool IsMine { get; init; }
-    public string TimeLabel => SentAt.ToString("HH:mm");
+    public double UtcOffsetHours { get; init; }
+    public string TimeLabel => SentAt.AddHours(UtcOffsetHours).ToString("HH:mm");
 }
 
 public partial class ChatPreviewViewModel : ObservableObject
@@ -22,20 +24,23 @@ public partial class ChatPreviewViewModel : ObservableObject
     public string? LastMessage { get; init; }
     public DateTime LastActive { get; init; }
     public string? ContactUserId { get; init; }
-    public string TimeLabel => LastActive.ToString("HH:mm");
+    public double UtcOffsetHours { get; init; }
+    public string TimeLabel => LastActive.AddHours(UtcOffsetHours).ToString("HH:mm");
 }
 
 public partial class ChatListViewModel : ObservableObject
 {
     private readonly IMessageApiService _messageApi;
+    private readonly IAppSettingsService _appSettings;
 
     [ObservableProperty] private ObservableCollection<ChatPreviewViewModel> _chats = [];
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private ChatPreviewViewModel? _selectedChat;
 
-    public ChatListViewModel(IMessageApiService messageApi)
+    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings)
     {
         _messageApi = messageApi;
+        _appSettings = appSettings;
     }
 
     [RelayCommand]
@@ -51,8 +56,9 @@ public partial class ChatListViewModel : ObservableObject
                     ChatId = d.ChatId,
                     Name = d.Name ?? "Без имени",
                     LastMessage = d.LastMessagePreview,
-                    LastActive = d.LastActiveDateTime,
+                    LastActive = DateTime.SpecifyKind(d.LastActiveDateTime, DateTimeKind.Utc),
                     ContactUserId = d.RecipientId,
+                    UtcOffsetHours = _appSettings.UtcOffsetHours,
                 }));
         }
         finally
