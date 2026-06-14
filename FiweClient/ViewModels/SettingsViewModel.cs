@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
 using FiweClient.Services.Session;
+using FiweClient.ViewModels.Settings;
 
 namespace FiweClient.ViewModels;
 
@@ -9,6 +10,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly IUserApiService _userApi;
     private readonly ISessionService _session;
+    private readonly ShellViewModel _shell;
 
     [ObservableProperty] private string _publicName = "";
     [ObservableProperty] private string? _successMessage;
@@ -17,10 +19,11 @@ public partial class SettingsViewModel : ObservableObject
 
     public string Username => _session.Username ?? "";
 
-    public SettingsViewModel(IUserApiService userApi, ISessionService session)
+    public SettingsViewModel(IUserApiService userApi, ISessionService session, ShellViewModel shell)
     {
         _userApi = userApi;
         _session = session;
+        _shell = shell;
     }
 
     [RelayCommand]
@@ -49,5 +52,12 @@ public partial class SettingsViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private void OpenQrGenerator()
+    {
+        var vm = App.Services.GetService(typeof(QrGeneratorViewModel)) as QrGeneratorViewModel;
+        _shell.CurrentContent = vm;
     }
 }

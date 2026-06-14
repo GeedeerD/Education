@@ -19,6 +19,9 @@
         <DataTemplate DataType="auth:RegisterViewModel">
             <views:RegisterView />
         </DataTemplate>
+        <DataTemplate DataType="auth:KeyTransferViewModel">
+            <views:KeyTransferView />
+        </DataTemplate>
 
         <!-- Shell — главная оболочка с боковой панелью -->
         <DataTemplate DataType="shell:ShellViewModel">

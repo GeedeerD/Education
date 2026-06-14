@@ -108,6 +108,36 @@
                     </StackPanel>
                 </StackPanel>
 
+                <Border Height="1"
+                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Opacity="0.15" />
+
+                <!-- Блок: безопасность -->
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="БЕЗОПАСНОСТЬ"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Opacity="0.5"
+                               LetterSpacing="1.5" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Перенос ключей шифрования"
+                                   FontSize="13"
+                                   FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Opacity="0.55">
+                            Переносит ваши E2EE ключи на новое устройство. Покажите QR-код новому устройству во время входа в аккаунт.
+                        </TextBlock>
+                        <Button Content="Показать QR для переноса ключей"
+                                Command="{Binding OpenQrGeneratorCommand}"
+                                Height="44"
+                                Padding="18,0" />
+                    </StackPanel>
+
+                </StackPanel>
+
             </StackPanel>
         </ScrollViewer>
 

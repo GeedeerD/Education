@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Auth"
+             x:Class="FiweClient.Views.KeyTransferView"
+             x:DataType="vm:KeyTransferViewModel">
+
+    <Grid RowDefinitions="*, Auto, *">
+        <StackPanel Grid.Row="1"
+                    Width="400"
+                    Spacing="20"
+                    HorizontalAlignment="Center">
+
+            <!-- Иконка -->
+            <TextBlock Text="🔐"
+                       FontSize="48"
+                       HorizontalAlignment="Center" />
+
+            <!-- Заголовок -->
+            <TextBlock Text="Перенос ключей шифрования"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center" />
+
+            <!-- Описание -->
+            <Border Background="#1A2196F3"
+                    CornerRadius="8"
+                    Padding="16,12">
+                <TextBlock TextWrapping="Wrap"
+                           FontSize="13"
+                           Opacity="0.85"
+                           LineHeight="20">
+                    Ваш аккаунт уже зарегистрирован на другом устройстве. Чтобы читать историю переписки, перенесите ключи шифрования.&#x0a;&#x0a;Откройте приложение на старом устройстве → Настройки → «Перенос ключей» и отсканируйте QR-код или скопируйте код переноса.
+                </TextBlock>
+            </Border>
+
+            <Border Height="1"
+                    Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    Opacity="0.2" />
+
+            <!-- Поле ввода кода -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Код переноса"
+                           FontSize="13"
+                           FontWeight="SemiBold" />
+                <TextBox Text="{Binding TransferCode}"
+                         Watermark="Вставьте код с другого устройства"
+                         Height="52"
+                         AcceptsReturn="False" />
+            </StackPanel>
+
+            <!-- Ошибка -->
+            <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="#1AF44336"
+                    CornerRadius="6"
+                    Padding="12,8">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#F44336"
+                           FontSize="13"
+                           TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Прогресс -->
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsBusy}"
+                         Height="3" />
+
+            <!-- Кнопка импорта -->
+            <Button Content="Импортировать ключи"
+                    Command="{Binding ImportKeyCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Height="44"
+                    IsEnabled="{Binding !IsBusy}" />
+
+            <!-- Разделитель -->
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                <Border Width="100" Height="1"
+                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Opacity="0.2"
+                        VerticalAlignment="Center" />
+                <TextBlock Text="или" Opacity="0.5" FontSize="12" />
+                <Border Width="100" Height="1"
+                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Opacity="0.2"
+                        VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Новые ключи (деструктивное действие) -->
+            <StackPanel Spacing="8">
+                <Button Content="Создать новые ключи (история переписки недоступна)"
+                        Command="{Binding GenerateNewKeyCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Height="44"
+                        Foreground="#F44336"
+                        IsEnabled="{Binding !IsBusy}" />
+                <TextBlock Text="Старые зашифрованные сообщения нельзя будет расшифровать."
+                           FontSize="11"
+                           Opacity="0.5"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+
+</UserControl>

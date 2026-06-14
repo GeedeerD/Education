@@ -9,6 +9,7 @@ using FiweClient.ViewModels;
 using FiweClient.ViewModels.Auth;
 using FiweClient.ViewModels.Chats;
 using FiweClient.ViewModels.Contacts;
+using FiweClient.ViewModels.Settings;
 using FiweClient.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,13 +48,11 @@ public class App : Application
 
                 desktop.MainWindow = mainWindow;
 
-                // Запускаем авто-логин асинхронно
                 _ = TryAutoLoginAsync();
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
             {
                 Console.WriteLine("=== FiweClient: SingleView ===");
-                // Android использует SingleView а не Desktop!
                 var mainView = new MainView
                 {
                     DataContext = Services.GetRequiredService<MainWindowViewModel>()
@@ -82,13 +81,22 @@ public class App : Application
         var session = Services.GetRequiredService<ISessionService>();
         var nav = Services.GetRequiredService<INavigationService>();
         var realtime = Services.GetRequiredService<IRealtimeService>();
+        var keyStorage = Services.GetRequiredService<IKeyStorageService>();
 
         var saved = await tokenStorage.LoadTokenAsync();
 
         if (saved is not null && session.IsTokenValid(saved.Token))
         {
-            // Токен ещё живой — восстанавливаем сессию
             session.SetSession(saved.Token, saved.UserId, saved.Username);
+
+            // Если ключей нет на устройстве — предлагаем перенос (без реалтайма)
+            if (!keyStorage.KeystoreExists(saved.UserId))
+            {
+                var keyTransferVm = Services.GetRequiredService<KeyTransferViewModel>();
+                nav.NavigateTo(keyTransferVm);
+                return;
+            }
+
             await realtime.ConnectAsync(saved.Token);
 
             var shell = Services.GetRequiredService<ShellViewModel>();
@@ -97,7 +105,6 @@ public class App : Application
         }
         else
         {
-            // Токен истёк или нет — на логин
             await tokenStorage.ClearAsync();
             nav.NavigateTo<LoginViewModel>();
         }
@@ -134,13 +141,15 @@ public class App : Application
 
         // ── ViewModels ────────────────────────────────
         services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<ShellViewModel>();       // singleton — одна оболочка
+        services.AddSingleton<ShellViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
-        services.AddSingleton<ChatListViewModel>();    // singleton — не перезагружать список
+        services.AddTransient<KeyTransferViewModel>();
+        services.AddSingleton<ChatListViewModel>();
         services.AddTransient<ChatViewModel>();
         services.AddSingleton<ContactListViewModel>();
         services.AddTransient<AddContactViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<QrGeneratorViewModel>();
     }
 }
