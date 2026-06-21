@@ -21,7 +21,7 @@ public class TokenStorage : ITokenStorage
 
     public TokenStorage()
     {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fiwe");
+        var dir = GetStorageDir();
         Directory.CreateDirectory(dir);
         _path = Path.Combine(dir, "session.json");
     }
@@ -49,5 +49,15 @@ public class TokenStorage : ITokenStorage
         if (File.Exists(_path))
             File.Delete(_path);
         await Task.CompletedTask;
+    }
+
+    private static string GetStorageDir()
+    {
+        //return Environment.SpecialFolder.ApplicationData;
+#if ANDROID
+    return Android.App.Application.Context.FilesDir!.AbsolutePath;
+#else
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fiwe");
+#endif
     }
 }

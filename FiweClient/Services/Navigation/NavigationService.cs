@@ -12,6 +12,7 @@ namespace FiweClient.Services.Navigation;
 public interface INavigationService
 {
     void SetHost(MainWindow window);
+    void SetHost(MainView view);
     void NavigateTo<TViewModel>() where TViewModel : ObservableObject;
     void NavigateTo(ObservableObject viewModel);
 }
@@ -30,6 +31,7 @@ public class NavigationService : INavigationService
     {
         _mainVm = window.DataContext as MainWindowViewModel;
     }
+    public void SetHost(MainView view) => _mainVm = view.DataContext as MainWindowViewModel;
 
     /// <summary>
     /// Создаёт ViewModel через DI и переходит к нему.

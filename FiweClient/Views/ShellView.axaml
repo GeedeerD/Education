@@ -3,6 +3,7 @@
              xmlns:vm="clr-namespace:FiweClient.ViewModels"
              xmlns:chats="clr-namespace:FiweClient.ViewModels.Chats"
              xmlns:contacts="clr-namespace:FiweClient.ViewModels.Contacts"
+             xmlns:settings="clr-namespace:FiweClient.ViewModels.Settings"
              xmlns:views="clr-namespace:FiweClient.Views"
              x:Class="FiweClient.Views.ShellView"
              x:DataType="vm:ShellViewModel">
@@ -22,6 +23,9 @@
         </DataTemplate>
         <DataTemplate DataType="vm:SettingsViewModel">
             <views:SettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="settings:QrGeneratorViewModel">
+            <views:QrGeneratorView />
         </DataTemplate>
     </UserControl.DataTemplates>
 
