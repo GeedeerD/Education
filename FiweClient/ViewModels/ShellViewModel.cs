@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
@@ -6,7 +6,6 @@ using FiweClient.Services.Session;
 using FiweClient.ViewModels.Auth;
 using FiweClient.ViewModels.Chats;
 using FiweClient.ViewModels.Contacts;
-
 namespace FiweClient.ViewModels;
 
 /// <summary>
@@ -75,6 +74,16 @@ public partial class ShellViewModel : ObservableObject
         ActiveTab = "contacts";
         var vm = App.Services.GetService(typeof(AddContactViewModel)) as AddContactViewModel;
         CurrentContent = vm;
+    }
+
+    /// <summary>
+    /// Открыть настройки
+    /// </summary>
+    [RelayCommand]
+    public void OpenSettings()
+    {
+        ActiveTab = "settings";
+        CurrentContent = App.Services.GetService(typeof(SettingsViewModel)) as SettingsViewModel;
     }
 
     /// <summary>

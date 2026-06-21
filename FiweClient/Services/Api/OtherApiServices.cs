@@ -56,6 +56,7 @@ public interface IUserApiService
 {
     Task SetPublicKeyAsync(string publicKeyBase64);
     Task<string?> GetPublicKeyAsync(string userId);
+    Task SetPublicNameAsync(string publicName);
 }
 
 public class UserApiService : BaseApiService, IUserApiService
@@ -65,6 +66,9 @@ public class UserApiService : BaseApiService, IUserApiService
 
     public Task SetPublicKeyAsync(string publicKeyBase64)
         => PostAsync("Users/SetPublicKey", publicKeyBase64);
+
+    public Task SetPublicNameAsync(string publicName)
+        => PostAsync("Users/ChangePublicName", publicName);
 
     public async Task<string?> GetPublicKeyAsync(string userId)
     {

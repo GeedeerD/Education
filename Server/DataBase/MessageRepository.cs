@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using Configurations;
 using DataBase.Interfaces;
 using DataBase.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -8,22 +9,21 @@ namespace DataBase
 {
     public class MessageRepository : IMessageRepository
     {
-        private const string ConnectionString = "mongodb://localhost:27017";
         private readonly IMongoCollection<MessageModelDto> _messages;
         private readonly IMongoCollection<ChatModelDto> _chats;
         private readonly IMongoDatabase _db;
 
 
-        public MessageRepository()
+        public MessageRepository(IOptions<MongoDbSettings> mongoDbSettings)
         {
-            var client = new MongoClient(ConnectionString);
+            var client = new MongoClient(mongoDbSettings.Value.ConnectionString);
 
-            _db = client.GetDatabase("Education");
+            _db = client.GetDatabase(mongoDbSettings.Value.DatabaseName);
             _messages = _db.GetCollection<MessageModelDto>("Messages");
             _chats = _db.GetCollection<ChatModelDto>("Chats");
         }
 
-        public MessageRepository(IMongoDatabase db) : this()
+        public MessageRepository(IMongoDatabase db)
         {
             _db = db;
             _messages = _db.GetCollection<MessageModelDto>("Messages");

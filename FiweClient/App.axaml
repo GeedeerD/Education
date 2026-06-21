@@ -3,7 +3,7 @@
              xmlns:conv="clr-namespace:FiweClient.Converters"
              x:Class="FiweClient.App"
              RequestedThemeVariant="Default">
-    <!-- Default = следует системной теме -->
+	<!-- Default = следует системной теме -->
 
     <Application.Styles>
         <FluentTheme />
@@ -14,12 +14,13 @@
         <conv:BoolToAlignmentConverter x:Key="BoolToAlignmentConverter" />
         <conv:BubbleColorConverter x:Key="BubbleColorConverter" />
         <conv:BubbleTextColorConverter x:Key="BubbleTextColorConverter" />
+        <conv:EqualityConverter x:Key="EqualityConverter" />
 
         <!-- Цвета бренда -->
         <Color x:Key="BrandColor">#5B6EF5</Color>
         <Color x:Key="BrandColorLight">#7B8EFF</Color>
 
-        <!-- Цвета пузырей сообщений -->
+		<!-- Цвета пузырей сообщений -->
         <Color x:Key="MyMessageBubble">#5B6EF5</Color>
         <Color x:Key="ContactMessageBubble">#3A3A4A</Color>
         <Color x:Key="ContactMessageBubbleLight">#E8E8F0</Color>
