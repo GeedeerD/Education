@@ -6,7 +6,6 @@ using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
-using FiweClient.ViewModels.Auth;
 
 namespace FiweClient.ViewModels.Auth;
 
@@ -69,19 +68,20 @@ public partial class LoginViewModel : ObservableObject
 
             var userId = ParseUserIdFromToken(response.Token);
 
-            // Сохраняем сессию в память
             _session.SetSession(response.Token, userId, Username);
-
-            // Сохраняем токен на диск для авто-логина
             await _tokenStorage.SaveTokenAsync(response.Token, userId, Username);
 
-            // Инициализируем крипто-ключи
-            await InitializeCryptoAsync();
+            var needsTransfer = await CheckCryptoKeysAsync(userId);
+            if (needsTransfer)
+            {
+                // Ключи зарегистрированы на другом устройстве — предлагаем перенос
+                var keyTransferVm = App.Services.GetService(typeof(KeyTransferViewModel)) as KeyTransferViewModel;
+                _navigation.NavigateTo(keyTransferVm!);
+                return;
+            }
 
-            // Подключаемся к SignalR
             await _realtime.ConnectAsync(response.Token);
 
-            // Переходим в Shell
             var shell = App.Services.GetService(typeof(ShellViewModel)) as ShellViewModel;
             shell!.Initialize();
             _navigation.NavigateTo(shell);
@@ -99,30 +99,29 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand]
     private void GoToRegister() => _navigation.NavigateTo<RegisterViewModel>();
 
-    private async Task InitializeCryptoAsync()
+    /// <summary>
+    /// Проверяет состояние криптографических ключей.
+    /// Возвращает true если нужен перенос ключей с другого устройства.
+    /// </summary>
+    private async Task<bool> CheckCryptoKeysAsync(string userId)
     {
-        KeyPair keyPair;
+        if (_keyStorage.KeystoreExists(userId))
+        {
+            var loaded = await _keyStorage.LoadKeyPairAsync(userId);
+            if (loaded is not null)
+                return false; // Ключи есть и валидны
+        }
 
-        if (_keyStorage.KeystoreExists())
-        {
-            var loaded = await _keyStorage.LoadKeyPairAsync(Password);
-            if (loaded is null)
-            {
-                keyPair = _crypto.GenerateKeyPair();
-                await _keyStorage.SaveKeyPairAsync(keyPair, Password);
-                await _userApi.SetPublicKeyAsync(keyPair.PublicKeyBase64);
-            }
-            else
-            {
-                keyPair = loaded;
-            }
-        }
-        else
-        {
-            keyPair = _crypto.GenerateKeyPair();
-            await _keyStorage.SaveKeyPairAsync(keyPair, Password);
-            await _userApi.SetPublicKeyAsync(keyPair.PublicKeyBase64);
-        }
+        // Нет локальных ключей — проверяем сервер
+        var serverPublicKey = await _userApi.GetPublicKeyAsync(userId);
+        if (serverPublicKey is not null)
+            return true; // Другое устройство уже зарегистрировало ключи → нужен перенос
+
+        // Первое устройство — генерируем новую пару
+        var keyPair = _crypto.GenerateKeyPair();
+        await _keyStorage.SaveKeyPairAsync(keyPair, userId);
+        await _userApi.SetPublicKeyAsync(keyPair.PublicKeyBase64);
+        return false;
     }
 
     private static string ParseUserIdFromToken(string token)

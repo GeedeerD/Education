@@ -1,5 +1,7 @@
-﻿using DataBase.Interfaces;
+﻿using Configurations;
+using DataBase.Interfaces;
 using DataBase.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -7,19 +9,18 @@ namespace DataBase
 {
     public class UserRepository : IUserRepository
     {
-        private readonly string ConnectionString = "mongodb://localhost:27017";
         private readonly IMongoDatabase _db;
         private readonly IMongoCollection<UserDto> _users;
 
-        public UserRepository()
+        public UserRepository(IOptions<MongoDbSettings> mongoDbSettings)
         {
-            var client = new MongoClient(ConnectionString);
+            var client = new MongoClient(mongoDbSettings.Value.ConnectionString);
 
-            _db = client.GetDatabase("Education");
+            _db = client.GetDatabase(mongoDbSettings.Value.DatabaseName);
             _users = _db.GetCollection<UserDto>("Users");
         }
 
-        public UserRepository(IMongoDatabase db) : this()
+        public UserRepository(IMongoDatabase db)
         {
             _db = db;
             _users = _db.GetCollection<UserDto>("Users");
@@ -117,6 +118,12 @@ namespace DataBase
         {
             var user = await _users.Find(u => u.Id == userId).FirstAsync();
             return user.PublicKey;
+        }
+
+        public async Task<string> GetUserPublicNameByUserIdAsync(ObjectId userId)
+        {
+            var user = await _users.Find(u => u.Id == userId).FirstAsync();
+            return user.PublicUserName;
         }
     }
 }

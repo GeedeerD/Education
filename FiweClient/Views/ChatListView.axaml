@@ -4,13 +4,6 @@
              x:Class="FiweClient.Views.ChatListView"
              x:DataType="vm:ChatListViewModel">
 
-    <!-- Триггер загрузки при открытии экрана --> 
-    <Interaction.Behaviors>
-        <EventTriggerBehavior EventName="Loaded">
-            <InvokeCommandAction Command="{Binding LoadChatsCommand}" />
-        </EventTriggerBehavior>
-    </Interaction.Behaviors>
-
     <Grid ColumnDefinitions="280, *">
 
         <!-- ── Левая панель: список чатов ── -->

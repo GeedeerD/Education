@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:FiweClient.ViewModels.Settings"
+             x:Class="FiweClient.Views.QrGeneratorView"
+             x:DataType="vm:QrGeneratorViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Шапка -->
+        <Border Grid.Row="0" Padding="20,16"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+            <TextBlock Text="Перенос ключей на новое устройство"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
+        </Border>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="24,20" Spacing="20" MaxWidth="480" HorizontalAlignment="Center">
+
+                <!-- Инструкция -->
+                <Border Background="#1A2196F3"
+                        CornerRadius="8"
+                        Padding="16,12">
+                    <TextBlock TextWrapping="Wrap"
+                               FontSize="13"
+                               Opacity="0.85"
+                               LineHeight="20">
+                        На новом устройстве войдите в аккаунт. Появится экран переноса ключей. Отсканируйте QR-код ниже или скопируйте текстовый код и вставьте его на новом устройстве.
+                    </TextBlock>
+                </Border>
+
+                <!-- Предупреждение безопасности -->
+                <Border Background="#1AFF9800"
+                        CornerRadius="8"
+                        Padding="16,12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Top" />
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Opacity="0.85">
+                            Никому не показывайте этот код. Он содержит ваш приватный ключ шифрования.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Прогресс загрузки -->
+                <ProgressBar IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}"
+                             Height="3" />
+
+                <!-- Ошибка -->
+                <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#1AF44336"
+                        CornerRadius="6"
+                        Padding="12,8">
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#F44336"
+                               FontSize="13"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- QR-код -->
+                <StackPanel Spacing="12"
+                            IsVisible="{Binding QrBitmap, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+                    <TextBlock Text="QR-код"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Opacity="0.6" />
+
+                    <Border HorizontalAlignment="Center"
+                            Padding="16"
+                            Background="White"
+                            CornerRadius="12">
+                        <Image Source="{Binding QrBitmap}"
+                               Width="280"
+                               Height="280"
+                               RenderOptions.BitmapInterpolationMode="None" />
+                    </Border>
+
+                </StackPanel>
+
+                <!-- Текстовый код переноса -->
+                <StackPanel Spacing="8"
+                            IsVisible="{Binding TransferCode, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+
+                    <TextBlock Text="Текстовый код (скопируйте вручную)"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Opacity="0.6" />
+
+                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            CornerRadius="8"
+                            Padding="14,10">
+                        <SelectableTextBlock Text="{Binding TransferCode}"
+                                            FontFamily="Consolas,Menlo,monospace"
+                                            FontSize="11"
+                                            TextWrapping="Wrap"
+                                            Opacity="0.85" />
+                    </Border>
+
+                    <TextBlock Text="Нажмите и удержите текст, чтобы скопировать"
+                               FontSize="11"
+                               Opacity="0.45"
+                               HorizontalAlignment="Center" />
+
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+
+</UserControl>

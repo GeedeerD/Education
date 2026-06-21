@@ -35,7 +35,7 @@ public class SignalRService : IRealtimeService, IAsyncDisposable
             return;
 
         _connection = new HubConnectionBuilder()
-            .WithUrl("https://localhost:7187/chatHub", options =>
+            .WithUrl("https://fiwe-api-dgabh9axgnhagqhg.italynorth-01.azurewebsites.net/chatHub", options =>
             {
                 // Передаём JWT токен как query параметр —
                 // стандартный способ авторизации в SignalR

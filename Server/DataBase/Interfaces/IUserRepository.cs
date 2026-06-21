@@ -14,5 +14,6 @@ namespace DataBase.Interfaces
         Task<ObjectId> GetContactListIdAsync(ObjectId userId);
         Task SetUserPublicKeyAsync(ObjectId userId, string publicKey);
         Task<string> GetUserPublicKeyAsync(ObjectId userId);
+        Task<string> GetUserPublicNameByUserIdAsync(ObjectId userId);
     }
 }

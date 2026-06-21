@@ -1,10 +1,11 @@
 using System.Globalization;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
+
+using Application = Avalonia.Application;
 
 namespace FiweClient.Converters;
 

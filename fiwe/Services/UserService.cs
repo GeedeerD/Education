@@ -48,13 +48,11 @@ namespace fiwe.Services
         }
 
         public bool VerifyPassword(string password, string hash) =>
-            HashPassword(password) == hash;
+            BCrypt.Net.BCrypt.Verify(password, hash);
 
         private string HashPassword(string password)
         {
-            using var sha = SHA3_512.Create();
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public async Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName)

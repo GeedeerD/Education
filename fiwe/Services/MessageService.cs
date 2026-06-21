@@ -1,4 +1,6 @@
-﻿using DataBase.Interfaces;
+﻿using System;
+using System.Text;
+using DataBase.Interfaces;
 using DataBase.Models;
 using fiwe.Models;
 using fiwe.Models.Exceptions;
@@ -16,16 +18,38 @@ namespace fiwe.Services
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository _messageRepository;
+        private readonly IUserRepository _userRepository;
 
-        public MessageService(IMessageRepository messageRepository)
+        public MessageService(IMessageRepository messageRepository, IUserRepository userRepository)
         {
             _messageRepository = messageRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<IEnumerable<ChatViewModel>> GetChatsByUserIdAsync(string userId)
         {
             var chats = await _messageRepository.GetChatsAsync(ObjectId.Parse(userId));
-            return chats.Select(c => ChatViewModel.WrapModel(c, userId));
+            var chatsFromDB = chats.Select(c => ChatViewModel.WrapModel(c, userId)).ToList();
+
+            foreach (var chat in chatsFromDB) 
+            {
+                if (string.IsNullOrEmpty(chat.Name))
+                {
+                    var newChatName = string.Empty;
+                    var recipient = ObjectId.Parse(chat.RecipientId);
+                    if (recipient == ObjectId.Empty)
+                    {
+                        newChatName = "Notes";
+                    }
+                    else 
+                    {
+                        newChatName = await _userRepository.GetUserPublicNameByUserIdAsync(recipient);
+                    }
+                    chat.Name = newChatName;
+                }
+            }
+
+            return chatsFromDB;
         }
 
         public async Task<string> GetMessageByIdAsync(string userId, string messageId)

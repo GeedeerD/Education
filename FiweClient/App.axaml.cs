@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using FiweClient.Crypto;
@@ -6,12 +5,17 @@ using FiweClient.Services.Api;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
+using FiweClient.Services.QrScanner;
+using FiweClient.Services.Settings;
 using FiweClient.ViewModels;
 using FiweClient.ViewModels.Auth;
 using FiweClient.ViewModels.Chats;
 using FiweClient.ViewModels.Contacts;
+using FiweClient.ViewModels.Settings;
 using FiweClient.Views;
 using Microsoft.Extensions.DependencyInjection;
+
+using Application = Avalonia.Application;
 
 namespace FiweClient;
 
@@ -23,26 +27,49 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var services = new ServiceCollection();
-        ConfigureServices(services);
-        Services = services.BuildServiceProvider();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        try
         {
-            var mainWindow = new MainWindow
+            Console.WriteLine("=== FiweClient: App starting ===");
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            Services = services.BuildServiceProvider();
+
+            Console.WriteLine("=== FiweClient: Services ready ===");
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                DataContext = Services.GetRequiredService<MainWindowViewModel>()
-            };
+                Console.WriteLine("=== FiweClient: Desktop ===");
+                var mainWindow = new MainWindow
+                {
+                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                };
 
-            var nav = Services.GetRequiredService<INavigationService>();
-            nav.SetHost(mainWindow);
+                var nav = Services.GetRequiredService<INavigationService>();
+                nav.SetHost(mainWindow);
 
-            desktop.MainWindow = mainWindow;
+                desktop.MainWindow = mainWindow;
 
-            // Запускаем авто-логин асинхронно
-            _ = TryAutoLoginAsync();
+                _ = TryAutoLoginAsync();
+            }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                Console.WriteLine("=== FiweClient: SingleView ===");
+                var mainView = new MainView
+                {
+                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                };
+                var nav = Services.GetRequiredService<INavigationService>();
+                nav.SetHost(mainView);
+                singleView.MainView = mainView;
+                _ = TryAutoLoginAsync();
+            }
         }
-
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== FiweClient CRASH: {ex} ===");
+            throw;
+        }
         base.OnFrameworkInitializationCompleted();
     }
 
@@ -56,13 +83,24 @@ public class App : Application
         var session = Services.GetRequiredService<ISessionService>();
         var nav = Services.GetRequiredService<INavigationService>();
         var realtime = Services.GetRequiredService<IRealtimeService>();
+        var keyStorage = Services.GetRequiredService<IKeyStorageService>();
+        var appSettings = Services.GetRequiredService<IAppSettingsService>();
 
+        await appSettings.LoadAsync();
         var saved = await tokenStorage.LoadTokenAsync();
 
         if (saved is not null && session.IsTokenValid(saved.Token))
         {
-            // Токен ещё живой — восстанавливаем сессию
             session.SetSession(saved.Token, saved.UserId, saved.Username);
+
+            // Если ключей нет на устройстве — предлагаем перенос (без реалтайма)
+            if (!keyStorage.KeystoreExists(saved.UserId))
+            {
+                var keyTransferVm = Services.GetRequiredService<KeyTransferViewModel>();
+                nav.NavigateTo(keyTransferVm);
+                return;
+            }
+
             await realtime.ConnectAsync(saved.Token);
 
             var shell = Services.GetRequiredService<ShellViewModel>();
@@ -71,7 +109,6 @@ public class App : Application
         }
         else
         {
-            // Токен истёк или нет — на логин
             await tokenStorage.ClearAsync();
             nav.NavigateTo<LoginViewModel>();
         }
@@ -82,7 +119,7 @@ public class App : Application
         // ── HTTP ──────────────────────────────────────
         services.AddHttpClient("FiweApi", client =>
         {
-            client.BaseAddress = new Uri("https://localhost:7187/");
+            client.BaseAddress = new Uri("https://fiwe-api-dgabh9axgnhagqhg.italynorth-01.azurewebsites.net/");
         });
 
         // ── Крипто ───────────────────────────────────
@@ -103,17 +140,30 @@ public class App : Application
         // ── SignalR ───────────────────────────────────
         services.AddSingleton<IRealtimeService, SignalRService>();
 
+        // ── Настройки приложения ──────────────────────
+        services.AddSingleton<IAppSettingsService, AppSettingsService>();
+
+        // ── QR-сканер ─────────────────────────────────
+#if ANDROID
+        services.AddSingleton<IQrScannerService, AndroidQrScannerService>();
+#else
+        services.AddSingleton<IQrScannerService, DesktopQrScannerService>();
+#endif
+
         // ── Навигация ─────────────────────────────────
         services.AddSingleton<INavigationService, NavigationService>();
 
         // ── ViewModels ────────────────────────────────
         services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<ShellViewModel>();       // singleton — одна оболочка
+        services.AddSingleton<ShellViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
-        services.AddSingleton<ChatListViewModel>();    // singleton — не перезагружать список
+        services.AddTransient<KeyTransferViewModel>();
+        services.AddSingleton<ChatListViewModel>();
         services.AddTransient<ChatViewModel>();
         services.AddSingleton<ContactListViewModel>();
         services.AddTransient<AddContactViewModel>();
+        services.AddTransient<SettingsViewModel>();
+        services.AddTransient<QrGeneratorViewModel>();
     }
 }
