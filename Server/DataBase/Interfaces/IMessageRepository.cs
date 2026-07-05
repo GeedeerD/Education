@@ -14,5 +14,6 @@ namespace DataBase.Interfaces
         Task<AccessInfo> GetChatAccessInfoAsync(string userId, string chatId);
         Task<string> GetMessageByIdAsync(ObjectId userId, ObjectId messageId);
         Task RemoveOldMessagesAsync(ObjectId userId);
+        Task DeleteMessagesAsync(ObjectId userId, IEnumerable<ObjectId> messageIds);
     }
 }

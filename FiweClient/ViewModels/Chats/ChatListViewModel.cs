@@ -9,12 +9,16 @@ namespace FiweClient.ViewModels.Chats;
 
 public partial class MessageBubbleViewModel : ObservableObject
 {
+    public string MessageId { get; init; } = "";
     public string Text { get; init; } = "";
     public string SenderId { get; init; } = "";
     public DateTime SentAt { get; init; }
     public bool IsMine { get; init; }
     public double UtcOffsetHours { get; init; }
     public string TimeLabel => SentAt.AddHours(UtcOffsetHours).ToString("HH:mm");
+
+    [ObservableProperty] private bool _isSelected;
+    [ObservableProperty] private bool _isSelectionMode;
 }
 
 public partial class ChatPreviewViewModel : ObservableObject

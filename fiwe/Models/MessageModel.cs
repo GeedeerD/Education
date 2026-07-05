@@ -35,8 +35,14 @@ namespace fiwe.Models
 
     public class PreviewMessageViewModel
     {
+        public string MessageId { get; set; }
         public DateTime SentAt { get; set; }
         public string SenderObjectId { get; set; }
         public string MessageBody { get; set; }
+    }
+
+    public class DeleteMessagesViewModel
+    {
+        public List<string> MessageIds { get; set; } = [];
     }
 }
