@@ -73,5 +73,17 @@ namespace fiwe.Controllers
             var encriptedMessage = await _messageService.GetMessageByIdAsync(CurrentUserId, messageId);
             return Ok(encriptedMessage);
         }
+
+        [HttpPost, Route("RemoveOldMessages")]
+        public async Task<IActionResult> RemoveOldMessagesAsync()
+        {
+            if (string.IsNullOrEmpty(CurrentUserId))
+            {
+                return Unauthorized();
+            }
+
+            await _messageService.RemoveOldMessagesAsync(CurrentUserId);
+            return Ok();
+        }
     }
 }

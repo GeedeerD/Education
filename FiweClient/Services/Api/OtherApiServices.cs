@@ -10,6 +10,7 @@ public interface IMessageApiService
     Task<string> GetMessageByIdAsync(string messageId);
     Task<IEnumerable<MessageDto>> GetMessagesAsync(string chatId);
     Task<string?> SendMessageAsync(string chatId, string encryptedBody);
+    Task RemoveOldMessagesAsync();
 }
 
 public class MessageApiService : BaseApiService, IMessageApiService
@@ -28,6 +29,9 @@ public class MessageApiService : BaseApiService, IMessageApiService
 
     public Task<string?> SendMessageAsync(string chatId, string encryptedBody)
         => PostAsync<string>("Messages/SendMessage", new SendMessageRequest(chatId, encryptedBody));
+
+    public Task RemoveOldMessagesAsync()
+        => PostAsync("Messages/RemoveOldMessages", null);
 }
 
 // ── Contacts ──────────────────────────────────────────────────────

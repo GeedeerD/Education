@@ -1,4 +1,5 @@
-﻿using DataBase;
+﻿using System;
+using DataBase;
 using DataBase.Models;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Mongo2Go;
@@ -177,6 +178,70 @@ namespace Tests
             Assert.That(ObjectId.Empty, Is.Not.EqualTo(chat.ObjectId));
             Assert.That(ObjectId.Empty, Is.Not.EqualTo(chat2.ObjectId));
             Assert.That(chat.ObjectId, Is.EqualTo(chat2.ObjectId));
+        }
+
+
+        [Test]
+        public async Task RemoveOldMessagesAsync_WhenSentAtMoreThan7Days_ShouldRemovedOldMessages()
+        {
+            // Arrange
+            ObjectId ownerUserId = ObjectId.GenerateNewId();
+
+            var chat1 = new ChatModelDto() { UserObjectIds = [ownerUserId, ObjectId.GenerateNewId()] };
+            var chat2 = new ChatModelDto() { UserObjectIds = [ownerUserId, ObjectId.GenerateNewId()] };
+            var chat3 = new ChatModelDto() { UserObjectIds = [ownerUserId, ObjectId.GenerateNewId()] };
+            await _repo.CreateChatAsync(ownerUserId, chat1);
+            await _repo.CreateChatAsync(ownerUserId, chat2);
+            await _repo.CreateChatAsync(ownerUserId, chat3);
+
+            var message1 = new MessageModelDto() { FromUserObjectId = ownerUserId, SentAt = DateTime.UtcNow.AddDays(-9), ChatId = chat1.ObjectId, MessageBody = "Message1" };
+            var message2 = new MessageModelDto() { FromUserObjectId = ownerUserId, SentAt = DateTime.UtcNow.AddDays(-9), ChatId = chat2.ObjectId, MessageBody = "Message2" };
+            var message3 = new MessageModelDto() { FromUserObjectId = ownerUserId, SentAt = DateTime.UtcNow.AddDays(-9), ChatId = chat3.ObjectId, MessageBody = "Message3" };
+
+            await _repo.SendMessageAsync(message1);
+            await _repo.SendMessageAsync(message2);
+            await _repo.SendMessageAsync(message3);
+
+            // Action
+            await _repo.RemoveOldMessagesAsync(ownerUserId);
+
+            var chat1Messages = await _repo.GetMessagesAsync(ownerUserId, chat1.ObjectId);
+            var chat2Messages = await _repo.GetMessagesAsync(ownerUserId, chat2.ObjectId);
+            var chat3Messages = await _repo.GetMessagesAsync(ownerUserId, chat3.ObjectId);
+
+            // Assert
+            Assert.That(Array.Empty<MessageModelDto>, Is.EqualTo(chat1Messages));
+            Assert.That(Array.Empty<MessageModelDto>, Is.EqualTo(chat2Messages));
+            Assert.That(Array.Empty<MessageModelDto>, Is.EqualTo(chat3Messages));
+        }
+
+        [Test]
+        public async Task RemoveOldMessagesAsync_WhenNoteChat_ShouldNotDeleteNoteMessages()
+        {
+            // Arrange
+            ObjectId userId = ObjectId.GenerateNewId();
+
+            var dialogChat = new ChatModelDto() { ChatType = ChatType.Dialog, UserObjectIds = [userId, ObjectId.GenerateNewId()] };
+            var noteChat = new ChatModelDto() { ChatType = ChatType.Note, UserObjectIds = [userId] };
+
+            await _repo.CreateChatAsync(userId, dialogChat);
+            await _repo.CreateChatAsync(userId, noteChat);
+
+            var dialogMessage = new MessageModelDto() { FromUserObjectId = userId, SentAt = DateTime.UtcNow.AddDays(-9), ChatId = dialogChat.ObjectId, MessageBody = "Old dialog message" };
+            var noteMessage = new MessageModelDto() { FromUserObjectId = userId, SentAt = DateTime.UtcNow.AddDays(-9), ChatId = noteChat.ObjectId, MessageBody = "Old note message" };
+
+            await _repo.SendMessageAsync(dialogMessage);
+            await _repo.SendMessageAsync(noteMessage);
+
+            // Action
+            await _repo.RemoveOldMessagesAsync(userId);
+
+            var dialogMessages = await _repo.GetMessagesAsync(userId, dialogChat.ObjectId);
+            var noteMessages = await _repo.GetMessagesAsync(userId, noteChat.ObjectId);
+
+            // Assert
+            Assert.That(dialogMessages, Is.Empty);
+            Assert.That(noteMessages, Is.Not.Empty);
         }
 
         public void Dispose()
