@@ -13,6 +13,7 @@ public partial class LoginViewModel : ObservableObject
 {
     private readonly IAuthApiService _authApi;
     private readonly IUserApiService _userApi;
+    private readonly IMessageApiService _messageApi;
     private readonly ISessionService _session;
     private readonly ITokenStorage _tokenStorage;
     private readonly INavigationService _navigation;
@@ -28,6 +29,7 @@ public partial class LoginViewModel : ObservableObject
     public LoginViewModel(
         IAuthApiService authApi,
         IUserApiService userApi,
+        IMessageApiService messageApi,
         ISessionService session,
         ITokenStorage tokenStorage,
         INavigationService navigation,
@@ -37,6 +39,7 @@ public partial class LoginViewModel : ObservableObject
     {
         _authApi = authApi;
         _userApi = userApi;
+        _messageApi = messageApi;
         _session = session;
         _tokenStorage = tokenStorage;
         _navigation = navigation;
@@ -79,6 +82,8 @@ public partial class LoginViewModel : ObservableObject
                 _navigation.NavigateTo(keyTransferVm!);
                 return;
             }
+
+            _ = _messageApi.RemoveOldMessagesAsync();
 
             await _realtime.ConnectAsync(response.Token);
 

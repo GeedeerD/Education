@@ -143,5 +143,14 @@ namespace DataBase
             var message = await _messages.Find(x=>x.ObjectId == messageId).FirstOrDefaultAsync();
             return message.MessageBody;
         }
+
+        public async Task RemoveOldMessagesAsync(ObjectId userId)
+        {
+            var chats = await _chats.Find(x => x.UserObjectIds.Contains(userId) && x.ChatType != ChatType.Note).ToListAsync();
+            foreach (var chat in chats)
+            {
+                await _messages.DeleteManyAsync(x => x.ChatId == chat.ObjectId && x.SentAt < DateTime.UtcNow.Date.AddDays(-7));
+            }
+        }
     }
 }
