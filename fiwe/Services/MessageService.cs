@@ -15,6 +15,7 @@ namespace fiwe.Services
         Task<IEnumerable<PreviewMessageViewModel>> GetMessagesFromChatAsync(string currentUserId, string chatId, int messageCount);
         Task<(string MessageId, IEnumerable<string> Recipients)> SendMessageAsync(string userId, MessageViewModel model);
         Task RemoveOldMessagesAsync(string userId);
+        Task DeleteMessagesAsync(string userId, IEnumerable<string> messageIds);
     }
     public class MessageService : IMessageService
     {
@@ -62,11 +63,20 @@ namespace fiwe.Services
         {
             var previewMessages = await _messageRepository.GetMessagesAsync(ObjectId.Parse(currentUserId), ObjectId.Parse(chatId), messageCount);
 
-            return previewMessages.Select(x => new PreviewMessageViewModel { MessageBody = x.MessageBody, SentAt = x.SentAt, SenderObjectId = x.FromUserObjectId.ToString() });
+            return previewMessages.Select(x => new PreviewMessageViewModel
+            {
+                MessageId = x.ObjectId.ToString(),
+                MessageBody = x.MessageBody,
+                SentAt = x.SentAt,
+                SenderObjectId = x.FromUserObjectId.ToString()
+            });
         }
 
         public Task RemoveOldMessagesAsync(string userId)
             => _messageRepository.RemoveOldMessagesAsync(ObjectId.Parse(userId));
+
+        public Task DeleteMessagesAsync(string userId, IEnumerable<string> messageIds)
+            => _messageRepository.DeleteMessagesAsync(ObjectId.Parse(userId), messageIds.Select(ObjectId.Parse));
 
         public async Task<(string MessageId, IEnumerable<string> Recipients)> SendMessageAsync(string userId, MessageViewModel model)
         {

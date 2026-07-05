@@ -22,10 +22,12 @@ public record ChatDto(
 public record MessageDto(
     DateTime SentAt,
     string SenderObjectId,
-    string MessageBody          // на сервере — зашифрованный base64
+    string MessageBody,         // на сервере — зашифрованный base64
+    string? MessageId = null
 );
 
 public record SendMessageRequest(string ChatId, string MessageBody);
+public record DeleteMessagesRequest(List<string> MessageIds);
 
 // ── Contacts ──────────────────────────────────────────────────────
 

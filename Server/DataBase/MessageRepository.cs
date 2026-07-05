@@ -98,7 +98,7 @@ namespace DataBase
                 return [];
             }
 
-            var messages = await _messages.FindAsync(m => m.ChatId == chatId);
+            var messages = await _messages.FindAsync(m => m.ChatId == chatId && !m.IsDeleted);
             return messages.ToList();
         }
 
@@ -151,6 +151,19 @@ namespace DataBase
             {
                 await _messages.DeleteManyAsync(x => x.ChatId == chat.ObjectId && x.SentAt < DateTime.UtcNow.Date.AddDays(-7));
             }
+        }
+
+        public async Task DeleteMessagesAsync(ObjectId userId, IEnumerable<ObjectId> messageIds)
+        {
+            var ids = messageIds.ToList();
+            var update = Builders<MessageModelDto>.Update
+                .Set(m => m.IsDeleted, true)
+                .Set(m => m.DeletedAt, DateTime.UtcNow);
+
+            // Soft delete — только свои сообщения
+            await _messages.UpdateManyAsync(
+                m => ids.Contains(m.ObjectId) && m.FromUserObjectId == userId,
+                update);
         }
     }
 }

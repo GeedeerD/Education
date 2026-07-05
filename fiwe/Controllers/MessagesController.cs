@@ -85,5 +85,22 @@ namespace fiwe.Controllers
             await _messageService.RemoveOldMessagesAsync(CurrentUserId);
             return Ok();
         }
+
+        [HttpPost, Route("DeleteMessages")]
+        public async Task<IActionResult> DeleteMessagesAsync([FromBody] DeleteMessagesViewModel model)
+        {
+            if (string.IsNullOrEmpty(CurrentUserId))
+            {
+                return Unauthorized();
+            }
+
+            if (model.MessageIds is not { Count: > 0 })
+            {
+                return BadRequest("No message IDs provided.");
+            }
+
+            await _messageService.DeleteMessagesAsync(CurrentUserId, model.MessageIds);
+            return Ok();
+        }
     }
 }

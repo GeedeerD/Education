@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -34,6 +36,9 @@ public partial class ChatViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private ObservableCollection<MessageBubbleViewModel> _messages = [];
+    [ObservableProperty] private bool _isSelectionMode;
+
+    public int SelectedCount => Messages.Count(m => m.IsSelected);
 
     // contactUserId нужен для получения публичного ключа собеседника
     private string? _contactUserId;
@@ -59,6 +64,37 @@ public partial class ChatViewModel : ObservableObject
 
         // Подписываемся на входящие сообщения от SignalR
         _realtime.MessageReceived += OnMessageReceived;
+
+        // Отслеживаем добавление/удаление сообщений для обновления SelectedCount
+        Messages.CollectionChanged += OnMessagesCollectionChanged;
+    }
+
+    private void OnMessagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+            foreach (MessageBubbleViewModel m in e.NewItems)
+                m.PropertyChanged += OnMessagePropertyChanged;
+
+        if (e.OldItems != null)
+            foreach (MessageBubbleViewModel m in e.OldItems)
+                m.PropertyChanged -= OnMessagePropertyChanged;
+
+        OnPropertyChanged(nameof(SelectedCount));
+    }
+
+    private void OnMessagePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MessageBubbleViewModel.IsSelected))
+            OnPropertyChanged(nameof(SelectedCount));
+    }
+
+    partial void OnIsSelectionModeChanged(bool value)
+    {
+        foreach (var msg in Messages)
+        {
+            msg.IsSelectionMode = value;
+            if (!value) msg.IsSelected = false;
+        }
     }
 
     /// <summary>
@@ -71,6 +107,45 @@ public partial class ChatViewModel : ObservableObject
         ChatName = chatName;
         _contactUserId = contactUserId;
         Messages.Clear();
+    }
+
+    // ── Режим выделения ───────────────────────────────────────────
+
+    [RelayCommand]
+    private void EnterSelectionMode() => IsSelectionMode = true;
+
+    [RelayCommand]
+    private void CancelSelection() => IsSelectionMode = false;
+
+    [RelayCommand]
+    private async Task DeleteSelectedAsync()
+    {
+        var toDelete = Messages
+            .Where(m => m.IsSelected && !string.IsNullOrEmpty(m.MessageId))
+            .ToList();
+
+        if (toDelete.Count == 0)
+        {
+            IsSelectionMode = false;
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            await _messageApi.DeleteMessagesAsync(toDelete.Select(m => m.MessageId));
+            foreach (var msg in toDelete)
+                Messages.Remove(msg);
+            IsSelectionMode = false;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Ошибка удаления: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     // ── Загрузка истории ──────────────────────────────────────────
@@ -90,6 +165,7 @@ public partial class ChatViewModel : ObservableObject
                 var decrypted = DecryptSafe(dto.MessageBody, sharedSecret);
                 Messages.Add(new MessageBubbleViewModel
                 {
+                    MessageId = dto.MessageId ?? "",
                     Text = decrypted,
                     SenderId = dto.SenderObjectId,
                     SentAt = DateTime.SpecifyKind(dto.SentAt, DateTimeKind.Utc),
