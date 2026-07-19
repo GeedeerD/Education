@@ -148,6 +148,32 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Удаление одного сообщения — вызывается из контекстного меню
+    /// (правый клик по сообщению → «Удалить»).
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteMessageAsync(MessageBubbleViewModel? message)
+    {
+        if (message is null || string.IsNullOrEmpty(message.MessageId))
+            return;
+
+        IsBusy = true;
+        try
+        {
+            await _messageApi.DeleteMessagesAsync([message.MessageId]);
+            Messages.Remove(message);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Ошибка удаления: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     // ── Загрузка истории ──────────────────────────────────────────
 
     [RelayCommand]
