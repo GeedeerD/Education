@@ -4,159 +4,254 @@
              x:Class="FiweClient.Views.ChatView"
              x:DataType="vm:ChatViewModel">
 
-    <Grid RowDefinitions="Auto, *, Auto">
+	<UserControl.Styles>
+		<!-- Стилизация контекстного меню сообщений: скруглённые углы,
+             отступы и выделение опасного действия («Удалить») красным. -->
+		<Style Selector="ContextMenu">
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="Padding" Value="6" />
+			<Setter Property="MinWidth" Value="190" />
+		</Style>
 
-        <!-- ── Шапка чата ── -->
-        <Border Grid.Row="0"
+		<Style Selector="MenuItem">
+			<Setter Property="CornerRadius" Value="8" />
+			<Setter Property="Padding" Value="10,8" />
+			<Setter Property="Margin" Value="0,1" />
+			<Setter Property="FontSize" Value="13" />
+		</Style>
+
+		<Style Selector="MenuItem.danger">
+			<Setter Property="Foreground" Value="#E5484D" />
+		</Style>
+
+		<Style Selector="Separator">
+			<Setter Property="Margin" Value="6,4" />
+			<Setter Property="Opacity" Value="0.5" />
+		</Style>
+	</UserControl.Styles>
+
+	<Grid RowDefinitions="Auto, *, Auto">
+
+		<!-- ── Шапка чата ── -->
+		<Border Grid.Row="0"
                 Padding="16,12"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-            <Panel>
+			<Panel>
 
-            <!-- Обычный режим -->
-            <Grid ColumnDefinitions="Auto, *, Auto"
-                  IsVisible="{Binding !IsSelectionMode}">
+				<!-- Обычный режим -->
+				<Grid ColumnDefinitions="Auto, *, Auto"
+					  IsVisible="{Binding !IsSelectionMode}">
 
-                <!-- Иконка замка E2EE -->
-                <Border Grid.Column="0"
-                        Background="{DynamicResource SystemAccentColor}"
-                        CornerRadius="20"
-                        Width="40" Height="40"
-                        Margin="0,0,12,0">
-                    <TextBlock Text="🔒"
-                               FontSize="18"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                </Border>
+					<!-- Иконка замка E2EE -->
+					<Border Grid.Column="0"
+							Background="{DynamicResource SystemAccentColor}"
+							CornerRadius="20"
+							Width="40" Height="40"
+							Margin="0,0,12,0">
+						<TextBlock Text="🔒"
+								   FontSize="18"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center" />
+					</Border>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="{Binding ChatName}"
-                               FontSize="16"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="End-to-End Encrypted"
-                               FontSize="11"
-                               Foreground="Green"
-                               IsVisible="False"
-                               Opacity="0.8" />
-                </StackPanel>
+					<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+						<TextBlock Text="{Binding ChatName}"
+								   FontSize="16"
+								   FontWeight="SemiBold" />
+						<TextBlock Text="End-to-End Encrypted"
+								   FontSize="11"
+								   Foreground="Green"
+								   IsVisible="False"
+								   Opacity="0.8" />
+					</StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <ProgressBar IsIndeterminate="True"
-                                 IsVisible="{Binding IsBusy}"
-                                 Width="80" Height="3"
-                                 VerticalAlignment="Center" />
-                    <Button Content="Выбрать"
-                            Command="{Binding EnterSelectionModeCommand}" />
-                </StackPanel>
-            </Grid>
+					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+						<ProgressBar IsIndeterminate="True"
+									 IsVisible="{Binding IsBusy}"
+									 Width="80" Height="3"
+									 VerticalAlignment="Center" />
+						<Button Content="Выбрать"
+								Command="{Binding EnterSelectionModeCommand}" />
+					</StackPanel>
+				</Grid>
 
-            <!-- Режим выделения -->
-            <Grid ColumnDefinitions="Auto, *, Auto"
-                  IsVisible="{Binding IsSelectionMode}">
+				<!-- Режим выделения -->
+				<Grid ColumnDefinitions="Auto, *, Auto"
+					  IsVisible="{Binding IsSelectionMode}">
 
-                <Button Grid.Column="0"
-                        Content="Отмена"
-                        Command="{Binding CancelSelectionCommand}"
-                        VerticalAlignment="Center" />
+					<Button Grid.Column="0"
+							Content="Отмена"
+							Command="{Binding CancelSelectionCommand}"
+							VerticalAlignment="Center" />
 
-                <TextBlock Grid.Column="1"
-                           Text="{Binding SelectedCount, StringFormat='{}{0} выбрано'}"
-                           FontSize="16"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
+					<TextBlock Grid.Column="1"
+							   Text="{Binding SelectedCount, StringFormat='{}{0} выбрано'}"
+							   FontSize="16"
+							   FontWeight="SemiBold"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center" />
 
-                <Button Grid.Column="2"
-                        Content="Удалить"
-                        Command="{Binding DeleteSelectedCommand}"
-                        IsEnabled="{Binding !IsBusy}"
-                        VerticalAlignment="Center" />
-            </Grid>
+					<Button Grid.Column="2"
+							Content="Удалить"
+							Command="{Binding DeleteSelectedCommand}"
+							IsEnabled="{Binding !IsBusy}"
+							VerticalAlignment="Center" />
+				</Grid>
 
-            </Panel>
-        </Border>
+			</Panel>
+		</Border>
 
-        <!-- ── Список сообщений ── -->
-        <ScrollViewer Grid.Row="1" Padding="15,0,15,0">
-            <ItemsControl ItemsSource="{Binding Messages}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:MessageBubbleViewModel">
+		<!-- ── Список сообщений ── -->
+		<ScrollViewer Grid.Row="1" Padding="15,0,15,0">
+			<ItemsControl ItemsSource="{Binding Messages}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="vm:MessageBubbleViewModel">
 
-                        <!-- Контейнер пузыря: чекбокс + сам пузырь -->
-                        <Grid Margin="0,3" ColumnDefinitions="Auto, *">
+						<!-- Контейнер пузыря: чекбокс + сам пузырь -->
+						<Grid Margin="0,3" ColumnDefinitions="Auto, *">
 
-                            <!-- Чекбокс выделения (виден только в режиме выделения) -->
-                            <CheckBox Grid.Column="0"
+							<!-- Чекбокс выделения (виден только в режиме выделения) -->
+							<CheckBox Grid.Column="0"
                                       IsVisible="{Binding IsSelectionMode}"
                                       IsChecked="{Binding IsSelected}"
                                       VerticalAlignment="Center"
                                       Margin="0,0,6,0" />
 
-                            <Border Grid.Column="1"
+							<Border Grid.Column="1"
                                     MaxWidth="480"
                                     Padding="12,8"
                                     CornerRadius="12"
                                     HorizontalAlignment="{Binding IsMine, Converter={StaticResource BoolToAlignmentConverter}}"
                                     Background="{Binding IsMine, Converter={StaticResource BubbleColorConverter}}">
 
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="{Binding Text}"
+								<!-- ПКМ по сообщению → меню «Ответить» / «Копировать» / «Удалить» -->
+								<!-- Пункты обрабатываются в code-behind через Click,
+                                     т.к. ContextMenu рендерится в отдельном попапе и
+                                     обычный Command-биндинг через $parent к нему "не дотягивается". -->
+								<Border.ContextMenu>
+									<ContextMenu>
+										<MenuItem Click="OnReplyMessageClick">
+											<MenuItem.Icon>
+												<TextBlock Text="↩️" FontSize="14" />
+											</MenuItem.Icon>
+											<MenuItem.Header>
+												<TextBlock Text="Ответить" />
+											</MenuItem.Header>
+										</MenuItem>
+
+										<MenuItem Click="OnCopyMessageClick">
+											<MenuItem.Icon>
+												<TextBlock Text="📋" FontSize="14" />
+											</MenuItem.Icon>
+											<MenuItem.Header>
+												<TextBlock Text="Копировать" />
+											</MenuItem.Header>
+										</MenuItem>
+
+										<Separator />
+
+										<MenuItem Classes="danger" Click="OnDeleteMessageClick">
+											<MenuItem.Icon>
+												<TextBlock Text="🗑" FontSize="14" />
+											</MenuItem.Icon>
+											<MenuItem.Header>
+												<TextBlock Text="Удалить" />
+											</MenuItem.Header>
+										</MenuItem>
+									</ContextMenu>
+								</Border.ContextMenu>
+
+								<StackPanel Spacing="4">
+									<TextBlock Text="{Binding Text}"
                                                TextWrapping="Wrap"
                                                FontSize="14"
                                                Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
-                                    <TextBlock Text="{Binding TimeLabel}"
+									<TextBlock Text="{Binding TimeLabel}"
                                                FontSize="10"
                                                Opacity="0.65"
                                                HorizontalAlignment="Right" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+								</StackPanel>
+							</Border>
+						</Grid>
 
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
 
-        <!-- ── Ошибка ── -->
-        <Border Grid.Row="1"
+		<!-- ── Ошибка ── -->
+		<Border Grid.Row="1"
                 VerticalAlignment="Bottom"
                 Margin="12"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding ErrorMessage}"
+			<TextBlock Text="{Binding ErrorMessage}"
                        Foreground="Red"
                        FontSize="12" />
-        </Border>
+		</Border>
 
-        <!-- ── Поле ввода сообщения ── -->
-        <Border Grid.Row="2"
+		<!-- ── Поле ввода сообщения ── -->
+		<Border Grid.Row="2"
                 Padding="12,10"
                 BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                 IsVisible="{Binding !IsSelectionMode}">
-            <Grid ColumnDefinitions="*, Auto">
+			<StackPanel>
 
-                <TextBox Grid.Column="0"
-                         Text="{Binding MessageInput}"
-                         Watermark="Введите сообщение..."
-                         AcceptsReturn="False"
-                         Height="44"
-                         VerticalContentAlignment="Center">
-                    <!-- Отправка по Enter -->
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Return" Command="{Binding SendMessageCommand}" />
-                    </TextBox.KeyBindings>
-                </TextBox>
+				<!-- Панель предпросмотра ответа (видна, только если выбрали «Ответить») -->
+				<Border IsVisible="{Binding HasReply}"
+                        Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                        CornerRadius="6"
+                        Padding="10,6"
+                        Margin="0,0,0,8">
+					<Grid ColumnDefinitions="Auto, *, Auto">
+						<TextBlock Grid.Column="0"
+                                   Text="↩️"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0" />
+						<StackPanel Grid.Column="1" VerticalAlignment="Center">
+							<TextBlock Text="Ответ на сообщение"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Opacity="0.7" />
+							<TextBlock Text="{Binding ReplyingTo.Text}"
+                                       FontSize="12"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxLines="1" />
+						</StackPanel>
+						<Button Grid.Column="2"
+                                Content="✕"
+                                Command="{Binding CancelReplyCommand}"
+                                Padding="8,2"
+                                VerticalAlignment="Center" />
+					</Grid>
+				</Border>
 
-                <Button Grid.Column="1"
-                        Content="Отправить"
-                        Command="{Binding SendMessageCommand}"
-                        Height="44"
-                        Padding="18,0"
-                        IsEnabled="{Binding !IsBusy}" />
+				<Grid ColumnDefinitions="*, Auto">
 
-            </Grid>
-        </Border>
+					<TextBox Grid.Column="0"
+                             Text="{Binding MessageInput}"
+                             Watermark="Введите сообщение..."
+                             AcceptsReturn="False"
+                             Height="44"
+                             VerticalContentAlignment="Center">
+						<!-- Отправка по Enter -->
+						<TextBox.KeyBindings>
+							<KeyBinding Gesture="Return" Command="{Binding SendMessageCommand}" />
+						</TextBox.KeyBindings>
+					</TextBox>
 
-    </Grid>
+					<Button Grid.Column="1"
+                            Content="Отправить"
+                            Command="{Binding SendMessageCommand}"
+                            Height="44"
+                            Padding="18,0"
+                            IsEnabled="{Binding !IsBusy}" />
+
+				</Grid>
+			</StackPanel>
+		</Border>
+
+	</Grid>
 
 </UserControl>
