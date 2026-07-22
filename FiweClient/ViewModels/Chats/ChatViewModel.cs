@@ -37,8 +37,15 @@ public partial class ChatViewModel : ObservableObject
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private ObservableCollection<MessageBubbleViewModel> _messages = [];
     [ObservableProperty] private bool _isSelectionMode;
+    [ObservableProperty] private MessageBubbleViewModel? _replyingTo;
 
     public int SelectedCount => Messages.Count(m => m.IsSelected);
+
+    /// <summary>Показывать ли панель предпросмотра ответа над полем ввода.</summary>
+    public bool HasReply => ReplyingTo != null;
+
+    partial void OnReplyingToChanged(MessageBubbleViewModel? value)
+        => OnPropertyChanged(nameof(HasReply));
 
     // contactUserId нужен для получения публичного ключа собеседника
     private string? _contactUserId;
@@ -174,6 +181,35 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
+    // ── Ответ на сообщение (Reply) ──────────────────────────────────
+
+    /// <summary>
+    /// Вызывается из контекстного меню (правый клик → «Ответить»).
+    /// Показывает панель предпросмотра над полем ввода.
+    /// </summary>
+    [RelayCommand]
+    private void ReplyToMessage(MessageBubbleViewModel? message)
+    {
+        if (message is null) return;
+        ReplyingTo = message;
+    }
+
+    [RelayCommand]
+    private void CancelReply() => ReplyingTo = null;
+
+    /// <summary>
+    /// Собирает короткую цитату исходного сообщения, которая добавляется
+    /// перед текстом ответа (без изменений на бэкенде — просто текстовое
+    /// соглашение внутри уже существующего зашифрованного тела сообщения).
+    /// </summary>
+    private static string BuildReplyPrefix(string quotedText)
+    {
+        var oneLine = quotedText.Replace('\n', ' ').Trim();
+        if (oneLine.Length > 60)
+            oneLine = oneLine[..60] + "…";
+        return $"↩️ {oneLine}\n";
+    }
+
     // ── Загрузка истории ──────────────────────────────────────────
 
     [RelayCommand]
@@ -218,7 +254,13 @@ public partial class ChatViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(MessageInput)) return;
 
         var plainText = MessageInput;
+        var repliedTo = ReplyingTo; // запоминаем на случай ошибки отправки
+        var textToSend = repliedTo != null
+            ? BuildReplyPrefix(repliedTo.Text) + plainText
+            : plainText;
+
         MessageInput = ""; // очищаем поле сразу
+        ReplyingTo = null; // закрываем панель предпросмотра ответа
 
         try
         {
@@ -226,15 +268,18 @@ public partial class ChatViewModel : ObservableObject
             var sharedSecret = await GetOrComputeSharedSecretAsync();
 
             // 2. Шифруем — на сервер уходит зашифрованный blob
-            var encrypted = _crypto.Encrypt(plainText, sharedSecret);
+            var encrypted = _crypto.Encrypt(textToSend, sharedSecret);
 
-            // 3. Отправляем
-            await _messageApi.SendMessageAsync(ChatId, encrypted);
+            // 3. Отправляем, сервер возвращает MessageId нового сообщения
+            var newMessageId = await _messageApi.SendMessageAsync(ChatId, encrypted);
 
             // 4. Сразу показываем своё сообщение локально
+            //    (MessageId сохраняем, иначе сообщение нельзя будет
+            //    удалить/среагировать на него до перезагрузки чата)
             Messages.Add(new MessageBubbleViewModel
             {
-                Text = plainText,
+                MessageId = newMessageId ?? "",
+                Text = textToSend,
                 SenderId = _session.UserId ?? "",
                 SentAt = DateTime.UtcNow,
                 IsMine = true,
@@ -245,6 +290,7 @@ public partial class ChatViewModel : ObservableObject
         {
             ErrorMessage = $"Ошибка отправки: {ex.Message}";
             MessageInput = plainText; // возвращаем текст если ошибка
+            ReplyingTo = repliedTo;   // и панель предпросмотра ответа тоже
         }
     }
 

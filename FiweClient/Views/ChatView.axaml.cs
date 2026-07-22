@@ -18,6 +18,19 @@ public partial class ChatView : UserControl
     }
 
     /// <summary>
+    /// Обработчик пункта «Ответить» контекстного меню сообщения.
+    /// Открывает панель предпросмотра ответа над полем ввода.
+    /// </summary>
+    private void OnReplyMessageClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: MessageBubbleViewModel message })
+            return;
+
+        if (DataContext is ChatViewModel vm)
+            vm.ReplyToMessageCommand.Execute(message);
+    }
+
+    /// <summary>
     /// Обработчик пункта «Копировать» контекстного меню сообщения.
     /// Копирует текст именно того сообщения, по которому кликнули ПКМ.
     /// </summary>
