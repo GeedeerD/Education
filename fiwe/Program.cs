@@ -67,7 +67,8 @@ builder.Services.AddEndpointsApiExplorer()
                 .AddSignalR();
 builder.Services.AddTransient<IUserService, UserService>()
     .AddTransient<IMessageService, MessageService>()
-    .AddTransient<IContactService, ContactService>();
+    .AddTransient<IContactService, ContactService>()
+    .AddTransient<IImageService, ImageService>();
 
 var options = builder.Configuration["MongoDbSettings:ConnectionString"];
 
