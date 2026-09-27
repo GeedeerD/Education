@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
@@ -17,8 +18,17 @@ public partial class MessageBubbleViewModel : ObservableObject
     public double UtcOffsetHours { get; init; }
     public string TimeLabel => SentAt.AddHours(UtcOffsetHours).ToString("HH:mm");
 
+    /// <summary>ID вложенного изображения на сервере (хранится в открытом виде), null — если это текстовое сообщение.</summary>
+    public string? ImageId { get; init; }
+    public bool IsImage => ImageId is not null;
+
     [ObservableProperty] private bool _isSelected;
     [ObservableProperty] private bool _isSelectionMode;
+    [ObservableProperty] private bool _isImageLoading;
+    [ObservableProperty] private Bitmap? _imageBitmap;
+
+    public bool HasImageBitmap => ImageBitmap is not null;
+    partial void OnImageBitmapChanged(Bitmap? value) => OnPropertyChanged(nameof(HasImageBitmap));
 }
 
 public partial class ChatPreviewViewModel : ObservableObject
