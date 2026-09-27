@@ -18,7 +18,7 @@ public partial class MessageBubbleViewModel : ObservableObject
     public double UtcOffsetHours { get; init; }
     public string TimeLabel => SentAt.AddHours(UtcOffsetHours).ToString("HH:mm");
 
-    /// <summary>ID вложенного изображения на сервере (расшифрованных данных), null — если это текстовое сообщение.</summary>
+    /// <summary>ID вложенного изображения на сервере (хранится в открытом виде), null — если это текстовое сообщение.</summary>
     public string? ImageId { get; init; }
     public bool IsImage => ImageId is not null;
 

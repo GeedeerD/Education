@@ -251,7 +251,7 @@ public partial class ChatViewModel : ObservableObject
                 Messages.Add(bubble);
 
                 if (imageId is not null)
-                    _ = LoadImageIntoBubbleAsync(bubble, imageId, sharedSecret);
+                    _ = LoadImageIntoBubbleAsync(bubble, imageId);
             }
         }
         catch (Exception ex)
@@ -315,7 +315,8 @@ public partial class ChatViewModel : ObservableObject
     // ── Отправка изображения ────────────────────────────────────────
 
     /// <summary>
-    /// Шифрует и отправляет изображение. Вызывается из code-behind ChatView
+    /// Загружает изображение на сервер (в открытом виде) и отправляет в чат
+    /// зашифрованное сообщение-ссылку на него. Вызывается из code-behind ChatView
     /// после того как пользователь выбрал файл через StorageProvider.
     /// </summary>
     public async Task SendImageAsync(byte[] fileBytes, string fileName)
@@ -328,18 +329,21 @@ public partial class ChatViewModel : ObservableObject
             return;
         }
 
+        var contentType = GetImageContentType(fileName);
+        if (contentType is null)
+        {
+            ErrorMessage = "Неподдерживаемый формат изображения (допустимы JPG, PNG, GIF, WEBP, BMP).";
+            return;
+        }
+
         IsBusy = true;
         try
         {
             var sharedSecret = await GetOrComputeSharedSecretAsync();
 
-            // Шифруем байты изображения тем же shared secret, что и текст —
-            // сервер должен хранить и передавать только шифротекст (см. CLAUDE.md).
-            var imageBase64 = Convert.ToBase64String(fileBytes);
-            var encryptedImageBase64 = _crypto.Encrypt(imageBase64, sharedSecret);
-            var encryptedImageBytes = Encoding.UTF8.GetBytes(encryptedImageBase64);
-
-            var imageId = await _imageApi.UploadImageAsync(encryptedImageBytes, fileName, "application/octet-stream");
+            // Само изображение хранится на сервере без шифрования и доступно всем по ID.
+            // Зашифрованным остаётся только сообщение со ссылкой на него.
+            var imageId = await _imageApi.UploadImageAsync(fileBytes, fileName, contentType);
 
             var marker = $"{ImageMarkerPrefix}{imageId}{ImageMarkerSuffix}";
             var encryptedMarker = _crypto.Encrypt(marker, sharedSecret);
@@ -354,7 +358,7 @@ public partial class ChatViewModel : ObservableObject
                 SentAt = DateTime.UtcNow,
                 IsMine = true,
                 UtcOffsetHours = _appSettings.UtcOffsetHours,
-                ImageBitmap = LoadBitmap(fileBytes), // уже расшифровано локально — сразу показываем, без похода на сервер
+                ImageBitmap = LoadBitmap(fileBytes), // байты уже есть локально — сразу показываем, без похода на сервер
             };
             Messages.Add(bubble);
         }
@@ -400,7 +404,7 @@ public partial class ChatViewModel : ObservableObject
                 Messages.Add(bubble);
 
                 if (imageId is not null)
-                    _ = LoadImageIntoBubbleAsync(bubble, imageId, sharedSecret);
+                    _ = LoadImageIntoBubbleAsync(bubble, imageId);
             });
         }
         catch
@@ -410,18 +414,15 @@ public partial class ChatViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Скачивает зашифрованный blob изображения, расшифровывает и декодирует в Bitmap.
+    /// Скачивает изображение с сервера и декодирует в Bitmap.
     /// Не бросает исключений наружу — при ошибке пузырь остаётся с текстовым плейсхолдером.
     /// </summary>
-    private async Task LoadImageIntoBubbleAsync(MessageBubbleViewModel bubble, string imageId, byte[] sharedSecret)
+    private async Task LoadImageIntoBubbleAsync(MessageBubbleViewModel bubble, string imageId)
     {
         bubble.IsImageLoading = true;
         try
         {
-            var encryptedBytes = await _imageApi.DownloadImageAsync(imageId);
-            var encryptedBase64 = Encoding.UTF8.GetString(encryptedBytes);
-            var imageBase64 = _crypto.Decrypt(encryptedBase64, sharedSecret);
-            var imageBytes = Convert.FromBase64String(imageBase64);
+            var imageBytes = await _imageApi.DownloadImageAsync(imageId);
             var bitmap = LoadBitmap(imageBytes);
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => bubble.ImageBitmap = bitmap);
@@ -441,6 +442,18 @@ public partial class ChatViewModel : ObservableObject
         using var ms = new MemoryStream(bytes);
         return new Bitmap(ms);
     }
+
+    /// <summary>MIME-тип по расширению файла; null — если формат не поддерживается сервером.</summary>
+    private static string? GetImageContentType(string fileName) =>
+        Path.GetExtension(fileName).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            _ => null,
+        };
 
     private static string? TryParseImageMarker(string text)
     {
