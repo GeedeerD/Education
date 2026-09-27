@@ -163,10 +163,27 @@
 								</Border.ContextMenu>
 
 								<StackPanel Spacing="4">
+
+									<!-- Изображение -->
+									<Panel IsVisible="{Binding IsImage}" MaxWidth="320">
+										<Image Source="{Binding ImageBitmap}"
+                                               IsVisible="{Binding HasImageBitmap}"
+                                               MaxWidth="320" MaxHeight="320"
+                                               Stretch="Uniform" />
+										<TextBlock Text="Загрузка изображения…"
+                                               IsVisible="{Binding IsImageLoading}"
+                                               FontSize="12"
+                                               Opacity="0.7"
+                                               Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
+									</Panel>
+
+									<!-- Текст -->
 									<TextBlock Text="{Binding Text}"
+                                               IsVisible="{Binding !IsImage}"
                                                TextWrapping="Wrap"
                                                FontSize="14"
                                                Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
+
 									<TextBlock Text="{Binding TimeLabel}"
                                                FontSize="10"
                                                Opacity="0.65"
@@ -227,9 +244,17 @@
 					</Grid>
 				</Border>
 
-				<Grid ColumnDefinitions="*, Auto">
+				<Grid ColumnDefinitions="Auto, *, Auto">
 
-					<TextBox Grid.Column="0"
+					<Button Grid.Column="0"
+                            Content="📎"
+                            Click="OnAttachImageClick"
+                            Height="44"
+                            Width="44"
+                            Margin="0,0,8,0"
+                            IsEnabled="{Binding !IsBusy}" />
+
+					<TextBox Grid.Column="1"
                              Text="{Binding MessageInput}"
                              Watermark="Введите сообщение..."
                              AcceptsReturn="False"
@@ -241,11 +266,12 @@
 						</TextBox.KeyBindings>
 					</TextBox>
 
-					<Button Grid.Column="1"
+					<Button Grid.Column="2"
                             Content="Отправить"
                             Command="{Binding SendMessageCommand}"
                             Height="44"
                             Padding="18,0"
+                            Margin="8,0,0,0"
                             IsEnabled="{Binding !IsBusy}" />
 
 				</Grid>

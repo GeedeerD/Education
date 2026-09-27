@@ -34,6 +34,10 @@ public record DeleteMessagesRequest(List<string> MessageIds);
 public record UserSearchResult(string UserId, string UserName);
 public record AddContactRequest(string UserId, string ContactName);
 
+// ── Images ────────────────────────────────────────────────────────
+
+public record UploadImageResponse(string ImageId);
+
 // ── Keys ──────────────────────────────────────────────────────────
 
 public record SetPublicKeyRequest(string PublicKeyBase64);

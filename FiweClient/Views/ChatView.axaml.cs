@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using FiweClient.ViewModels.Chats;
 
 namespace FiweClient.Views;
@@ -58,5 +59,37 @@ public partial class ChatView : UserControl
 
         if (DataContext is ChatViewModel vm && vm.DeleteMessageCommand.CanExecute(message))
             vm.DeleteMessageCommand.Execute(message);
+    }
+
+    /// <summary>
+    /// Обработчик кнопки «📎». Открывает системный выбор файла через
+    /// Avalonia StorageProvider (работает одинаково на десктопе и Android)
+    /// и передаёт выбранное изображение во ViewModel для шифрования и отправки.
+    /// </summary>
+    private async void OnAttachImageClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ChatViewModel vm)
+            return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider is not { } storageProvider)
+            return;
+
+        var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Выберите изображение",
+            AllowMultiple = false,
+            FileTypeFilter = [FilePickerFileTypes.ImageAll]
+        });
+
+        var file = files.FirstOrDefault();
+        if (file is null)
+            return;
+
+        await using var stream = await file.OpenReadAsync();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        await vm.SendImageAsync(ms.ToArray(), file.Name);
     }
 }

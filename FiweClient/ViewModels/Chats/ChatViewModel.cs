@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Crypto;
@@ -21,6 +23,7 @@ namespace FiweClient.ViewModels.Chats;
 public partial class ChatViewModel : ObservableObject
 {
     private readonly IMessageApiService _messageApi;
+    private readonly IImageApiService _imageApi;
     private readonly IUserApiService _userApi;
     private readonly ISessionService _session;
     private readonly ICryptoService _crypto;
@@ -28,6 +31,12 @@ public partial class ChatViewModel : ObservableObject
     private readonly ISharedSecretCache _secretCache;
     private readonly IRealtimeService _realtime;
     private readonly IAppSettingsService _appSettings;
+
+    // Маркер, которым помечается зашифрованное тело сообщения-изображения.
+    // Реальные картинки в чате исключены — маловероятно столкновение с обычным текстом.
+    private const string ImageMarkerPrefix = "[[fiwe-image:";
+    private const string ImageMarkerSuffix = "]]";
+    private const long MaxImageSizeBytes = 10 * 1024 * 1024; // должно совпадать с лимитом на сервере (ImagesController)
 
     // ── Состояние ─────────────────────────────────────────────────
     [ObservableProperty] private string _chatId = "";
@@ -52,6 +61,7 @@ public partial class ChatViewModel : ObservableObject
 
     public ChatViewModel(
         IMessageApiService messageApi,
+        IImageApiService imageApi,
         IUserApiService userApi,
         ISessionService session,
         ICryptoService crypto,
@@ -61,6 +71,7 @@ public partial class ChatViewModel : ObservableObject
         IAppSettingsService appSettings)
     {
         _messageApi = messageApi;
+        _imageApi = imageApi;
         _userApi = userApi;
         _session = session;
         _crypto = crypto;
@@ -225,15 +236,22 @@ public partial class ChatViewModel : ObservableObject
             foreach (var dto in dtos)
             {
                 var decrypted = DecryptSafe(dto.MessageBody, sharedSecret);
-                Messages.Add(new MessageBubbleViewModel
+                var imageId = TryParseImageMarker(decrypted);
+
+                var bubble = new MessageBubbleViewModel
                 {
                     MessageId = dto.MessageId ?? "",
-                    Text = decrypted,
+                    Text = imageId is null ? decrypted : "📷 Фото",
+                    ImageId = imageId,
                     SenderId = dto.SenderObjectId,
                     SentAt = DateTime.SpecifyKind(dto.SentAt, DateTimeKind.Utc),
                     IsMine = dto.SenderObjectId == _session.UserId,
                     UtcOffsetHours = _appSettings.UtcOffsetHours,
-                });
+                };
+                Messages.Add(bubble);
+
+                if (imageId is not null)
+                    _ = LoadImageIntoBubbleAsync(bubble, imageId, sharedSecret);
             }
         }
         catch (Exception ex)
@@ -294,6 +312,62 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
+    // ── Отправка изображения ────────────────────────────────────────
+
+    /// <summary>
+    /// Шифрует и отправляет изображение. Вызывается из code-behind ChatView
+    /// после того как пользователь выбрал файл через StorageProvider.
+    /// </summary>
+    public async Task SendImageAsync(byte[] fileBytes, string fileName)
+    {
+        if (fileBytes.Length == 0) return;
+
+        if (fileBytes.Length > MaxImageSizeBytes)
+        {
+            ErrorMessage = "Изображение слишком большое (максимум 10 МБ).";
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var sharedSecret = await GetOrComputeSharedSecretAsync();
+
+            // Шифруем байты изображения тем же shared secret, что и текст —
+            // сервер должен хранить и передавать только шифротекст (см. CLAUDE.md).
+            var imageBase64 = Convert.ToBase64String(fileBytes);
+            var encryptedImageBase64 = _crypto.Encrypt(imageBase64, sharedSecret);
+            var encryptedImageBytes = Encoding.UTF8.GetBytes(encryptedImageBase64);
+
+            var imageId = await _imageApi.UploadImageAsync(encryptedImageBytes, fileName, "application/octet-stream");
+
+            var marker = $"{ImageMarkerPrefix}{imageId}{ImageMarkerSuffix}";
+            var encryptedMarker = _crypto.Encrypt(marker, sharedSecret);
+            var newMessageId = await _messageApi.SendMessageAsync(ChatId, encryptedMarker);
+
+            var bubble = new MessageBubbleViewModel
+            {
+                MessageId = newMessageId ?? "",
+                Text = "📷 Фото",
+                ImageId = imageId,
+                SenderId = _session.UserId ?? "",
+                SentAt = DateTime.UtcNow,
+                IsMine = true,
+                UtcOffsetHours = _appSettings.UtcOffsetHours,
+                ImageBitmap = LoadBitmap(fileBytes), // уже расшифровано локально — сразу показываем, без похода на сервер
+            };
+            Messages.Add(bubble);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Ошибка отправки изображения: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     // ── Входящие сообщения через SignalR ──────────────────────────
 
     private async void OnMessageReceived(string chatId, IEnumerable<string> recipients, string messageId)
@@ -309,24 +383,73 @@ public partial class ChatViewModel : ObservableObject
             var sharedSecret = await GetOrComputeSharedSecretAsync();
             var encripted = await _messageApi.GetMessageByIdAsync(messageId);
             var decrypted = DecryptSafe(encripted, sharedSecret);
+            var imageId = TryParseImageMarker(decrypted);
 
             // UI поток — Avalonia требует обновления коллекций из UI потока
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                Messages.Add(new MessageBubbleViewModel
+                var bubble = new MessageBubbleViewModel
                 {
-                    Text = decrypted,
+                    Text = imageId is null ? decrypted : "📷 Фото",
+                    ImageId = imageId,
                     SenderId = "",
                     SentAt = DateTime.UtcNow,
                     IsMine = false,
                     UtcOffsetHours = _appSettings.UtcOffsetHours,
-                });
+                };
+                Messages.Add(bubble);
+
+                if (imageId is not null)
+                    _ = LoadImageIntoBubbleAsync(bubble, imageId, sharedSecret);
             });
         }
         catch
         {
             // Не удалось расшифровать — игнорируем сообщение
         }
+    }
+
+    /// <summary>
+    /// Скачивает зашифрованный blob изображения, расшифровывает и декодирует в Bitmap.
+    /// Не бросает исключений наружу — при ошибке пузырь остаётся с текстовым плейсхолдером.
+    /// </summary>
+    private async Task LoadImageIntoBubbleAsync(MessageBubbleViewModel bubble, string imageId, byte[] sharedSecret)
+    {
+        bubble.IsImageLoading = true;
+        try
+        {
+            var encryptedBytes = await _imageApi.DownloadImageAsync(imageId);
+            var encryptedBase64 = Encoding.UTF8.GetString(encryptedBytes);
+            var imageBase64 = _crypto.Decrypt(encryptedBase64, sharedSecret);
+            var imageBytes = Convert.FromBase64String(imageBase64);
+            var bitmap = LoadBitmap(imageBytes);
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => bubble.ImageBitmap = bitmap);
+        }
+        catch
+        {
+            // Не удалось скачать/расшифровать — оставляем текстовый плейсхолдер
+        }
+        finally
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => bubble.IsImageLoading = false);
+        }
+    }
+
+    private static Bitmap LoadBitmap(byte[] bytes)
+    {
+        using var ms = new MemoryStream(bytes);
+        return new Bitmap(ms);
+    }
+
+    private static string? TryParseImageMarker(string text)
+    {
+        if (text.StartsWith(ImageMarkerPrefix, StringComparison.Ordinal) &&
+            text.EndsWith(ImageMarkerSuffix, StringComparison.Ordinal))
+        {
+            return text[ImageMarkerPrefix.Length..^ImageMarkerSuffix.Length];
+        }
+        return null;
     }
 
     // ── Криптография ──────────────────────────────────────────────
