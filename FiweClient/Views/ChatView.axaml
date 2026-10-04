@@ -1,6 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:FiweClient.ViewModels.Chats"
+             xmlns:mdc="clr-namespace:FiweClient.Markdown"
+             xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
+             xmlns:mdctl="clr-namespace:Markdown.Avalonia.Controls;assembly=Markdown.Avalonia"
              x:Class="FiweClient.Views.ChatView"
              x:DataType="vm:ChatViewModel">
 
@@ -231,12 +234,93 @@
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
 
-									<!-- Текст (у сообщения с изображениями — подпись) -->
-									<TextBlock Text="{Binding Text}"
-                                               IsVisible="{Binding HasText}"
-                                               TextWrapping="Wrap"
-                                               FontSize="14"
-                                               Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
+									<!-- Текст (у сообщения с изображениями — подпись) в Markdown.
+									     Цвет текста наследуется от Foreground, стили — свои, компактные под пузырь. -->
+									<mdc:ChatMarkdownViewer Markdown="{Binding Text, Converter={StaticResource ChatMarkdownConverter}}"
+									                         IsVisible="{Binding HasText}"
+									                         TextElement.Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}">
+										<mdc:ChatMarkdownViewer.MarkdownStyle>
+											<Styles>
+												<Style Selector="ctxt|CTextBlock">
+													<Setter Property="FontSize" Value="14" />
+													<Setter Property="Margin" Value="0" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.Paragraph">
+													<Setter Property="Margin" Value="0,2" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.Heading1">
+													<Setter Property="FontSize" Value="20" />
+													<Setter Property="FontWeight" Value="Bold" />
+													<Setter Property="Margin" Value="0,4,0,2" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.Heading2">
+													<Setter Property="FontSize" Value="18" />
+													<Setter Property="FontWeight" Value="Bold" />
+													<Setter Property="Margin" Value="0,4,0,2" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.Heading3">
+													<Setter Property="FontSize" Value="16" />
+													<Setter Property="FontWeight" Value="SemiBold" />
+													<Setter Property="Margin" Value="0,4,0,2" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.Heading4, ctxt|CTextBlock.Heading5, ctxt|CTextBlock.Heading6">
+													<Setter Property="FontSize" Value="14" />
+													<Setter Property="FontWeight" Value="SemiBold" />
+													<Setter Property="Margin" Value="0,4,0,2" />
+												</Style>
+												<Style Selector="ctxt|CCode">
+													<Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,Roboto Mono,monospace" />
+													<Setter Property="Background" Value="#33000000" />
+												</Style>
+												<Style Selector="ctxt|CHyperlink">
+													<Setter Property="IsUnderline" Value="True" />
+												</Style>
+												<Style Selector="Border.CodeBlock">
+													<Setter Property="Background" Value="#33000000" />
+													<Setter Property="CornerRadius" Value="6" />
+													<Setter Property="Padding" Value="8,6" />
+													<Setter Property="Margin" Value="0,4" />
+												</Style>
+												<Style Selector="TextBlock.CodeBlock">
+													<Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,Roboto Mono,monospace" />
+													<Setter Property="FontSize" Value="13" />
+												</Style>
+												<Style Selector="Border.Blockquote">
+													<Setter Property="BorderBrush" Value="#99808080" />
+													<Setter Property="BorderThickness" Value="3,0,0,0" />
+													<Setter Property="Padding" Value="8,0,0,0" />
+													<Setter Property="Margin" Value="0,4" />
+												</Style>
+												<Style Selector="Border.Blockquote ctxt|CTextBlock">
+													<Setter Property="Opacity" Value="0.85" />
+												</Style>
+												<Style Selector="Grid.List">
+													<Setter Property="Margin" Value="0,2" />
+												</Style>
+												<Style Selector="ctxt|CTextBlock.ListMarker, TextBlock.ListMarker">
+													<Setter Property="Margin" Value="4,0,6,0" />
+												</Style>
+												<Style Selector="mdctl|Rule">
+													<Setter Property="SingleLineWidth" Value="1" />
+													<Setter Property="BoldLineWidth" Value="2" />
+													<Setter Property="LineMargin" Value="2" />
+													<Setter Property="Margin" Value="0,6" />
+													<Setter Property="Opacity" Value="0.5" />
+												</Style>
+												<Style Selector="Grid.Table">
+													<Setter Property="Margin" Value="0,4" />
+												</Style>
+												<Style Selector="Grid.Table > Border">
+													<Setter Property="BorderBrush" Value="#66808080" />
+													<Setter Property="BorderThickness" Value="0.5" />
+													<Setter Property="Padding" Value="6,2" />
+												</Style>
+												<Style Selector="Border.TableHeader ctxt|CTextBlock">
+													<Setter Property="FontWeight" Value="SemiBold" />
+												</Style>
+											</Styles>
+										</mdc:ChatMarkdownViewer.MarkdownStyle>
+									</mdc:ChatMarkdownViewer>
 
 									<TextBlock Text="{Binding TimeLabel}"
                                                FontSize="10"
@@ -337,6 +421,44 @@
 					           Opacity="0.7" />
 				</StackPanel>
 
+				<!-- Панель форматирования Markdown. Кнопки не забирают фокус,
+				     чтобы выделение в поле ввода не сбрасывалось. -->
+				<StackPanel Orientation="Horizontal" Spacing="4" Margin="52,0,0,6">
+					<StackPanel.Styles>
+						<Style Selector="Button.format">
+							<Setter Property="Focusable" Value="False" />
+							<Setter Property="Background" Value="Transparent" />
+							<Setter Property="MinWidth" Value="32" />
+							<Setter Property="Height" Value="28" />
+							<Setter Property="Padding" Value="6,0" />
+							<Setter Property="FontSize" Value="13" />
+							<Setter Property="HorizontalContentAlignment" Value="Center" />
+							<Setter Property="VerticalContentAlignment" Value="Center" />
+						</Style>
+					</StackPanel.Styles>
+					<Button Classes="format" Tag="bold" Click="OnFormatClick" ToolTip.Tip="Жирный (Ctrl+B)">
+						<TextBlock Text="B" FontWeight="Bold" />
+					</Button>
+					<Button Classes="format" Tag="italic" Click="OnFormatClick" ToolTip.Tip="Курсив (Ctrl+I)">
+						<TextBlock Text="I" FontStyle="Italic" FontFamily="Georgia,serif" />
+					</Button>
+					<Button Classes="format" Tag="strike" Click="OnFormatClick" ToolTip.Tip="Зачёркнутый (Ctrl+Shift+X)">
+						<TextBlock Text="S" TextDecorations="Strikethrough" />
+					</Button>
+					<Button Classes="format" Tag="code" Click="OnFormatClick" ToolTip.Tip="Код (Ctrl+E)">
+						<TextBlock Text="&lt;/&gt;" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" />
+					</Button>
+					<Button Classes="format" Tag="link" Click="OnFormatClick" ToolTip.Tip="Ссылка (Ctrl+K)">
+						<TextBlock Text="🔗" />
+					</Button>
+					<Button Classes="format" Tag="quote" Click="OnFormatClick" ToolTip.Tip="Цитата">
+						<TextBlock Text="❝" />
+					</Button>
+					<Button Classes="format" Tag="list" Click="OnFormatClick" ToolTip.Tip="Список">
+						<TextBlock Text="•≡" />
+					</Button>
+				</StackPanel>
+
 				<Grid ColumnDefinitions="Auto, *, Auto">
 
 					<Button Grid.Column="0"
@@ -348,21 +470,22 @@
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             Margin="0,0,8,0"
+                            VerticalAlignment="Bottom"
                             IsEnabled="{Binding !IsBusy}">
 						<PathIcon Data="{StaticResource PaperclipIcon}" Width="20" Height="20" />
 					</Button>
 
-					<TextBox Grid.Column="1"
+					<!-- Enter — отправка, Shift+Enter — новая строка (на Android Enter всегда переносит строку,
+					     отправка — кнопкой). Клавиши обрабатываются в code-behind: OnMessageInputKeyDown. -->
+					<TextBox x:Name="MessageInputBox"
+                             Grid.Column="1"
                              Text="{Binding MessageInput}"
-                             Watermark="Введите сообщение..."
-                             AcceptsReturn="False"
-                             Height="44"
-                             VerticalContentAlignment="Center">
-						<!-- Отправка по Enter -->
-						<TextBox.KeyBindings>
-							<KeyBinding Gesture="Return" Command="{Binding SendMessageCommand}" />
-						</TextBox.KeyBindings>
-					</TextBox>
+                             Watermark="Введите сообщение... (поддерживается Markdown)"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="44"
+                             MaxHeight="160"
+                             VerticalContentAlignment="Center" />
 
 					<Button Grid.Column="2"
                             Content="Отправить"
@@ -370,6 +493,7 @@
                             Height="44"
                             Padding="18,0"
                             Margin="8,0,0,0"
+                            VerticalAlignment="Bottom"
                             IsEnabled="{Binding !IsBusy}" />
 
 				</Grid>
