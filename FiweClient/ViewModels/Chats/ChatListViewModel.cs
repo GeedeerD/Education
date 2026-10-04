@@ -26,6 +26,11 @@ public partial class MessageBubbleViewModel : ObservableObject
     public MessageImageViewModel? FirstImage => Images.Count > 0 ? Images[0] : null;
     public bool HasText => !string.IsNullOrEmpty(Text);
 
+    /// <summary>Отправлено «без форматирования» — текст показывается как есть, без разбора Markdown.</summary>
+    public bool IsPlainText { get; init; }
+    public bool ShowMarkdown => HasText && !IsPlainText;
+    public bool ShowPlainText => HasText && IsPlainText;
+
     /// <summary>Короткое представление сообщения для панели ответа и копирования.</summary>
     public string PreviewText => !IsImage
         ? Text

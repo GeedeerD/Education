@@ -160,6 +160,40 @@
                         Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                         Opacity="0.15" />
 
+                <!-- Блок: сообщения -->
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="СООБЩЕНИЯ"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Opacity="0.5"
+                               LetterSpacing="1.5" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="Форматирование Markdown"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsChecked="{Binding MarkdownEnabled}"
+                                          OnContent=""
+                                          OffContent="" />
+                        </Grid>
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Opacity="0.55">
+                            **Жирный**, *курсив*, `код`, ссылки, списки и цитаты в отправляемых сообщениях. То же переключает кнопка M↓ над полем ввода. Одно сообщение без форматирования можно отправить по Ctrl+Shift+Enter.
+                        </TextBlock>
+                    </StackPanel>
+
+                </StackPanel>
+
+                <Border Height="1"
+                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Opacity="0.15" />
+
                 <!-- Блок: безопасность -->
                 <StackPanel Spacing="16">
 
