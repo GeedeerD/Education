@@ -1,6 +1,8 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using FiweClient.ViewModels.Chats;
 
 namespace FiweClient.Views;
@@ -43,7 +45,7 @@ public partial class ChatView : UserControl
         var topLevel = TopLevel.GetTopLevel(this);
         var clipboard = topLevel?.Clipboard;
         if (clipboard is not null)
-            await clipboard.SetTextAsync(message.Text);
+            await clipboard.SetTextAsync(message.HasText ? message.Text : message.PreviewText);
     }
 
     /// <summary>
@@ -64,7 +66,7 @@ public partial class ChatView : UserControl
     /// <summary>
     /// Обработчик кнопки «📎». Открывает системный выбор файла через
     /// Avalonia StorageProvider (работает одинаково на десктопе и Android)
-    /// и передаёт выбранное изображение во ViewModel для шифрования и отправки.
+    /// и добавляет выбранные изображения во ViewModel как вложения — отправка по кнопке «Отправить».
     /// </summary>
     private async void OnAttachImageClick(object? sender, RoutedEventArgs e)
     {
@@ -77,19 +79,51 @@ public partial class ChatView : UserControl
 
         var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Выберите изображение",
-            AllowMultiple = false,
+            Title = "Выберите изображения",
+            AllowMultiple = true,
             FileTypeFilter = [FilePickerFileTypes.ImageAll]
         });
 
-        var file = files.FirstOrDefault();
-        if (file is null)
+        foreach (var file in files)
+        {
+            await using var stream = await file.OpenReadAsync();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            vm.AddAttachment(ms.ToArray(), file.Name);
+        }
+    }
+
+    /// <summary>
+    /// Клик по изображению в сообщении — открывает его на весь экран.
+    /// Пузырь сообщения ищем по визуальным предкам: у самой картинки DataContext — MessageImageViewModel.
+    /// </summary>
+    private void OnBubbleImageTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is not Control { DataContext: MessageImageViewModel image } control ||
+            DataContext is not ChatViewModel vm)
             return;
 
-        await using var stream = await file.OpenReadAsync();
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
+        var bubble = control.GetVisualAncestors()
+            .OfType<Control>()
+            .Select(c => c.DataContext)
+            .OfType<MessageBubbleViewModel>()
+            .FirstOrDefault();
 
-        await vm.SendImageAsync(ms.ToArray(), file.Name);
+        if (bubble is null)
+            return;
+
+        vm.OpenImageViewer(bubble, image);
+        e.Handled = true;
+
+        // Фокус на оверлей, чтобы работали Esc и стрелки
+        ImageViewerOverlay.Focus();
+    }
+
+    /// <summary>Клик по затемнённому фону просмотрщика (не по самой картинке и не по кнопкам) закрывает его.</summary>
+    private void OnImageViewerBackgroundTapped(object? sender, TappedEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, sender) && DataContext is ChatViewModel vm)
+            vm.CloseImageViewerCommand.Execute(null);
     }
 }
