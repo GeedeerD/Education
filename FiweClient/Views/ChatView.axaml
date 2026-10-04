@@ -237,7 +237,7 @@
 									<!-- Текст (у сообщения с изображениями — подпись) в Markdown.
 									     Цвет текста наследуется от Foreground, стили — свои, компактные под пузырь. -->
 									<mdc:ChatMarkdownViewer Markdown="{Binding Text, Converter={StaticResource ChatMarkdownConverter}}"
-									                         IsVisible="{Binding HasText}"
+									                         IsVisible="{Binding ShowMarkdown}"
 									                         TextElement.Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}">
 										<mdc:ChatMarkdownViewer.MarkdownStyle>
 											<Styles>
@@ -321,6 +321,13 @@
 											</Styles>
 										</mdc:ChatMarkdownViewer.MarkdownStyle>
 									</mdc:ChatMarkdownViewer>
+
+									<!-- Сообщение, отправленное «без форматирования», — показываем как есть -->
+									<TextBlock Text="{Binding Text}"
+									           IsVisible="{Binding ShowPlainText}"
+									           TextWrapping="Wrap"
+									           FontSize="14"
+									           Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}" />
 
 									<TextBlock Text="{Binding TimeLabel}"
                                                FontSize="10"
@@ -425,7 +432,7 @@
 				     чтобы выделение в поле ввода не сбрасывалось. -->
 				<StackPanel Orientation="Horizontal" Spacing="4" Margin="52,0,0,6">
 					<StackPanel.Styles>
-						<Style Selector="Button.format">
+						<Style Selector="Button.format, ToggleButton.format">
 							<Setter Property="Focusable" Value="False" />
 							<Setter Property="Background" Value="Transparent" />
 							<Setter Property="MinWidth" Value="32" />
@@ -435,28 +442,50 @@
 							<Setter Property="HorizontalContentAlignment" Value="Center" />
 							<Setter Property="VerticalContentAlignment" Value="Center" />
 						</Style>
+						<!-- Markdown выключен — переключатель приглушён и перечёркнут -->
+						<Style Selector="ToggleButton.format:unchecked">
+							<Setter Property="Opacity" Value="0.55" />
+						</Style>
+						<Style Selector="ToggleButton.format:unchecked TextBlock">
+							<Setter Property="TextDecorations" Value="Strikethrough" />
+						</Style>
 					</StackPanel.Styles>
-					<Button Classes="format" Tag="bold" Click="OnFormatClick" ToolTip.Tip="Жирный (Ctrl+B)">
-						<TextBlock Text="B" FontWeight="Bold" />
-					</Button>
-					<Button Classes="format" Tag="italic" Click="OnFormatClick" ToolTip.Tip="Курсив (Ctrl+I)">
-						<TextBlock Text="I" FontStyle="Italic" FontFamily="Georgia,serif" />
-					</Button>
-					<Button Classes="format" Tag="strike" Click="OnFormatClick" ToolTip.Tip="Зачёркнутый (Ctrl+Shift+X)">
-						<TextBlock Text="S" TextDecorations="Strikethrough" />
-					</Button>
-					<Button Classes="format" Tag="code" Click="OnFormatClick" ToolTip.Tip="Код (Ctrl+E)">
-						<TextBlock Text="&lt;/&gt;" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" />
-					</Button>
-					<Button Classes="format" Tag="link" Click="OnFormatClick" ToolTip.Tip="Ссылка (Ctrl+K)">
-						<TextBlock Text="🔗" />
-					</Button>
-					<Button Classes="format" Tag="quote" Click="OnFormatClick" ToolTip.Tip="Цитата">
-						<TextBlock Text="❝" />
-					</Button>
-					<Button Classes="format" Tag="list" Click="OnFormatClick" ToolTip.Tip="Список">
-						<TextBlock Text="•≡" />
-					</Button>
+
+					<!-- Переключатель Markdown. Выбор запоминается (тот же пункт есть в настройках).
+					     Ctrl+Shift+Enter — разово отправить сообщение без форматирования. -->
+					<ToggleButton Classes="format"
+					              IsChecked="{Binding IsMarkdownEnabled}"
+					              ToolTip.Tip="Форматирование Markdown. Отправить одно сообщение без форматирования — Ctrl+Shift+Enter">
+						<TextBlock Text="M↓" FontWeight="SemiBold" />
+					</ToggleButton>
+
+					<StackPanel Orientation="Horizontal" Spacing="4"
+					            IsVisible="{Binding IsMarkdownEnabled}">
+						<Border Width="1" Height="18" Margin="2,0"
+						        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						        Opacity="0.4" />
+						<Button Classes="format" Tag="bold" Click="OnFormatClick" ToolTip.Tip="Жирный (Ctrl+B)">
+							<TextBlock Text="B" FontWeight="Bold" />
+						</Button>
+						<Button Classes="format" Tag="italic" Click="OnFormatClick" ToolTip.Tip="Курсив (Ctrl+I)">
+							<TextBlock Text="I" FontStyle="Italic" FontFamily="Georgia,serif" />
+						</Button>
+						<Button Classes="format" Tag="strike" Click="OnFormatClick" ToolTip.Tip="Зачёркнутый (Ctrl+Shift+X)">
+							<TextBlock Text="S" TextDecorations="Strikethrough" />
+						</Button>
+						<Button Classes="format" Tag="code" Click="OnFormatClick" ToolTip.Tip="Код (Ctrl+E)">
+							<TextBlock Text="&lt;/&gt;" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" />
+						</Button>
+						<Button Classes="format" Tag="link" Click="OnFormatClick" ToolTip.Tip="Ссылка (Ctrl+K)">
+							<TextBlock Text="🔗" />
+						</Button>
+						<Button Classes="format" Tag="quote" Click="OnFormatClick" ToolTip.Tip="Цитата">
+							<TextBlock Text="❝" />
+						</Button>
+						<Button Classes="format" Tag="list" Click="OnFormatClick" ToolTip.Tip="Список">
+							<TextBlock Text="•≡" />
+						</Button>
+					</StackPanel>
 				</StackPanel>
 
 				<Grid ColumnDefinitions="Auto, *, Auto">

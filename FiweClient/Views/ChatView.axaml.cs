@@ -145,6 +145,15 @@ public partial class ChatView : UserControl
         var ctrl = mods.HasFlag(KeyModifiers.Control) || mods.HasFlag(KeyModifiers.Meta);
         var shift = mods.HasFlag(KeyModifiers.Shift);
 
+        // Ctrl+Shift+Enter — разово отправить без форматирования
+        if (e.Key == Key.Enter && ctrl && shift)
+        {
+            e.Handled = true;
+            if (vm.SendPlainTextCommand.CanExecute(null))
+                vm.SendPlainTextCommand.Execute(null);
+            return;
+        }
+
         // На Android у экранной клавиатуры нет Shift+Enter — там Enter переносит строку, а отправка кнопкой
         if (e.Key == Key.Enter && !shift && !ctrl && !OperatingSystem.IsAndroid())
         {
@@ -154,7 +163,7 @@ public partial class ChatView : UserControl
             return;
         }
 
-        if (!ctrl)
+        if (!ctrl || !vm.IsMarkdownEnabled)
             return;
 
         var action = (e.Key, shift) switch
