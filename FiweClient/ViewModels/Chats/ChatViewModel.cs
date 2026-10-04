@@ -32,11 +32,15 @@ public partial class ChatViewModel : ObservableObject
     private readonly IRealtimeService _realtime;
     private readonly IAppSettingsService _appSettings;
 
-    // Маркер, которым помечается зашифрованное тело сообщения-изображения.
-    // Реальные картинки в чате исключены — маловероятно столкновение с обычным текстом.
+    // Маркер, которым помечается зашифрованное тело сообщения с изображениями:
+    //   [[fiwe-image:id1;id2;...]]\nподпись
+    // Сообщения старого формата (один id, без подписи) разбираются этим же кодом.
     private const string ImageMarkerPrefix = "[[fiwe-image:";
     private const string ImageMarkerSuffix = "]]";
+    private const char ImageIdSeparator = ';';
     private const long MaxImageSizeBytes = 10 * 1024 * 1024; // должно совпадать с лимитом на сервере (ImagesController)
+    public const int MaxAttachmentsPerMessage = 10;
+    private const int AttachmentThumbnailWidth = 160;
 
     // ── Состояние ─────────────────────────────────────────────────
     [ObservableProperty] private string _chatId = "";
@@ -55,6 +59,27 @@ public partial class ChatViewModel : ObservableObject
 
     partial void OnReplyingToChanged(MessageBubbleViewModel? value)
         => OnPropertyChanged(nameof(HasReply));
+
+    /// <summary>Изображения, выбранные для отправки (показываются над полем ввода до нажатия «Отправить»).</summary>
+    public ObservableCollection<PendingAttachmentViewModel> PendingAttachments { get; } = [];
+    public bool HasPendingAttachments => PendingAttachments.Count > 0;
+
+    // ── Просмотр изображения на весь экран ──
+    [ObservableProperty] private MessageImageViewModel? _viewedImage;
+    private IReadOnlyList<MessageImageViewModel> _viewerImages = [];
+
+    public bool IsImageViewerOpen => ViewedImage != null;
+    public bool CanViewerNavigate => _viewerImages.Count > 1;
+    public string ViewerPositionLabel => ViewedImage is null
+        ? ""
+        : $"{IndexOfViewed() + 1} / {_viewerImages.Count}";
+
+    partial void OnViewedImageChanged(MessageImageViewModel? value)
+    {
+        OnPropertyChanged(nameof(IsImageViewerOpen));
+        OnPropertyChanged(nameof(CanViewerNavigate));
+        OnPropertyChanged(nameof(ViewerPositionLabel));
+    }
 
     // contactUserId нужен для получения публичного ключа собеседника
     private string? _contactUserId;
@@ -85,6 +110,8 @@ public partial class ChatViewModel : ObservableObject
 
         // Отслеживаем добавление/удаление сообщений для обновления SelectedCount
         Messages.CollectionChanged += OnMessagesCollectionChanged;
+
+        PendingAttachments.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasPendingAttachments));
     }
 
     private void OnMessagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -125,6 +152,8 @@ public partial class ChatViewModel : ObservableObject
         ChatName = chatName;
         _contactUserId = contactUserId;
         Messages.Clear();
+        PendingAttachments.Clear();
+        CloseImageViewer();
     }
 
     // ── Режим выделения ───────────────────────────────────────────
@@ -236,22 +265,14 @@ public partial class ChatViewModel : ObservableObject
             foreach (var dto in dtos)
             {
                 var decrypted = DecryptSafe(dto.MessageBody, sharedSecret);
-                var imageId = TryParseImageMarker(decrypted);
-
-                var bubble = new MessageBubbleViewModel
-                {
-                    MessageId = dto.MessageId ?? "",
-                    Text = imageId is null ? decrypted : "📷 Фото",
-                    ImageId = imageId,
-                    SenderId = dto.SenderObjectId,
-                    SentAt = DateTime.SpecifyKind(dto.SentAt, DateTimeKind.Utc),
-                    IsMine = dto.SenderObjectId == _session.UserId,
-                    UtcOffsetHours = _appSettings.UtcOffsetHours,
-                };
+                var bubble = CreateBubble(
+                    dto.MessageId ?? "",
+                    decrypted,
+                    dto.SenderObjectId,
+                    DateTime.SpecifyKind(dto.SentAt, DateTimeKind.Utc),
+                    isMine: dto.SenderObjectId == _session.UserId);
                 Messages.Add(bubble);
-
-                if (imageId is not null)
-                    _ = LoadImageIntoBubbleAsync(bubble, imageId);
+                LoadBubbleImages(bubble);
             }
         }
         catch (Exception ex)
@@ -266,15 +287,25 @@ public partial class ChatViewModel : ObservableObject
 
     // ── Отправка сообщения ────────────────────────────────────────
 
+    /// <summary>
+    /// Отправляет то, что набрано в поле ввода. Если выбраны изображения —
+    /// они уходят одним сообщением, а набранный текст становится подписью.
+    /// </summary>
     [RelayCommand]
     public async Task SendMessageAsync()
     {
+        if (PendingAttachments.Count > 0)
+        {
+            await SendAttachmentsAsync();
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(MessageInput)) return;
 
         var plainText = MessageInput;
         var repliedTo = ReplyingTo; // запоминаем на случай ошибки отправки
         var textToSend = repliedTo != null
-            ? BuildReplyPrefix(repliedTo.Text) + plainText
+            ? BuildReplyPrefix(repliedTo.PreviewText) + plainText
             : plainText;
 
         MessageInput = ""; // очищаем поле сразу
@@ -294,15 +325,7 @@ public partial class ChatViewModel : ObservableObject
             // 4. Сразу показываем своё сообщение локально
             //    (MessageId сохраняем, иначе сообщение нельзя будет
             //    удалить/среагировать на него до перезагрузки чата)
-            Messages.Add(new MessageBubbleViewModel
-            {
-                MessageId = newMessageId ?? "",
-                Text = textToSend,
-                SenderId = _session.UserId ?? "",
-                SentAt = DateTime.UtcNow,
-                IsMine = true,
-                UtcOffsetHours = _appSettings.UtcOffsetHours,
-            });
+            Messages.Add(CreateBubble(newMessageId ?? "", textToSend, _session.UserId ?? "", DateTime.UtcNow, isMine: true));
         }
         catch (Exception ex)
         {
@@ -312,55 +335,101 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
-    // ── Отправка изображения ────────────────────────────────────────
+    // ── Вложения-изображения ───────────────────────────────────────
 
     /// <summary>
-    /// Загружает изображение на сервер (в открытом виде) и отправляет в чат
-    /// зашифрованное сообщение-ссылку на него. Вызывается из code-behind ChatView
-    /// после того как пользователь выбрал файл через StorageProvider.
+    /// Добавляет выбранный пользователем файл в список вложений (без отправки).
+    /// Вызывается из code-behind ChatView после выбора файлов через StorageProvider.
     /// </summary>
-    public async Task SendImageAsync(byte[] fileBytes, string fileName)
+    public void AddAttachment(byte[] fileBytes, string fileName)
     {
         if (fileBytes.Length == 0) return;
 
+        if (PendingAttachments.Count >= MaxAttachmentsPerMessage)
+        {
+            ErrorMessage = $"Можно прикрепить не больше {MaxAttachmentsPerMessage} изображений.";
+            return;
+        }
+
         if (fileBytes.Length > MaxImageSizeBytes)
         {
-            ErrorMessage = "Изображение слишком большое (максимум 10 МБ).";
+            ErrorMessage = $"«{fileName}» слишком большое (максимум 10 МБ).";
             return;
         }
 
         var contentType = GetImageContentType(fileName);
         if (contentType is null)
         {
-            ErrorMessage = "Неподдерживаемый формат изображения (допустимы JPG, PNG, GIF, WEBP, BMP).";
+            ErrorMessage = $"«{fileName}»: неподдерживаемый формат (допустимы JPG, PNG, GIF, WEBP, BMP).";
             return;
         }
+
+        Bitmap thumbnail;
+        try
+        {
+            using var ms = new MemoryStream(fileBytes);
+            thumbnail = Bitmap.DecodeToWidth(ms, AttachmentThumbnailWidth);
+        }
+        catch
+        {
+            ErrorMessage = $"«{fileName}» не удалось открыть как изображение.";
+            return;
+        }
+
+        PendingAttachments.Add(new PendingAttachmentViewModel
+        {
+            Bytes = fileBytes,
+            FileName = fileName,
+            ContentType = contentType,
+            Thumbnail = thumbnail,
+        });
+    }
+
+    [RelayCommand]
+    private void RemoveAttachment(PendingAttachmentViewModel? attachment)
+    {
+        if (attachment is not null)
+            PendingAttachments.Remove(attachment);
+    }
+
+    /// <summary>
+    /// Загружает изображения на сервер (в открытом виде) и отправляет в чат
+    /// одно зашифрованное сообщение со ссылками на них и подписью.
+    /// </summary>
+    private async Task SendAttachmentsAsync()
+    {
+        if (IsBusy) return; // защита от повторной отправки по Enter, пока идёт загрузка
+
+        var attachments = PendingAttachments.ToList();
+        var caption = MessageInput.Trim();
+        var repliedTo = ReplyingTo;
+        if (repliedTo != null)
+            caption = BuildReplyPrefix(repliedTo.PreviewText) + caption;
 
         IsBusy = true;
         try
         {
             var sharedSecret = await GetOrComputeSharedSecretAsync();
 
-            // Само изображение хранится на сервере без шифрования и доступно всем по ID.
-            // Зашифрованным остаётся только сообщение со ссылкой на него.
-            var imageId = await _imageApi.UploadImageAsync(fileBytes, fileName, contentType);
+            // Сами изображения хранятся на сервере без шифрования и доступны всем по ID.
+            // Зашифрованным остаётся только сообщение со ссылками на них.
+            var imageIds = new List<string>(attachments.Count);
+            foreach (var attachment in attachments)
+                imageIds.Add(await _imageApi.UploadImageAsync(attachment.Bytes, attachment.FileName, attachment.ContentType));
 
-            var marker = $"{ImageMarkerPrefix}{imageId}{ImageMarkerSuffix}";
-            var encryptedMarker = _crypto.Encrypt(marker, sharedSecret);
-            var newMessageId = await _messageApi.SendMessageAsync(ChatId, encryptedMarker);
+            var body = BuildImageMessage(imageIds, caption);
+            var newMessageId = await _messageApi.SendMessageAsync(ChatId, _crypto.Encrypt(body, sharedSecret));
 
-            var bubble = new MessageBubbleViewModel
-            {
-                MessageId = newMessageId ?? "",
-                Text = "📷 Фото",
-                ImageId = imageId,
-                SenderId = _session.UserId ?? "",
-                SentAt = DateTime.UtcNow,
-                IsMine = true,
-                UtcOffsetHours = _appSettings.UtcOffsetHours,
-                ImageBitmap = LoadBitmap(fileBytes), // байты уже есть локально — сразу показываем, без похода на сервер
-            };
+            var bubble = CreateBubble(newMessageId ?? "", body, _session.UserId ?? "", DateTime.UtcNow, isMine: true);
+            // байты уже есть локально — сразу показываем, без похода на сервер
+            for (var i = 0; i < bubble.Images.Count; i++)
+                bubble.Images[i].Bitmap = LoadBitmap(attachments[i].Bytes);
             Messages.Add(bubble);
+
+            // Очищаем ввод только после успешной отправки — при ошибке всё остаётся на месте
+            PendingAttachments.Clear();
+            MessageInput = "";
+            ReplyingTo = null;
         }
         catch (Exception ex)
         {
@@ -370,6 +439,46 @@ public partial class ChatViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    // ── Просмотр изображения ────────────────────────────────────────
+
+    /// <summary>Открывает изображение на весь экран; стрелками листаются остальные картинки того же сообщения.</summary>
+    public void OpenImageViewer(MessageBubbleViewModel bubble, MessageImageViewModel image)
+    {
+        if (IsSelectionMode || !image.HasBitmap) return;
+
+        _viewerImages = bubble.Images;
+        ViewedImage = image;
+    }
+
+    [RelayCommand]
+    private void CloseImageViewer()
+    {
+        ViewedImage = null;
+        _viewerImages = [];
+    }
+
+    [RelayCommand]
+    private void ShowNextImage() => MoveViewer(+1);
+
+    [RelayCommand]
+    private void ShowPreviousImage() => MoveViewer(-1);
+
+    private void MoveViewer(int step)
+    {
+        if (ViewedImage is null || _viewerImages.Count < 2) return;
+
+        var count = _viewerImages.Count;
+        ViewedImage = _viewerImages[(IndexOfViewed() + step + count) % count];
+    }
+
+    private int IndexOfViewed()
+    {
+        for (var i = 0; i < _viewerImages.Count; i++)
+            if (ReferenceEquals(_viewerImages[i], ViewedImage))
+                return i;
+        return 0;
     }
 
     // ── Входящие сообщения через SignalR ──────────────────────────
@@ -387,24 +496,13 @@ public partial class ChatViewModel : ObservableObject
             var sharedSecret = await GetOrComputeSharedSecretAsync();
             var encripted = await _messageApi.GetMessageByIdAsync(messageId);
             var decrypted = DecryptSafe(encripted, sharedSecret);
-            var imageId = TryParseImageMarker(decrypted);
 
             // UI поток — Avalonia требует обновления коллекций из UI потока
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                var bubble = new MessageBubbleViewModel
-                {
-                    Text = imageId is null ? decrypted : "📷 Фото",
-                    ImageId = imageId,
-                    SenderId = "",
-                    SentAt = DateTime.UtcNow,
-                    IsMine = false,
-                    UtcOffsetHours = _appSettings.UtcOffsetHours,
-                };
+                var bubble = CreateBubble("", decrypted, "", DateTime.UtcNow, isMine: false);
                 Messages.Add(bubble);
-
-                if (imageId is not null)
-                    _ = LoadImageIntoBubbleAsync(bubble, imageId);
+                LoadBubbleImages(bubble);
             });
         }
         catch
@@ -413,27 +511,50 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
+    /// <summary>Создаёт пузырь из расшифрованного тела: распознаёт сообщения с изображениями.</summary>
+    private MessageBubbleViewModel CreateBubble(string messageId, string decrypted, string senderId, DateTime sentAt, bool isMine)
+    {
+        var isImageMessage = TryParseImageMessage(decrypted, out var imageIds, out var caption);
+
+        return new MessageBubbleViewModel
+        {
+            MessageId = messageId,
+            Text = isImageMessage ? caption : decrypted,
+            Images = imageIds.Select(id => new MessageImageViewModel { ImageId = id }).ToList(),
+            SenderId = senderId,
+            SentAt = sentAt,
+            IsMine = isMine,
+            UtcOffsetHours = _appSettings.UtcOffsetHours,
+        };
+    }
+
+    private void LoadBubbleImages(MessageBubbleViewModel bubble)
+    {
+        foreach (var image in bubble.Images)
+            _ = LoadImageAsync(image);
+    }
+
     /// <summary>
     /// Скачивает изображение с сервера и декодирует в Bitmap.
-    /// Не бросает исключений наружу — при ошибке пузырь остаётся с текстовым плейсхолдером.
+    /// Не бросает исключений наружу — при ошибке остаётся плейсхолдер.
     /// </summary>
-    private async Task LoadImageIntoBubbleAsync(MessageBubbleViewModel bubble, string imageId)
+    private async Task LoadImageAsync(MessageImageViewModel image)
     {
-        bubble.IsImageLoading = true;
+        image.IsLoading = true;
         try
         {
-            var imageBytes = await _imageApi.DownloadImageAsync(imageId);
+            var imageBytes = await _imageApi.DownloadImageAsync(image.ImageId);
             var bitmap = LoadBitmap(imageBytes);
 
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => bubble.ImageBitmap = bitmap);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => image.Bitmap = bitmap);
         }
         catch
         {
-            // Не удалось скачать/расшифровать — оставляем текстовый плейсхолдер
+            // Не удалось скачать — оставляем плейсхолдер
         }
         finally
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => bubble.IsImageLoading = false);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => image.IsLoading = false);
         }
     }
 
@@ -455,14 +576,33 @@ public partial class ChatViewModel : ObservableObject
             _ => null,
         };
 
-    private static string? TryParseImageMarker(string text)
+    private static string BuildImageMessage(IEnumerable<string> imageIds, string caption)
     {
-        if (text.StartsWith(ImageMarkerPrefix, StringComparison.Ordinal) &&
-            text.EndsWith(ImageMarkerSuffix, StringComparison.Ordinal))
-        {
-            return text[ImageMarkerPrefix.Length..^ImageMarkerSuffix.Length];
-        }
-        return null;
+        var marker = ImageMarkerPrefix + string.Join(ImageIdSeparator, imageIds) + ImageMarkerSuffix;
+        return string.IsNullOrEmpty(caption) ? marker : $"{marker}\n{caption}";
+    }
+
+    private static bool TryParseImageMessage(string text, out string[] imageIds, out string caption)
+    {
+        imageIds = [];
+        caption = "";
+
+        if (!text.StartsWith(ImageMarkerPrefix, StringComparison.Ordinal))
+            return false;
+
+        var end = text.IndexOf(ImageMarkerSuffix, ImageMarkerPrefix.Length, StringComparison.Ordinal);
+        if (end < 0)
+            return false;
+
+        var ids = text[ImageMarkerPrefix.Length..end]
+            .Split(ImageIdSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (ids.Length == 0)
+            return false;
+
+        imageIds = ids;
+        var rest = text[(end + ImageMarkerSuffix.Length)..];
+        caption = rest.StartsWith('\n') ? rest[1..] : rest;
+        return true;
     }
 
     // ── Криптография ──────────────────────────────────────────────

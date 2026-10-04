@@ -18,17 +18,42 @@ public partial class MessageBubbleViewModel : ObservableObject
     public double UtcOffsetHours { get; init; }
     public string TimeLabel => SentAt.AddHours(UtcOffsetHours).ToString("HH:mm");
 
-    /// <summary>ID вложенного изображения на сервере (хранится в открытом виде), null — если это текстовое сообщение.</summary>
-    public string? ImageId { get; init; }
-    public bool IsImage => ImageId is not null;
+    /// <summary>Вложенные изображения (пусто — обычное текстовое сообщение). Text у такого сообщения — подпись.</summary>
+    public IReadOnlyList<MessageImageViewModel> Images { get; init; } = [];
+    public bool IsImage => Images.Count > 0;
+    public bool IsSingleImage => Images.Count == 1;
+    public bool IsAlbum => Images.Count > 1;
+    public MessageImageViewModel? FirstImage => Images.Count > 0 ? Images[0] : null;
+    public bool HasText => !string.IsNullOrEmpty(Text);
+
+    /// <summary>Короткое представление сообщения для панели ответа и копирования.</summary>
+    public string PreviewText => !IsImage
+        ? Text
+        : HasText ? $"📷 {Text}" : Images.Count == 1 ? "📷 Фото" : $"📷 Фото ({Images.Count})";
 
     [ObservableProperty] private bool _isSelected;
     [ObservableProperty] private bool _isSelectionMode;
-    [ObservableProperty] private bool _isImageLoading;
-    [ObservableProperty] private Bitmap? _imageBitmap;
+}
 
-    public bool HasImageBitmap => ImageBitmap is not null;
-    partial void OnImageBitmapChanged(Bitmap? value) => OnPropertyChanged(nameof(HasImageBitmap));
+/// <summary>Одно изображение внутри сообщения. Bitmap догружается с сервера асинхронно.</summary>
+public partial class MessageImageViewModel : ObservableObject
+{
+    public string ImageId { get; init; } = "";
+
+    [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private Bitmap? _bitmap;
+
+    public bool HasBitmap => Bitmap is not null;
+    partial void OnBitmapChanged(Bitmap? value) => OnPropertyChanged(nameof(HasBitmap));
+}
+
+/// <summary>Изображение, выбранное для отправки, но ещё не отправленное (предпросмотр над полем ввода).</summary>
+public class PendingAttachmentViewModel
+{
+    public required byte[] Bytes { get; init; }
+    public required string FileName { get; init; }
+    public required string ContentType { get; init; }
+    public required Bitmap Thumbnail { get; init; }
 }
 
 public partial class ChatPreviewViewModel : ObservableObject
