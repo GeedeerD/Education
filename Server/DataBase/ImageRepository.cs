@@ -18,6 +18,11 @@ namespace DataBase
             _images = db.GetCollection<ImageModelDto>("Images");
         }
 
+        public ImageRepository(IMongoDatabase db)
+        {
+            _images = db.GetCollection<ImageModelDto>("Images");
+        }
+
         public async Task<ObjectId> SaveImageAsync(ImageModelDto image)
         {
             await _images.InsertOneAsync(image);

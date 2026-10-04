@@ -38,6 +38,29 @@ public class MessageApiService : BaseApiService, IMessageApiService
         => PostAsync("Messages/DeleteMessages", new DeleteMessagesRequest(messageIds.ToList()));
 }
 
+// ── Images ────────────────────────────────────────────────────────
+
+public interface IImageApiService
+{
+    Task<string> UploadImageAsync(byte[] fileBytes, string fileName, string contentType);
+    Task<byte[]> DownloadImageAsync(string imageId);
+}
+
+public class ImageApiService : BaseApiService, IImageApiService
+{
+    public ImageApiService(IHttpClientFactory factory, ISessionService session)
+        : base(factory, session) { }
+
+    public async Task<string> UploadImageAsync(byte[] fileBytes, string fileName, string contentType)
+    {
+        var result = await PostFileAsync<UploadImageResponse>("Images/Upload", fileBytes, fileName, contentType);
+        return result?.ImageId ?? throw new Exception("Сервер не вернул ImageId загруженного изображения");
+    }
+
+    public Task<byte[]> DownloadImageAsync(string imageId)
+        => GetBytesAsync($"Images/{imageId}/Download");
+}
+
 // ── Contacts ──────────────────────────────────────────────────────
 
 public interface IContactApiService

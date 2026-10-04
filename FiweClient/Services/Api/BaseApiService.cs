@@ -64,4 +64,25 @@ public abstract class BaseApiService
         var response = await client.PostAsJsonAsync(url, body);
         response.EnsureSuccessStatusCode();
     }
+
+    protected async Task<T?> PostFileAsync<T>(string url, byte[] fileBytes, string fileName, string contentType)
+    {
+        var client = CreateClient();
+        using var content = new MultipartFormDataContent();
+        using var fileContent = new ByteArrayContent(fileBytes);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        content.Add(fileContent, "file", fileName);
+
+        var response = await client.PostAsync(url, content);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>();
+    }
+
+    protected async Task<byte[]> GetBytesAsync(string url)
+    {
+        var client = CreateClient();
+        var response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
 }

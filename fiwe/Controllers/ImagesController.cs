@@ -15,6 +15,13 @@ namespace fiwe.Controllers
         // и мы могли вернуть осмысленный 403, а не общий 413 от Kestrel.
         private const long RequestSizeLimitBytes = MaxImageSizeBytes + 1024 * 1024;
 
+        // Изображения отдаются публично, поэтому разрешаем только растровые форматы:
+        // иначе можно было бы загрузить HTML/SVG со скриптом и получить XSS на домене API.
+        private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp"
+        };
+
         private readonly IImageService _imageService;
 
         public ImagesController(IImageService imageService)
@@ -41,25 +48,29 @@ namespace fiwe.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden, "File size exceeds the 10 MB limit.");
             }
 
+            if (!AllowedContentTypes.Contains(file.ContentType))
+            {
+                return BadRequest("Only JPEG, PNG, GIF, WEBP and BMP images are allowed.");
+            }
+
             var imageId = await _imageService.UploadImageAsync(CurrentUserId, file);
             return Ok(new { ImageId = imageId });
         }
 
+        // Изображения общедоступны: скачать может любой, кто знает imageId, без авторизации.
         [HttpGet, Route("{imageId}/Download")]
+        [AllowAnonymous]
         public async Task<IActionResult> DownloadImageAsync(string imageId)
         {
-            if (string.IsNullOrEmpty(CurrentUserId))
-            {
-                return Unauthorized();
-            }
-
             var image = await _imageService.GetImageAsync(imageId);
             if (image == null)
             {
                 return NotFound();
             }
 
-            return File(image.Data, image.ContentType, image.FileName);
+            // Без имени файла — отдаём inline, чтобы картинка открывалась прямо в браузере.
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
+            return File(image.Data, image.ContentType);
         }
     }
 }

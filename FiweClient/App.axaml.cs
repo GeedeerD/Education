@@ -134,6 +134,7 @@ public class App : Application
         // ── API ───────────────────────────────────────
         services.AddTransient<IAuthApiService, AuthApiService>();
         services.AddTransient<IMessageApiService, MessageApiService>();
+        services.AddTransient<IImageApiService, ImageApiService>();
         services.AddTransient<IContactApiService, ContactApiService>();
         services.AddTransient<IUserApiService, UserApiService>();
 
