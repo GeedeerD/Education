@@ -15,6 +15,7 @@
         <conv:BubbleColorConverter x:Key="BubbleColorConverter" />
         <conv:BubbleTextColorConverter x:Key="BubbleTextColorConverter" />
         <conv:EqualityConverter x:Key="EqualityConverter" />
+        <conv:ChatMarkdownConverter x:Key="ChatMarkdownConverter" />
 
         <!-- Цвета бренда -->
         <Color x:Key="BrandColor">#5B6EF5</Color>

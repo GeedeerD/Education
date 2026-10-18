@@ -1,4 +1,5 @@
 using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
@@ -74,7 +75,9 @@ public class BubbleTextColorConverter : IValueConverter
     public static readonly BubbleTextColorConverter Instance = new();
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is true ? Brushes.White : Application.Current?.FindResource("SystemBaseHighColor") as IBrush ?? Brushes.Black;
+        // Чужое сообщение — цвет не задаём: текст наследует цвет темы и сам переключается между светлой и тёмной.
+        // (Раньше здесь искался ресурс SystemBaseHighColor — это Color, а не IBrush, поэтому всегда получался чёрный.)
+        => value is true ? Brushes.White : AvaloniaProperty.UnsetValue;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotImplementedException();

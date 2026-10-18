@@ -34,6 +34,11 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Форматирование Markdown для отправляемых сообщений — сохраняется сразу при переключении.</summary>
+    [ObservableProperty] private bool _markdownEnabled;
+
+    partial void OnMarkdownEnabledChanged(bool value) => _ = SaveMarkdownSettingAsync(value);
+
     public string Username => _session.Username ?? "";
 
     public SettingsViewModel(IUserApiService userApi, ISessionService session, ShellViewModel shell, IAppSettingsService appSettings)
@@ -43,6 +48,7 @@ public partial class SettingsViewModel : ObservableObject
         _shell = shell;
         _appSettings = appSettings;
         _utcOffsetHours = appSettings.UtcOffsetHours;
+        _markdownEnabled = appSettings.MarkdownEnabled;
     }
 
     [RelayCommand]
@@ -80,6 +86,19 @@ public partial class SettingsViewModel : ObservableObject
         await _appSettings.SaveAsync();
         SuccessMessage = "Часовой пояс сохранён";
         ErrorMessage = null;
+    }
+
+    private async Task SaveMarkdownSettingAsync(bool value)
+    {
+        _appSettings.MarkdownEnabled = value;
+        try
+        {
+            await _appSettings.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Не удалось сохранить настройку: {ex.Message}";
+        }
     }
 
     [RelayCommand]

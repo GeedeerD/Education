@@ -38,6 +38,10 @@ public partial class ChatViewModel : ObservableObject
     private const string ImageMarkerPrefix = "[[fiwe-image:";
     private const string ImageMarkerSuffix = "]]";
     private const char ImageIdSeparator = ';';
+
+    // Маркер в начале зашифрованного тела: сообщение отправлено «без форматирования»
+    // и показывается как есть, без разбора Markdown. Ставится перед всем остальным, в т.ч. перед маркером изображений.
+    private const string PlainTextMarker = "[[fiwe-plain]]";
     private const long MaxImageSizeBytes = 10 * 1024 * 1024; // должно совпадать с лимитом на сервере (ImagesController)
     public const int MaxAttachmentsPerMessage = 10;
     private const int AttachmentThumbnailWidth = 160;
@@ -51,6 +55,18 @@ public partial class ChatViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<MessageBubbleViewModel> _messages = [];
     [ObservableProperty] private bool _isSelectionMode;
     [ObservableProperty] private MessageBubbleViewModel? _replyingTo;
+
+    /// <summary>
+    /// Переключатель M↓: форматировать ли отправляемые сообщения как Markdown.
+    /// Хранится в настройках приложения, поэтому сохраняется между чатами и запусками.
+    /// </summary>
+    [ObservableProperty] private bool _isMarkdownEnabled;
+
+    partial void OnIsMarkdownEnabledChanged(bool value)
+    {
+        _appSettings.MarkdownEnabled = value;
+        _ = SaveSettingsAsync();
+    }
 
     public int SelectedCount => Messages.Count(m => m.IsSelected);
 
@@ -104,6 +120,7 @@ public partial class ChatViewModel : ObservableObject
         _secretCache = secretCache;
         _realtime = realtime;
         _appSettings = appSettings;
+        _isMarkdownEnabled = appSettings.MarkdownEnabled; // через поле — чтобы не пересохранять настройки
 
         // Подписываемся на входящие сообщения от SignalR
         _realtime.MessageReceived += OnMessageReceived;
@@ -292,11 +309,17 @@ public partial class ChatViewModel : ObservableObject
     /// они уходят одним сообщением, а набранный текст становится подписью.
     /// </summary>
     [RelayCommand]
-    public async Task SendMessageAsync()
+    public Task SendMessageAsync() => SendAsync(asPlainText: !IsMarkdownEnabled);
+
+    /// <summary>Ctrl+Shift+Enter — разово отправить сообщение без форматирования, не меняя переключатель M↓.</summary>
+    [RelayCommand]
+    private Task SendPlainTextAsync() => SendAsync(asPlainText: true);
+
+    private async Task SendAsync(bool asPlainText)
     {
         if (PendingAttachments.Count > 0)
         {
-            await SendAttachmentsAsync();
+            await SendAttachmentsAsync(asPlainText);
             return;
         }
 
@@ -317,7 +340,8 @@ public partial class ChatViewModel : ObservableObject
             var sharedSecret = await GetOrComputeSharedSecretAsync();
 
             // 2. Шифруем — на сервер уходит зашифрованный blob
-            var encrypted = _crypto.Encrypt(textToSend, sharedSecret);
+            var body = WithFormatMarker(textToSend, asPlainText);
+            var encrypted = _crypto.Encrypt(body, sharedSecret);
 
             // 3. Отправляем, сервер возвращает MessageId нового сообщения
             var newMessageId = await _messageApi.SendMessageAsync(ChatId, encrypted);
@@ -325,7 +349,7 @@ public partial class ChatViewModel : ObservableObject
             // 4. Сразу показываем своё сообщение локально
             //    (MessageId сохраняем, иначе сообщение нельзя будет
             //    удалить/среагировать на него до перезагрузки чата)
-            Messages.Add(CreateBubble(newMessageId ?? "", textToSend, _session.UserId ?? "", DateTime.UtcNow, isMine: true));
+            Messages.Add(CreateBubble(newMessageId ?? "", body, _session.UserId ?? "", DateTime.UtcNow, isMine: true));
         }
         catch (Exception ex)
         {
@@ -396,7 +420,7 @@ public partial class ChatViewModel : ObservableObject
     /// Загружает изображения на сервер (в открытом виде) и отправляет в чат
     /// одно зашифрованное сообщение со ссылками на них и подписью.
     /// </summary>
-    private async Task SendAttachmentsAsync()
+    private async Task SendAttachmentsAsync(bool asPlainText)
     {
         if (IsBusy) return; // защита от повторной отправки по Enter, пока идёт загрузка
 
@@ -417,7 +441,7 @@ public partial class ChatViewModel : ObservableObject
             foreach (var attachment in attachments)
                 imageIds.Add(await _imageApi.UploadImageAsync(attachment.Bytes, attachment.FileName, attachment.ContentType));
 
-            var body = BuildImageMessage(imageIds, caption);
+            var body = WithFormatMarker(BuildImageMessage(imageIds, caption), asPlainText);
             var newMessageId = await _messageApi.SendMessageAsync(ChatId, _crypto.Encrypt(body, sharedSecret));
 
             var bubble = CreateBubble(newMessageId ?? "", body, _session.UserId ?? "", DateTime.UtcNow, isMine: true);
@@ -514,12 +538,17 @@ public partial class ChatViewModel : ObservableObject
     /// <summary>Создаёт пузырь из расшифрованного тела: распознаёт сообщения с изображениями.</summary>
     private MessageBubbleViewModel CreateBubble(string messageId, string decrypted, string senderId, DateTime sentAt, bool isMine)
     {
+        var isPlainText = decrypted.StartsWith(PlainTextMarker, StringComparison.Ordinal);
+        if (isPlainText)
+            decrypted = decrypted[PlainTextMarker.Length..];
+
         var isImageMessage = TryParseImageMessage(decrypted, out var imageIds, out var caption);
 
         return new MessageBubbleViewModel
         {
             MessageId = messageId,
             Text = isImageMessage ? caption : decrypted,
+            IsPlainText = isPlainText,
             Images = imageIds.Select(id => new MessageImageViewModel { ImageId = id }).ToList(),
             SenderId = senderId,
             SentAt = sentAt,
@@ -575,6 +604,20 @@ public partial class ChatViewModel : ObservableObject
             ".bmp" => "image/bmp",
             _ => null,
         };
+
+    private static string WithFormatMarker(string body, bool asPlainText) => asPlainText ? PlainTextMarker + body : body;
+
+    private async Task SaveSettingsAsync()
+    {
+        try
+        {
+            await _appSettings.SaveAsync();
+        }
+        catch
+        {
+            // Не удалось записать файл настроек — выбор действует до перезапуска
+        }
+    }
 
     private static string BuildImageMessage(IEnumerable<string> imageIds, string caption)
     {

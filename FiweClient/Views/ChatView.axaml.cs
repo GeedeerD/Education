@@ -3,13 +3,20 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using FiweClient.Markdown;
 using FiweClient.ViewModels.Chats;
 
 namespace FiweClient.Views;
 
 public partial class ChatView : UserControl
 {
-    public ChatView() => InitializeComponent();
+    public ChatView()
+    {
+        InitializeComponent();
+
+        // Tunnel — чтобы перехватить Enter и Ctrl+B/I/E раньше, чем их обработает сам TextBox
+        MessageInputBox.AddHandler(KeyDownEvent, OnMessageInputKeyDown, RoutingStrategies.Tunnel);
+    }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
@@ -125,5 +132,87 @@ public partial class ChatView : UserControl
     {
         if (ReferenceEquals(e.Source, sender) && DataContext is ChatViewModel vm)
             vm.CloseImageViewerCommand.Execute(null);
+    }
+
+    // ── Markdown в поле ввода ─────────────────────────────────────
+
+    private void OnMessageInputKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not ChatViewModel vm)
+            return;
+
+        var mods = e.KeyModifiers;
+        var ctrl = mods.HasFlag(KeyModifiers.Control) || mods.HasFlag(KeyModifiers.Meta);
+        var shift = mods.HasFlag(KeyModifiers.Shift);
+
+        // Ctrl+Shift+Enter — разово отправить без форматирования
+        if (e.Key == Key.Enter && ctrl && shift)
+        {
+            e.Handled = true;
+            if (vm.SendPlainTextCommand.CanExecute(null))
+                vm.SendPlainTextCommand.Execute(null);
+            return;
+        }
+
+        // На Android у экранной клавиатуры нет Shift+Enter — там Enter переносит строку, а отправка кнопкой
+        if (e.Key == Key.Enter && !shift && !ctrl && !OperatingSystem.IsAndroid())
+        {
+            e.Handled = true;
+            if (vm.SendMessageCommand.CanExecute(null))
+                vm.SendMessageCommand.Execute(null);
+            return;
+        }
+
+        if (!ctrl || !vm.IsMarkdownEnabled)
+            return;
+
+        var action = (e.Key, shift) switch
+        {
+            (Key.B, false) => "bold",
+            (Key.I, false) => "italic",
+            (Key.X, true) => "strike",
+            (Key.E, false) => "code",
+            (Key.K, false) => "link",
+            _ => null,
+        };
+
+        if (action is not null)
+        {
+            e.Handled = true;
+            ApplyFormat(action);
+        }
+    }
+
+    /// <summary>Кнопки панели форматирования: действие задаётся в Tag.</summary>
+    private void OnFormatClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Avalonia.Controls.Button { Tag: string action })
+            ApplyFormat(action);
+    }
+
+    private void ApplyFormat(string action)
+    {
+        var box = MessageInputBox;
+        var text = box.Text ?? "";
+        int start = box.SelectionStart, end = box.SelectionEnd;
+
+        var edit = action switch
+        {
+            "bold" => MarkdownEditing.ToggleWrap(text, start, end, MarkdownEditing.Bold),
+            "italic" => MarkdownEditing.ToggleWrap(text, start, end, MarkdownEditing.Italic),
+            "strike" => MarkdownEditing.ToggleWrap(text, start, end, MarkdownEditing.Strikethrough),
+            "code" => MarkdownEditing.ToggleWrap(text, start, end, MarkdownEditing.Code),
+            "link" => MarkdownEditing.InsertLink(text, start, end),
+            "quote" => MarkdownEditing.ToggleLinePrefix(text, start, end, "> "),
+            "list" => MarkdownEditing.ToggleLinePrefix(text, start, end, "- "),
+            _ => (MarkdownEdit?)null,
+        };
+        if (edit is not { } result)
+            return;
+
+        box.Text = result.Text;
+        box.SelectionStart = result.SelectionStart;
+        box.SelectionEnd = result.SelectionEnd;
+        box.Focus();
     }
 }
