@@ -6,18 +6,24 @@ using NUnit.Framework;
 
 namespace Tests
 {
-    public class UserRepositoryTests : IDisposable
+    public class UserRepositoryTests
     {
         private MongoDbRunner _runner;
+        private MongoClient _client;
         private UserRepository _repo;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _runner = MongoDbRunner.Start();
+            _client = new MongoClient(_runner.ConnectionString);
+        }
 
         [SetUp]
         public void SetUp()
         {
-            _runner = MongoDbRunner.Start();
-            var client = new MongoClient(_runner.ConnectionString);
-            var database = client.GetDatabase("test-db");
-
+            // Один mongod на класс, но своя база на каждый тест
+            var database = _client.GetDatabase($"test-db-{Guid.NewGuid():N}");
             _repo = new UserRepository(database);
         }
 
@@ -27,7 +33,7 @@ namespace Tests
             const string userName = "test34@mail.com";
             var user = new UserDto { Email = userName, UserName = userName };
 
-            await _repo.CreateUserAsync(user.UserName, "test");
+            await _repo.CreateUserAsync(user.UserName, "test", "test-public-name");
             var result = await _repo.GetByUsernameAsync(userName);
 
             Assert.That(result, Is.Not.Null);
@@ -43,8 +49,7 @@ namespace Tests
             const string publicUserName = "Public UserName";
             var user = new UserDto { Email = userName, UserName = userName, PublicUserName = publicUserName };
 
-            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
-            await _repo.UpdateUserInfoAsync(user.Id, null, null, publicUserName);
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test", publicUserName);
 
             // Action
             var result = await _repo.SearchByPublicUserNameAsync(publicUserName);
@@ -63,7 +68,7 @@ namespace Tests
 
             var user = new UserDto { Email = userName, UserName = userName };
 
-            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test", "test-public-name");
             await _repo.UpdateUserInfoAsync(user.Id, null, email, null);
 
             // Action
@@ -82,7 +87,7 @@ namespace Tests
 
             var user = new UserDto { Email = userName, UserName = userName };
 
-            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test", "test-public-name");
             await _repo.UpdateUserInfoAsync(user.Id, phoneNumber, null, null);
 
             // Action
@@ -101,7 +106,7 @@ namespace Tests
 
             var user = new UserDto { Email = userName, UserName = userName };
 
-            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test", "test-public-name");
             await _repo.SetUserPublicKeyAsync(user.Id, publicKey);
 
             // Action
@@ -122,7 +127,7 @@ namespace Tests
 
             var user = new UserDto { Email = userName, UserName = userName };
 
-            user.Id = await _repo.CreateUserAsync(user.UserName, "test");
+            user.Id = await _repo.CreateUserAsync(user.UserName, "test", "test-public-name");
             await _repo.SetUserPublicKeyAsync(user.Id, publicKey);
 
             // Action
@@ -132,8 +137,19 @@ namespace Tests
             Assert.That(result.PublicKey, Is.EqualTo(publicKey));
         }
 
-        public void Dispose()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("   ")]
+        public void CreateUser_WithEmptyPublicUserName_ShouldThrow(string? publicUserName)
         {
+            Assert.ThrowsAsync(Is.InstanceOf<ArgumentException>(),
+                () => _repo.CreateUserAsync("test34@mail.com", "test", publicUserName!));
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            _client.Dispose();
             _runner.Dispose();
         }
     }

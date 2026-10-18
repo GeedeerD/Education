@@ -5,7 +5,7 @@ namespace DataBase.Interfaces
 {
     public interface IUserRepository
     {
-        Task<ObjectId> CreateUserAsync(string username, string passwordHash);
+        Task<ObjectId> CreateUserAsync(string username, string passwordHash, string publicUserName);
         Task UpdateUserInfoAsync(ObjectId userId, string phoneNumber, string email, string publicUserName);
         Task<UserDto?> GetByUsernameAsync(string username);
         Task<IEnumerable<UserSearchResultDto>> SearchByPublicUserNameAsync(string publicUserName);

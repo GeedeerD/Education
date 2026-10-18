@@ -32,7 +32,7 @@ namespace fiwe.Controllers
             if (existing != null)
                 return BadRequest("User already exists");
 
-            await _userService.CreateUserAsync(model.UserName, model.Password);
+            await _userService.CreateUserAsync(model.UserName, model.Password, model.PublicUserName);
             return Ok("User registered");
         }
 
