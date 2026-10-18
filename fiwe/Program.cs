@@ -7,6 +7,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Configurations.Extensions;
 using Configurations;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,18 @@ builder.Configuration
                   optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 builder.Services.AddAppConfigurations(builder.Configuration);
+
+// Application Insights (Azure Monitor OpenTelemetry): запросы, зависимости, исключения, логи, Live Metrics.
+// Строка подключения не хранится в репозитории: задаётся через AzureMonitor__ConnectionString
+// (App Service → Configuration) или dotnet user-secrets. Без неё телеметрия просто не включается.
+var azureMonitorConnectionString = builder.Configuration["AzureMonitor:ConnectionString"];
+if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
+{
+    builder.Services.AddOpenTelemetry().UseAzureMonitor(o =>
+    {
+        o.ConnectionString = azureMonitorConnectionString;
+    });
+}
 var jwtSettings = builder.Configuration
     .GetSection(JwtSettings.SectionName)
     .Get<JwtSettings>()!;
