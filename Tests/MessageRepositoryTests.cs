@@ -9,18 +9,24 @@ using NUnit.Framework;
 
 namespace Tests
 {
-    public class MessageRepositoryTests : IDisposable
+    public class MessageRepositoryTests
     {
         private MongoDbRunner _runner;
+        private MongoClient _client;
         private MessageRepository _repo;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _runner = MongoDbRunner.Start();
+            _client = new MongoClient(_runner.ConnectionString);
+        }
 
         [SetUp]
         public void SetUp()
         {
-            _runner = MongoDbRunner.Start();
-            var client = new MongoClient(_runner.ConnectionString);
-            var database = client.GetDatabase("test-db");
-
+            // Один mongod на класс, но своя база на каждый тест
+            var database = _client.GetDatabase($"test-db-{Guid.NewGuid():N}");
             _repo = new MessageRepository(database);
         }
 
@@ -244,8 +250,10 @@ namespace Tests
             Assert.That(noteMessages, Is.Not.Empty);
         }
 
-        public void Dispose()
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
+            _client.Dispose();
             _runner.Dispose();
         }
     }

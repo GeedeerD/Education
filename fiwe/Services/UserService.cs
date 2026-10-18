@@ -11,7 +11,7 @@ namespace fiwe.Services
     public interface IUserService
     {
         Task<ApplicationUser?> GetByUsernameAsync(string username);
-        Task CreateUserAsync(string username, string password);
+        Task CreateUserAsync(string username, string password, string? publicUserName = null);
         bool VerifyPassword(string password, string hash);
         Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName);
         Task SetUserPublicKeyAsync(string userId, string publicKey);
@@ -42,9 +42,28 @@ namespace fiwe.Services
             };
         }
 
-        public async Task CreateUserAsync(string username, string password)
+        private const int PublicUserNameLength = 16;
+
+        public async Task CreateUserAsync(string username, string password, string? publicUserName = null)
         {
-            await _userRepository.CreateUserAsync(username, HashPassword(password));
+            if (string.IsNullOrWhiteSpace(publicUserName))
+            {
+                publicUserName = GenerateRandomString(PublicUserNameLength);
+            }
+
+            await _userRepository.CreateUserAsync(username, HashPassword(password), publicUserName);
+        }
+
+        private static string GenerateRandomString(int length = 128)
+        {
+            if (length is < 1 or > 128)
+                throw new ArgumentOutOfRangeException(nameof(length), "Длина должна быть от 1 до 128.");
+
+            var sb = new StringBuilder(length + 32);
+            while (sb.Length < length)
+                sb.Append(Guid.NewGuid().ToString("N"));
+
+            return sb.ToString(0, length);
         }
 
         public bool VerifyPassword(string password, string hash) =>

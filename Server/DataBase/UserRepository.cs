@@ -25,12 +25,15 @@ namespace DataBase
             _db = db;
             _users = _db.GetCollection<UserDto>("Users");
         }
-        public async Task<ObjectId> CreateUserAsync(string username, string passwordHash)
+        public async Task<ObjectId> CreateUserAsync(string username, string passwordHash, string publicUserName)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(publicUserName);
+
             var user = new UserDto
             {
                 UserName = username,
                 PasswordHash = passwordHash,
+                PublicUserName = publicUserName,
                 ContactListId = ObjectId.GenerateNewId(),
             };
             await _users.InsertOneAsync(user);
