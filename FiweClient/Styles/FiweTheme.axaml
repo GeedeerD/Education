@@ -1,0 +1,73 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Палитра Fiwe. Все экраны берут цвета только отсюда (через DynamicResource),
+        поэтому светлая и тёмная темы переключаются на лету.
+    -->
+
+    <!-- Акцент бренда — одинаковый в обеих темах -->
+    <Color x:Key="BrandColor">#5B6EF5</Color>
+    <Color x:Key="BrandColorLight">#7B8EFF</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#5B6EF5" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#6C7DFF" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#4A5BE0" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="White" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#E5484D" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#30A46C" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#F5A524" />
+
+    <!-- Акцентные цвета Fluent-контролов (ToggleSwitch, Slider, CheckBox, выделение) — под бренд -->
+    <Color x:Key="SystemAccentColor">#5B6EF5</Color>
+    <Color x:Key="SystemAccentColorLight1">#6C7DFF</Color>
+    <Color x:Key="SystemAccentColorLight2">#8D9BFF</Color>
+    <Color x:Key="SystemAccentColorLight3">#B3BCFF</Color>
+    <Color x:Key="SystemAccentColorDark1">#4A5BE0</Color>
+    <Color x:Key="SystemAccentColorDark2">#3B4AC2</Color>
+    <Color x:Key="SystemAccentColorDark3">#2D399E</Color>
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F5FA" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#F0F1F7" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#E9EBF4" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#ECEEF6" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#E2E4EE" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1D2A" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6F85" />
+            <SolidColorBrush x:Key="AccentSoftBrush" Color="#E5E8FF" />
+            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#3F50D8" />
+            <SolidColorBrush x:Key="BubbleOtherBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#E2E4EE" />
+            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#F4F5FA" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#EEF1FF" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF6E5" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FDECEC" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#E7F6EE" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#12131A" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#1A1B24" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#23242F" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#2B2C39" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#15161E" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#2A2B37" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#ECEDF3" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9A9DB2" />
+            <SolidColorBrush x:Key="AccentSoftBrush" Color="#2A2F5C" />
+            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#A9B3FF" />
+            <SolidColorBrush x:Key="BubbleOtherBrush" Color="#262734" />
+            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#262734" />
+            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#12131A" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#1E2342" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#33290F" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#3A1A1C" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#132E22" />
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

@@ -1,81 +1,107 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:FiweClient.ViewModels.Contacts"
+             xmlns:ctl="clr-namespace:FiweClient.Controls"
              x:Class="FiweClient.Views.AddContactView"
              x:DataType="vm:AddContactViewModel">
 
-    <Grid RowDefinitions="Auto, *, Auto" Margin="24">
+    <Grid RowDefinitions="Auto, *">
 
         <!-- Шапка -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,20">
-            <Button Grid.Column="0"
-                    Content="← Назад"
-                    Command="{Binding GoBackCommand}"
-                    Margin="0,0,12,0" />
-            <TextBlock Grid.Column="1"
-                       Text="Найти пользователя"
-                       FontSize="20"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center" />
-        </Grid>
-
-        <!-- Поиск и результаты -->
-        <StackPanel Grid.Row="1" Spacing="16">
-
-            <Grid ColumnDefinitions="*, Auto">
-                <TextBox Grid.Column="0"
-                         Text="{Binding SearchQuery}"
-                         Watermark="Публичное имя пользователя"
-                         Height="44">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Return" Command="{Binding SearchCommand}" />
-                    </TextBox.KeyBindings>
-                </TextBox>
-                <Button Grid.Column="1"
-                        Content="Найти"
-                        Command="{Binding SearchCommand}"
-                        Height="44"
-                        Padding="18,0"
-                        IsEnabled="{Binding !IsBusy}" />
+        <Border Grid.Row="0" Classes="header" Padding="8,0,20,0">
+            <Grid ColumnDefinitions="Auto, *">
+                <Button Classes="icon"
+                        Command="{Binding GoBackCommand}"
+                        ToolTip.Tip="Назад к контактам"
+                        Margin="0,0,8,0">
+                    <PathIcon Data="{StaticResource IconBack}" />
+                </Button>
+                <TextBlock Grid.Column="1"
+                           Classes="h2"
+                           Text="Найти пользователя"
+                           VerticalAlignment="Center" />
             </Grid>
+        </Border>
 
-            <ProgressBar IsIndeterminate="True"
-                         IsVisible="{Binding IsBusy}"
-                         Height="3" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="20,20" Spacing="14" MaxWidth="560">
 
-            <!-- Статус -->
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="Green"
-                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding SearchQuery}"
+                             Watermark="Публичное имя пользователя">
+                        <TextBox.InnerLeftContent>
+                            <PathIcon Data="{StaticResource IconSearch}"
+                                      Width="16" Height="16"
+                                      Margin="12,0,0,0"
+                                      Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </TextBox.InnerLeftContent>
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Return" Command="{Binding SearchCommand}" />
+                        </TextBox.KeyBindings>
+                    </TextBox>
+                    <Button Grid.Column="1"
+                            Classes="primary"
+                            Content="Найти"
+                            Command="{Binding SearchCommand}"
+                            Margin="8,0,0,0"
+                            IsEnabled="{Binding !IsBusy}" />
+                </Grid>
 
-            <!-- Результаты поиска -->
-            <ItemsControl ItemsSource="{Binding SearchResults}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:UserSearchResultViewModel">
-                        <Border Padding="12,10"
-                                Margin="0,4"
-                                CornerRadius="8"
-                                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{Binding UserName}"
-                                               FontWeight="SemiBold"
-                                               FontSize="14" />
-                                    <TextBlock Text="{Binding UserId}"
-                                               FontSize="11"
-                                               Opacity="0.4" />
-                                </StackPanel>
-                                <Button Grid.Column="1"
-                                        Content="Добавить"
-                                        Command="{Binding AddCommand}"
-                                        Padding="14,8" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                <TextBlock Classes="caption"
+                           Text="Публичное имя задаётся в настройках профиля и отличается от логина." />
 
-        </StackPanel>
+                <ProgressBar IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}"
+                             Height="3" MinHeight="3" />
+
+                <!-- Статус добавления -->
+                <Border Classes="notice"
+                        Classes.success="{Binding !IsStatusError}"
+                        Classes.danger="{Binding IsStatusError}"
+                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding StatusMessage}" />
+                </Border>
+
+                <!-- Результаты поиска -->
+                <ItemsControl ItemsSource="{Binding SearchResults}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:UserSearchResultViewModel">
+                            <Border Classes="card" Padding="12">
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <ctl:AvatarView DisplayName="{Binding UserName}" Size="42" Margin="0,0,12,0" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                        <TextBlock Text="{Binding UserName}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="14"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding UserId}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2"
+                                            Classes="secondary"
+                                            Command="{Binding AddCommand}"
+                                            Margin="8,0,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" />
+                                            <TextBlock Text="Добавить" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
 
     </Grid>
 

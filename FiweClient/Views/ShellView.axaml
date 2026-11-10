@@ -5,6 +5,7 @@
              xmlns:contacts="clr-namespace:FiweClient.ViewModels.Contacts"
              xmlns:settings="clr-namespace:FiweClient.ViewModels.Settings"
              xmlns:views="clr-namespace:FiweClient.Views"
+             xmlns:ctl="clr-namespace:FiweClient.Controls"
              x:Class="FiweClient.Views.ShellView"
              x:DataType="vm:ShellViewModel">
 
@@ -29,134 +30,87 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid ColumnDefinitions="72, *">
+    <Grid ColumnDefinitions="76, *">
 
-        <!-- ══════════════════════════════════════════ -->
-        <!-- БОКОВАЯ ПАНЕЛЬ                             -->
-        <!-- ══════════════════════════════════════════ -->
+        <!-- ══════════════ Боковая панель ══════════════ -->
         <Border Grid.Column="0"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                Background="{DynamicResource SidebarBrush}"
                 BorderThickness="0,0,1,0"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                BorderBrush="{DynamicResource DividerBrush}">
 
             <Grid RowDefinitions="Auto, *, Auto">
 
                 <!-- Логотип -->
-                <Border Grid.Row="0" Padding="0,20,0,16">
+                <Border Grid.Row="0"
+                        Width="44" Height="44"
+                        Margin="0,16,0,20"
+                        CornerRadius="14"
+                        Background="{DynamicResource AccentBrush}"
+                        HorizontalAlignment="Center">
                     <TextBlock Text="F"
-                               FontSize="26"
+                               FontSize="22"
                                FontWeight="Black"
-                               Foreground="{DynamicResource SystemAccentColor}"
-                               HorizontalAlignment="Center" />
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
                 </Border>
 
-                <!-- Навигация -->
+                <!-- Разделы -->
                 <StackPanel Grid.Row="1" Spacing="4" Margin="8,0">
-
-                    <!-- Чаты -->
-                    <Button Command="{Binding OpenChatsCommand}"
-                            ToolTip.Tip="Чаты"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Height="52"
-                            CornerRadius="10">
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background" Value="Transparent" />
-                            </Style>
-                            <Style Selector="Button[Tag=active]">
-                                <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}" />
-                            </Style>
-                        </Button.Styles>
-                        <Button.Tag>
-                            <Binding Path="ActiveTab"
-                                     Converter="{StaticResource EqualityConverter}"
-                                     ConverterParameter="chats" />
-                        </Button.Tag>
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="💬" FontSize="20" HorizontalAlignment="Center" />
-                            <TextBlock Text="Чаты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsChatsActive}"
+                            Command="{Binding OpenChatsCommand}"
+                            ToolTip.Tip="Чаты">
+                        <StackPanel Spacing="4">
+                            <PathIcon Data="{StaticResource IconChat}" />
+                            <TextBlock Text="Чаты" />
                         </StackPanel>
                     </Button>
 
-                    <!-- Контакты -->
-                    <Button Command="{Binding OpenContactsCommand}"
-                            ToolTip.Tip="Контакты"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Height="52"
-                            CornerRadius="10">
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background" Value="Transparent" />
-                            </Style>
-                        </Button.Styles>
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" />
-                            <TextBlock Text="Контакты" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsContactsActive}"
+                            Command="{Binding OpenContactsCommand}"
+                            ToolTip.Tip="Контакты">
+                        <StackPanel Spacing="4">
+                            <PathIcon Data="{StaticResource IconContacts}" />
+                            <TextBlock Text="Контакты" />
                         </StackPanel>
                     </Button>
 
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsSettingsActive}"
+                            Command="{Binding OpenSettingsCommand}"
+                            ToolTip.Tip="Настройки">
+                        <StackPanel Spacing="4">
+                            <PathIcon Data="{StaticResource IconSettings}" />
+                            <TextBlock Text="Настройки" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
-                <!-- Низ: настройки + выход -->
-                <StackPanel Grid.Row="2" Spacing="4" Margin="8,0,8,12">
-
-                    <!-- Настройки -->
-                    <Button Command="{Binding OpenSettingsCommand}"
-                            ToolTip.Tip="Настройки"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Height="52"
-                            CornerRadius="10">
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background" Value="Transparent" />
-                            </Style>
-                        </Button.Styles>
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="⚙️" FontSize="20" HorizontalAlignment="Center" />
-                            <TextBlock Text="Настройки" FontSize="10" HorizontalAlignment="Center" Opacity="0.7" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Аватар -->
-                    <Border Width="44" Height="44"
-                            CornerRadius="22"
-                            Background="{DynamicResource SystemAccentColor}"
+                <!-- Профиль и выход -->
+                <StackPanel Grid.Row="2" Spacing="10" Margin="8,0,8,14">
+                    <Button Classes="ghost"
+                            Padding="0"
                             HorizontalAlignment="Center"
+                            CornerRadius="22"
+                            Command="{Binding OpenSettingsCommand}"
                             ToolTip.Tip="{Binding Username}">
-                        <TextBlock Text="{Binding Username[0]}"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-
-                    <!-- Выход -->
-                    <Button Command="{Binding LogoutCommand}"
-                            ToolTip.Tip="Выйти"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Height="44"
-                            CornerRadius="10">
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background" Value="Transparent" />
-                            </Style>
-                        </Button.Styles>
-                        <TextBlock Text="🚪" FontSize="20" HorizontalAlignment="Center" />
+                        <ctl:AvatarView DisplayName="{Binding Username}" Size="40" />
                     </Button>
 
+                    <Button Classes="icon"
+                            HorizontalAlignment="Center"
+                            Command="{Binding LogoutCommand}"
+                            ToolTip.Tip="Выйти из аккаунта">
+                        <PathIcon Data="{StaticResource IconLogout}" />
+                    </Button>
                 </StackPanel>
 
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════ -->
-        <!-- ОБЛАСТЬ КОНТЕНТА                           -->
-        <!-- ══════════════════════════════════════════ -->
+        <!-- ══════════════ Контент раздела ══════════════ -->
         <ContentControl Grid.Column="1"
                         Content="{Binding CurrentContent}" />
 

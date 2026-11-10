@@ -4,65 +4,76 @@
              x:Class="FiweClient.Views.RegisterView"
              x:DataType="vm:RegisterViewModel">
 
-    <Grid RowDefinitions="*, Auto, *">
-        <StackPanel Grid.Row="1"
-                    Width="360"
-                    Spacing="16"
-                    HorizontalAlignment="Center">
+    <ScrollViewer>
+        <Grid RowDefinitions="*, Auto, *" MinHeight="600">
+            <StackPanel Grid.Row="1"
+                        MaxWidth="400"
+                        Margin="20,32"
+                        Spacing="24"
+                        HorizontalAlignment="Stretch">
 
-            <TextBlock Text="Регистрация"
-                       FontSize="28"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center" />
+                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                    <TextBlock Classes="h1" Text="Регистрация" HorizontalAlignment="Center" />
+                    <TextBlock Classes="caption"
+                               Text="Создайте аккаунт, чтобы начать общение"
+                               TextAlignment="Center" />
+                </StackPanel>
 
-            <TextBlock Text="Создайте аккаунт чтобы начать общение"
-                       FontSize="13"
-                       HorizontalAlignment="Center"
-                       Opacity="0.6"
-                       TextWrapping="Wrap"
-                       TextAlignment="Center" />
+                <Border Classes="card" Padding="24">
+                    <StackPanel Spacing="14">
 
-            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumBrush}" Opacity="0.2" Margin="0,8" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="caption" Text="Имя пользователя" />
+                            <TextBox Text="{Binding Username}" Watermark="Логин для входа" />
+                        </StackPanel>
 
-            <TextBox Text="{Binding Username}"
-                     Watermark="Имя пользователя"
-                     Height="44" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="caption" Text="Пароль" />
+                            <TextBox Text="{Binding Password}"
+                                     Watermark="Пароль"
+                                     PasswordChar="●"
+                                     RevealPassword="{Binding #ShowPassword.IsChecked}" />
+                        </StackPanel>
 
-            <TextBox Text="{Binding Password}"
-                     Watermark="Пароль"
-                     PasswordChar="●"
-                     Height="44" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="caption" Text="Повторите пароль" />
+                            <TextBox Text="{Binding ConfirmPassword}"
+                                     Watermark="Ещё раз"
+                                     PasswordChar="●"
+                                     RevealPassword="{Binding #ShowPassword.IsChecked}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding RegisterCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <CheckBox x:Name="ShowPassword" Content="Показать пароль" FontSize="12" />
+                        </StackPanel>
 
-            <TextBox Text="{Binding ConfirmPassword}"
-                     Watermark="Повторите пароль"
-                     PasswordChar="●"
-                     Height="44" />
+                        <Border Classes="notice danger"
+                                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding ErrorMessage}" />
+                        </Border>
 
-            <TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="Red"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                       FontSize="13"
-                       TextWrapping="Wrap" />
+                        <Button Classes="primary"
+                                Content="Создать аккаунт"
+                                Command="{Binding RegisterCommand}"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding !IsBusy}" />
 
-            <Button Content="Создать аккаунт"
-                    Command="{Binding RegisterCommand}"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Height="44"
-                    IsEnabled="{Binding !IsBusy}" />
+                        <ProgressBar IsIndeterminate="True"
+                                     IsVisible="{Binding IsBusy}"
+                                     Height="3" MinHeight="3" />
+                    </StackPanel>
+                </Border>
 
-            <ProgressBar IsIndeterminate="True"
-                         IsVisible="{Binding IsBusy}"
-                         Height="3" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                    <TextBlock Classes="caption" Text="Уже есть аккаунт?" VerticalAlignment="Center" />
+                    <Button Classes="link"
+                            Content="Войти"
+                            Command="{Binding GoToLoginCommand}" />
+                </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Text="Уже есть аккаунт?" Opacity="0.6" />
-                <Button Content="Войти"
-                        Command="{Binding GoToLoginCommand}"
-                        Classes="Hyperlink" />
             </StackPanel>
-
-        </StackPanel>
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 
 </UserControl>

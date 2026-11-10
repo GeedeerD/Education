@@ -7,36 +7,45 @@
     <Grid RowDefinitions="Auto, *">
 
         <!-- Шапка -->
-        <Border Grid.Row="0" Padding="20,16"
-                BorderThickness="0,0,0,1"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <Border Grid.Row="0" Classes="header">
             <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Grid.Column="0"
-                           Text="Контакты"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center" />
+                <TextBlock Classes="h2" Text="Контакты" VerticalAlignment="Center" />
                 <Button Grid.Column="1"
-                        Content="＋ Добавить"
-                        Command="{Binding OpenAddContactCommand}"
-                        Padding="14,8" />
+                        Classes="primary"
+                        MinHeight="38"
+                        Padding="14,0"
+                        Command="{Binding OpenAddContactCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource IconAccountPlus}" Width="16" Height="16" />
+                        <TextBlock Text="Добавить" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </Border>
 
-        <!-- Пустое состояние -->
+        <!-- Пустое состояние (сервер пока не отдаёт список контактов) -->
         <StackPanel Grid.Row="1"
+                    MaxWidth="320"
+                    Margin="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Spacing="8">
-            <TextBlock Text="👥" FontSize="48" HorizontalAlignment="Center" />
-            <TextBlock Text="Список контактов пуст"
-                       FontSize="16"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center" />
-            <TextBlock Text="Нажмите «Добавить» чтобы найти пользователей"
-                       FontSize="13"
-                       Opacity="0.5"
-                       HorizontalAlignment="Center" />
+                    Spacing="12">
+            <Border Width="80" Height="80"
+                    CornerRadius="40"
+                    Background="{DynamicResource AccentSoftBrush}"
+                    HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource IconContacts}"
+                          Width="36" Height="36"
+                          Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <TextBlock Classes="h3" Text="Список контактов пуст" HorizontalAlignment="Center" />
+            <TextBlock Classes="caption"
+                       Text="Найдите собеседника по его публичному имени — после добавления с ним появится чат."
+                       TextAlignment="Center" />
+            <Button Classes="secondary"
+                    Content="Найти пользователя"
+                    HorizontalAlignment="Center"
+                    Command="{Binding OpenAddContactCommand}" />
         </StackPanel>
 
     </Grid>

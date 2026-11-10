@@ -65,9 +65,33 @@ App.OnFrameworkInitializationCompleted
    - `LoginView` → `RegisterView` → `ShellView` (или `KeyTransferView`)
 
 2. **Внутри Shell** (`ShellViewModel.CurrentContent`):
-   - Chats (`ChatListView` / `ChatView`)
+   - Chats (`ChatListView`, открытый чат — `ChatListViewModel.ActiveChat` → `ChatView` в правой панели)
    - Contacts (`ContactListView` / `AddContactView`)
-   - Settings (`SettingsView`)
+   - Settings (`SettingsView` / `QrGeneratorView`)
+
+Раздел «Чаты» двухпанельный: список слева, открытый чат справа. Уже 720 px (телефон, узкое окно)
+показывается что-то одно — переключение в `ChatListView.axaml.cs → UpdateLayoutMode`.
+Открытый чат при закрытии или переключении вызывает `ChatViewModel.Deactivate()` и отписывается от SignalR.
+
+---
+
+## Дизайн-система
+
+Все цвета, иконки и общие стили лежат в `Styles/`, экраны их только используют:
+
+| Файл | Что внутри |
+|------|-----------|
+| `Styles/FiweTheme.axaml` | Палитра: кисти `AppBackgroundBrush`, `SurfaceBrush`, `AccentBrush`, `TextSecondaryBrush` и т.д. для светлой и тёмной темы |
+| `Styles/FiweIcons.axaml` | Векторные иконки (`IconChat`, `IconSend`, …) для `PathIcon` |
+| `Styles/FiweStyles.axaml` | Классы: `Button.primary/.secondary/.ghost/.icon/.link/.nav`, `TextBlock.h1/.h2/.h3/.caption/.overline`, `Border.card/.notice/.badge/.header`, `ListBox.list` |
+| `Controls/AvatarView.cs` | Круглый аватар: инициалы на цветном фоне или картинка (`Source`) |
+
+Цвета берутся только через `{DynamicResource ...}` — тогда тема (Настройки → Оформление, `AppSettings.Theme`)
+переключается на лету.
+
+**Заготовки под будущие задачи** (интерфейс есть, логики нет):
+- #42 «User Avatars» — `AvatarView.Source`, `ChatPreviewViewModel.PictureUrl`, неактивная кнопка «Изменить фото» в настройках.
+- #41 «Группировка чатов» — `ChatFolderViewModel` и чипы папок над списком чатов (пока только «Все чаты»), неактивная кнопка «+ Папка».
 
 ---
 

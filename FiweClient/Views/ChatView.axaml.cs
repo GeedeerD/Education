@@ -18,13 +18,52 @@ public partial class ChatView : UserControl
         MessageInputBox.AddHandler(KeyDownEvent, OnMessageInputKeyDown, RoutingStrategies.Tunnel);
     }
 
+    private ChatViewModel? _vm;
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (DataContext is ChatViewModel vm)
+
+        if (_vm is not null)
+            _vm.Messages.CollectionChanged -= OnMessagesChanged;
+
+        _vm = DataContext as ChatViewModel;
+
+        if (_vm is not null)
         {
-            vm.LoadMessagesCommand.Execute(null);
+            _vm.Messages.CollectionChanged += OnMessagesChanged;
+            _vm.LoadMessagesCommand.Execute(null);
         }
+    }
+
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (_vm is not null)
+            _vm.Messages.CollectionChanged -= OnMessagesChanged;
+        _vm = null;
+    }
+
+    protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        if (_vm is null && DataContext is ChatViewModel vm)
+        {
+            _vm = vm;
+            _vm.Messages.CollectionChanged += OnMessagesChanged;
+        }
+    }
+
+    /// <summary>Новое сообщение (своё или входящее) — прокручиваем ленту вниз, к нему.</summary>
+    private void OnMessagesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            return;
+
+        // После раскладки — иначе новый пузырь ещё не учтён в высоте ленты
+        Avalonia.Threading.Dispatcher.UIThread.Post(
+            () => MessagesScroll.ScrollToEnd(),
+            Avalonia.Threading.DispatcherPriority.Background);
     }
 
     /// <summary>

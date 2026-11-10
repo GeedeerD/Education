@@ -29,12 +29,21 @@ public partial class AddContactViewModel : ObservableObject
 
         IsBusy = true;
         SearchResults.Clear();
+        StatusMessage = null;
 
         try
         {
-            var results = await _contactApi.FindUsersAsync(SearchQuery);
+            var results = await _contactApi.FindUsersAsync(SearchQuery.Trim());
             foreach (var r in results)
                 SearchResults.Add(new UserSearchResultViewModel(r, this));
+
+            if (SearchResults.Count == 0)
+                SetStatus("Никого не нашли — проверьте публичное имя", isError: true);
+        }
+        catch (Exception ex)
+        {
+            // Раньше исключение из поиска не перехватывалось и роняло команду
+            SetStatus($"Ошибка поиска: {ex.Message}", isError: true);
         }
         finally
         {
@@ -47,12 +56,21 @@ public partial class AddContactViewModel : ObservableObject
         try
         {
             await _contactApi.AddContactAsync(userId, userName);
-            StatusMessage = $"✓ {userName} добавлен в контакты";
+            SetStatus($"{userName} добавлен в контакты — чат появится в разделе «Чаты»", isError: false);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Ошибка: {ex.Message}";
+            SetStatus($"Ошибка: {ex.Message}", isError: true);
         }
+    }
+
+    /// <summary>Ошибка подсвечивается красным, успех — зелёным.</summary>
+    [ObservableProperty] private bool _isStatusError;
+
+    private void SetStatus(string message, bool isError)
+    {
+        IsStatusError = isError;
+        StatusMessage = message;
     }
 
     [RelayCommand]
