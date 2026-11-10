@@ -7,19 +7,27 @@
     <Grid RowDefinitions="Auto, *">
 
         <!-- Шапка -->
-        <Border Grid.Row="0" Padding="20,16"
-                BorderThickness="0,0,0,1"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-            <TextBlock Text="Перенос ключей на новое устройство"
-                       FontSize="20"
-                       FontWeight="SemiBold" />
+        <Border Grid.Row="0" Classes="header" Padding="8,0,20,0">
+            <Grid ColumnDefinitions="Auto, *">
+                <Button Classes="icon"
+                        Command="{Binding GoBackCommand}"
+                        ToolTip.Tip="Назад к настройкам"
+                        Margin="0,0,8,0">
+                    <PathIcon Data="{StaticResource IconBack}" />
+                </Button>
+                <TextBlock Grid.Column="1"
+                           Classes="h2"
+                           Text="Перенос ключей"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center" />
+            </Grid>
         </Border>
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Margin="24,20" Spacing="20" MaxWidth="480" HorizontalAlignment="Center">
 
                 <!-- Инструкция -->
-                <Border Background="#1A2196F3"
+                <Border Classes="notice"
                         CornerRadius="8"
                         Padding="16,12">
                     <TextBlock TextWrapping="Wrap"
@@ -31,7 +39,7 @@
                 </Border>
 
                 <!-- Предупреждение безопасности -->
-                <Border Background="#1AFF9800"
+                <Border Classes="notice warning"
                         CornerRadius="8"
                         Padding="16,12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -51,11 +59,11 @@
 
                 <!-- Ошибка -->
                 <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Background="#1AF44336"
+                        Classes="notice danger"
                         CornerRadius="6"
                         Padding="12,8">
                     <TextBlock Text="{Binding ErrorMessage}"
-                               Foreground="#F44336"
+                               Foreground="{DynamicResource DangerBrush}"
                                FontSize="13"
                                TextWrapping="Wrap" />
                 </Border>
@@ -90,7 +98,7 @@
                                FontWeight="SemiBold"
                                Opacity="0.6" />
 
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    <Border Background="{DynamicResource SurfaceAltBrush}"
                             CornerRadius="8"
                             Padding="14,10">
                         <SelectableTextBlock Text="{Binding TransferCode}"

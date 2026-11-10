@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:FiweClient.ViewModels.Chats"
              xmlns:mdc="clr-namespace:FiweClient.Markdown"
+             xmlns:ctl="clr-namespace:FiweClient.Controls"
              xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
              xmlns:mdctl="clr-namespace:Markdown.Avalonia.Controls;assembly=Markdown.Avalonia"
              x:Class="FiweClient.Views.ChatView"
@@ -38,6 +39,22 @@
 			<Setter Property="Opacity" Value="0.5" />
 		</Style>
 
+		<!-- Пузыри сообщений: чужие — нейтральные слева, свои — акцентные справа.
+		     Меньший радиус на нижнем углу со стороны отправителя — «хвостик». -->
+		<Style Selector="Border.bubble">
+			<Setter Property="MaxWidth" Value="520" />
+			<Setter Property="Padding" Value="12,8" />
+			<Setter Property="CornerRadius" Value="12,12,12,4" />
+			<Setter Property="Background" Value="{DynamicResource BubbleOtherBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource BubbleOtherBorderBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+		</Style>
+		<Style Selector="Border.bubble.mine">
+			<Setter Property="CornerRadius" Value="12,12,4,12" />
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+		</Style>
+
 		<!-- Круглые полупрозрачные кнопки поверх просмотрщика изображений -->
 		<Style Selector="Button.viewer">
 			<Setter Property="Background" Value="#66000000" />
@@ -55,46 +72,52 @@
 	<Grid RowDefinitions="Auto, *, Auto">
 
 		<!-- ── Шапка чата ── -->
-		<Border Grid.Row="0"
-                Padding="16,12"
-                BorderThickness="0,0,0,1"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+		<Border Grid.Row="0" Classes="header" Padding="8,0,16,0">
 			<Panel>
 
 				<!-- Обычный режим -->
-				<Grid ColumnDefinitions="Auto, *, Auto"
+				<Grid ColumnDefinitions="Auto, Auto, *, Auto"
 					  IsVisible="{Binding !IsSelectionMode}">
 
-					<!-- Иконка замка E2EE -->
-					<Border Grid.Column="0"
-							Background="{DynamicResource SystemAccentColor}"
-							CornerRadius="20"
-							Width="40" Height="40"
-							Margin="0,0,12,0">
-						<TextBlock Text="🔒"
-								   FontSize="18"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center" />
-					</Border>
+					<Button Grid.Column="0"
+							Classes="icon"
+							Command="{Binding CloseCommand}"
+							ToolTip.Tip="К списку чатов"
+							Margin="0,0,4,0">
+						<PathIcon Data="{StaticResource IconBack}" />
+					</Button>
 
-					<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+					<ctl:AvatarView Grid.Column="1"
+									DisplayName="{Binding ChatName}"
+									Size="40"
+									Margin="0,0,12,0" />
+
+					<StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
 						<TextBlock Text="{Binding ChatName}"
 								   FontSize="16"
-								   FontWeight="SemiBold" />
-						<TextBlock Text="End-to-End Encrypted"
-								   FontSize="11"
-								   Foreground="Green"
-								   IsVisible="False"
-								   Opacity="0.8" />
+								   FontWeight="SemiBold"
+								   TextTrimming="CharacterEllipsis" />
+						<StackPanel Orientation="Horizontal" Spacing="4">
+							<PathIcon Data="{StaticResource IconLock}"
+									  Width="11" Height="11"
+									  Foreground="{DynamicResource SuccessBrush}" />
+							<TextBlock Text="Сквозное шифрование"
+									   FontSize="11"
+									   Foreground="{DynamicResource TextSecondaryBrush}" />
+						</StackPanel>
 					</StackPanel>
 
-					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+					<StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 						<ProgressBar IsIndeterminate="True"
 									 IsVisible="{Binding IsBusy}"
-									 Width="80" Height="3"
+									 Width="60" MinWidth="60"
+									 Height="3" MinHeight="3"
 									 VerticalAlignment="Center" />
-						<Button Content="Выбрать"
-								Command="{Binding EnterSelectionModeCommand}" />
+						<Button Classes="icon"
+								Command="{Binding EnterSelectionModeCommand}"
+								ToolTip.Tip="Выбрать сообщения">
+							<PathIcon Data="{StaticResource IconCheck}" />
+						</Button>
 					</StackPanel>
 				</Grid>
 
@@ -103,18 +126,21 @@
 					  IsVisible="{Binding IsSelectionMode}">
 
 					<Button Grid.Column="0"
+							Classes="ghost"
 							Content="Отмена"
 							Command="{Binding CancelSelectionCommand}"
+							Margin="8,0,0,0"
 							VerticalAlignment="Center" />
 
 					<TextBlock Grid.Column="1"
-							   Text="{Binding SelectedCount, StringFormat='{}{0} выбрано'}"
-							   FontSize="16"
+							   Text="{Binding SelectedCount, StringFormat='{}Выбрано: {0}'}"
+							   FontSize="15"
 							   FontWeight="SemiBold"
 							   HorizontalAlignment="Center"
 							   VerticalAlignment="Center" />
 
 					<Button Grid.Column="2"
+							Classes="ghost danger"
 							Content="Удалить"
 							Command="{Binding DeleteSelectedCommand}"
 							IsEnabled="{Binding !IsBusy}"
@@ -125,8 +151,10 @@
 		</Border>
 
 		<!-- ── Список сообщений ── -->
-		<ScrollViewer Grid.Row="1" Padding="15,0,15,0">
-			<ItemsControl ItemsSource="{Binding Messages}">
+		<!-- Горизонтальная прокрутка выключена: иначе длинные сообщения не переносятся и уезжают за край на узком экране -->
+		<ScrollViewer x:Name="MessagesScroll" Grid.Row="1"
+		              HorizontalScrollBarVisibility="Disabled">
+			<ItemsControl ItemsSource="{Binding Messages}" Margin="16,12">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate x:DataType="vm:MessageBubbleViewModel">
 
@@ -140,12 +168,11 @@
                                       VerticalAlignment="Center"
                                       Margin="0,0,6,0" />
 
+							<!-- Цвет и «хвостик» пузыря — стили Border.bubble / Border.bubble.mine выше -->
 							<Border Grid.Column="1"
-                                    MaxWidth="480"
-                                    Padding="12,8"
-                                    CornerRadius="12"
-                                    HorizontalAlignment="{Binding IsMine, Converter={StaticResource BoolToAlignmentConverter}}"
-                                    Background="{Binding IsMine, Converter={StaticResource BubbleColorConverter}}">
+                                    Classes="bubble"
+                                    Classes.mine="{Binding IsMine}"
+                                    HorizontalAlignment="{Binding IsMine, Converter={StaticResource BoolToAlignmentConverter}}">
 
 								<!-- ПКМ по сообщению → меню «Ответить» / «Копировать» / «Удалить» -->
 								<!-- Пункты обрабатываются в code-behind через Click,
@@ -331,7 +358,8 @@
 
 									<TextBlock Text="{Binding TimeLabel}"
                                                FontSize="10"
-                                               Opacity="0.65"
+                                               Opacity="0.7"
+                                               Foreground="{Binding IsMine, Converter={StaticResource BubbleTextColorConverter}}"
                                                HorizontalAlignment="Right" />
 								</StackPanel>
 							</Border>
@@ -344,48 +372,56 @@
 
 		<!-- ── Ошибка ── -->
 		<Border Grid.Row="1"
+                Classes="notice danger"
                 VerticalAlignment="Bottom"
+                HorizontalAlignment="Center"
                 Margin="12"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-			<TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="Red"
-                       FontSize="12" />
+			<TextBlock Text="{Binding ErrorMessage}" FontSize="12" />
 		</Border>
 
 		<!-- ── Поле ввода сообщения ── -->
 		<Border Grid.Row="2"
-                Padding="12,10"
+                Padding="12,8,12,12"
+                Background="{DynamicResource SurfaceBrush}"
                 BorderThickness="0,1,0,0"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                BorderBrush="{DynamicResource DividerBrush}"
                 IsVisible="{Binding !IsSelectionMode}">
 			<StackPanel>
 
 				<!-- Панель предпросмотра ответа (видна, только если выбрали «Ответить») -->
 				<Border IsVisible="{Binding HasReply}"
-                        Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                        CornerRadius="6"
+                        Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="3,0,0,0"
+                        CornerRadius="8"
                         Padding="10,6"
                         Margin="0,0,0,8">
 					<Grid ColumnDefinitions="Auto, *, Auto">
-						<TextBlock Grid.Column="0"
-                                   Text="↩️"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0" />
+						<PathIcon Grid.Column="0"
+                                  Data="{StaticResource IconReply}"
+                                  Width="16" Height="16"
+                                  Foreground="{DynamicResource AccentBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="2,0,10,0" />
 						<StackPanel Grid.Column="1" VerticalAlignment="Center">
 							<TextBlock Text="Ответ на сообщение"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Opacity="0.7" />
+                                       Foreground="{DynamicResource AccentBrush}" />
 							<TextBlock Text="{Binding ReplyingTo.PreviewText}"
                                        FontSize="12"
                                        TextTrimming="CharacterEllipsis"
                                        MaxLines="1" />
 						</StackPanel>
 						<Button Grid.Column="2"
-                                Content="✕"
+                                Classes="icon"
+                                Width="32" Height="32"
                                 Command="{Binding CancelReplyCommand}"
-                                Padding="8,2"
-                                VerticalAlignment="Center" />
+                                ToolTip.Tip="Отменить ответ"
+                                VerticalAlignment="Center">
+							<PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" />
+						</Button>
 					</Grid>
 				</Border>
 
@@ -430,11 +466,15 @@
 
 				<!-- Панель форматирования Markdown. Кнопки не забирают фокус,
 				     чтобы выделение в поле ввода не сбрасывалось. -->
-				<StackPanel Orientation="Horizontal" Spacing="4" Margin="52,0,0,6">
+				<!-- На узком экране панель прокручивается по горизонтали, а не обрезается -->
+				<ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Margin="44,0,0,6">
+				<StackPanel Orientation="Horizontal" Spacing="2">
 					<StackPanel.Styles>
 						<Style Selector="Button.format, ToggleButton.format">
 							<Setter Property="Focusable" Value="False" />
 							<Setter Property="Background" Value="Transparent" />
+							<Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+							<Setter Property="CornerRadius" Value="8" />
 							<Setter Property="MinWidth" Value="32" />
 							<Setter Property="Height" Value="28" />
 							<Setter Property="Padding" Value="6,0" />
@@ -462,7 +502,7 @@
 					<StackPanel Orientation="Horizontal" Spacing="4"
 					            IsVisible="{Binding IsMarkdownEnabled}">
 						<Border Width="1" Height="18" Margin="2,0"
-						        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						        Background="{DynamicResource DividerBrush}"
 						        Opacity="0.4" />
 						<Button Classes="format" Tag="bold" Click="OnFormatClick" ToolTip.Tip="Жирный (Ctrl+B)">
 							<TextBlock Text="B" FontWeight="Bold" />
@@ -487,21 +527,20 @@
 						</Button>
 					</StackPanel>
 				</StackPanel>
+				</ScrollViewer>
 
 				<Grid ColumnDefinitions="Auto, *, Auto">
 
 					<Button Grid.Column="0"
+                            Classes="icon"
                             Click="OnAttachImageClick"
                             ToolTip.Tip="Прикрепить изображения"
                             Height="44"
-                            Width="44"
-                            Padding="0"
-                            HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Margin="0,0,8,0"
+                            Width="40"
+                            Margin="0,0,4,0"
                             VerticalAlignment="Bottom"
                             IsEnabled="{Binding !IsBusy}">
-						<PathIcon Data="{StaticResource PaperclipIcon}" Width="20" Height="20" />
+						<PathIcon Data="{StaticResource IconPaperclip}" Width="22" Height="22" />
 					</Button>
 
 					<!-- Enter — отправка, Shift+Enter — новая строка (на Android Enter всегда переносит строку,
@@ -509,21 +548,27 @@
 					<TextBox x:Name="MessageInputBox"
                              Grid.Column="1"
                              Text="{Binding MessageInput}"
-                             Watermark="Введите сообщение... (поддерживается Markdown)"
+                             Watermark="Сообщение…"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
+                             CornerRadius="22"
+                             Padding="16,11"
                              MinHeight="44"
                              MaxHeight="160"
                              VerticalContentAlignment="Center" />
 
 					<Button Grid.Column="2"
-                            Content="Отправить"
+                            Classes="primary"
                             Command="{Binding SendMessageCommand}"
-                            Height="44"
-                            Padding="18,0"
+                            ToolTip.Tip="Отправить (Enter)"
+                            Width="44" Height="44"
+                            Padding="0"
+                            CornerRadius="22"
                             Margin="8,0,0,0"
                             VerticalAlignment="Bottom"
-                            IsEnabled="{Binding !IsBusy}" />
+                            IsEnabled="{Binding !IsBusy}">
+						<PathIcon Data="{StaticResource IconSend}" Width="18" Height="18" Margin="3,0,0,0" />
+					</Button>
 
 				</Grid>
 			</StackPanel>

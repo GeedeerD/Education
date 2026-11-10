@@ -1,87 +1,175 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:FiweClient.ViewModels.Chats"
+             xmlns:views="clr-namespace:FiweClient.Views"
+             xmlns:ctl="clr-namespace:FiweClient.Controls"
              x:Class="FiweClient.Views.ChatListView"
              x:DataType="vm:ChatListViewModel">
 
-    <Grid ColumnDefinitions="280, *">
+    <!-- Широкое окно: список слева, открытый чат справа.
+         Узкое (телефон): либо список, либо чат — переключается в code-behind (UpdateLayoutMode). -->
+    <Grid x:Name="RootGrid" ColumnDefinitions="320, *">
 
-        <!-- ── Левая панель: список чатов ── -->
-        <Border Grid.Column="0"
+        <!-- ══════════════ Список чатов ══════════════ -->
+        <Border x:Name="ListPane"
+                Grid.Column="0"
+                Background="{DynamicResource SurfaceBrush}"
                 BorderThickness="0,0,1,0"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                Opacity="0.15">
+                BorderBrush="{DynamicResource DividerBrush}">
 
-            <Grid RowDefinitions="Auto, *">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
 
-                <!-- Шапка -->
-                <Border Grid.Row="0" Padding="16,12">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Text="Чаты"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
+                <!-- Заголовок -->
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,12,12,8">
+                    <TextBlock Classes="h2" Text="Чаты" VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Classes="icon"
+                            Command="{Binding FindContactCommand}"
+                            ToolTip.Tip="Найти собеседника">
+                        <PathIcon Data="{StaticResource IconAccountPlus}" />
+                    </Button>
+                </Grid>
 
-                        <Button Grid.Column="1"
-                                Content="＋ Контакт"
-                                FontSize="12"
-                                Padding="10,6"
-                                VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
+                <!-- Поиск по чатам -->
+                <TextBox Grid.Row="1"
+                         Classes="search"
+                         Margin="16,0,16,10"
+                         Text="{Binding SearchQuery}"
+                         Watermark="Поиск чатов">
+                    <TextBox.InnerLeftContent>
+                        <PathIcon Data="{StaticResource IconSearch}"
+                                  Width="16" Height="16"
+                                  Margin="12,0,6,0"
+                                  Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </TextBox.InnerLeftContent>
+                </TextBox>
 
-                <!-- Список чатов -->
-                <ListBox Grid.Row="1"
+                <!-- Папки чатов: пока только «Все чаты» (задел под #41) -->
+                <Grid Grid.Row="2"
+                      ColumnDefinitions="*, Auto"
+                      Margin="20,0,12,6">
+                    <ItemsControl ItemsSource="{Binding Folders}" VerticalAlignment="Bottom">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="16" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChatFolderViewModel">
+                                <ToggleButton Classes="tab"
+                                              Content="{Binding Name}"
+                                              IsChecked="True"
+                                              IsHitTestVisible="False" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Grid.Column="1"
+                            Classes="icon"
+                            Width="28" Height="28"
+                            IsEnabled="False"
+                            Opacity="0.5"
+                            ToolTip.Tip="Папки для группировки чатов — в разработке"
+                            ToolTip.ShowOnDisabled="True">
+                        <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" />
+                    </Button>
+                </Grid>
+
+                <!-- Загрузка / ошибка -->
+                <StackPanel Grid.Row="3">
+                    <ProgressBar IsIndeterminate="True"
+                                 IsVisible="{Binding IsBusy}"
+                                 Height="2" MinHeight="2"
+                                 Margin="16,0" />
+                    <Border Classes="notice danger"
+                            Margin="16,4"
+                            IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding ErrorMessage}" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Пусто -->
+                <StackPanel Grid.Row="4"
+                            IsVisible="{Binding ShowEmptyState}"
+                            Margin="24,40"
+                            Spacing="12"
+                            HorizontalAlignment="Center">
+                    <TextBlock Classes="caption"
+                               Text="{Binding EmptyStateText}"
+                               TextAlignment="Center"
+                               MaxWidth="220" />
+                    <Button Classes="secondary"
+                            Content="Найти собеседника"
+                            HorizontalAlignment="Center"
+                            Command="{Binding FindContactCommand}" />
+                </StackPanel>
+
+                <!-- Список -->
+                <ListBox Grid.Row="4"
+                         Classes="list"
+                         IsVisible="{Binding !ShowEmptyState}"
                          ItemsSource="{Binding Chats}"
                          SelectedItem="{Binding SelectedChat}"
                          SelectionMode="Single">
-
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatPreviewViewModel">
-                            <Grid ColumnDefinitions="*, Auto" Margin="0,4">
-                                <StackPanel Grid.Column="0" Spacing="3">
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                <ctl:AvatarView DisplayName="{Binding Name}" Size="46" Margin="0,0,12,0" />
+
+                                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Name}"
                                                FontWeight="SemiBold"
                                                FontSize="14"
                                                TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding LastMessage}"
-                                               FontSize="12"
-                                               Opacity="0.6"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                IsVisible="{Binding LastMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                 </StackPanel>
-                                <TextBlock Grid.Column="1"
+
+                                <TextBlock Grid.Column="2"
                                            Text="{Binding TimeLabel}"
                                            FontSize="11"
-                                           Opacity="0.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="8,4,0,0"
                                            VerticalAlignment="Top" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
-
                 </ListBox>
 
             </Grid>
         </Border>
 
-        <!-- ── Правая панель: подсказка пока чат не выбран ── -->
-        <Grid Grid.Column="1">
-            <StackPanel HorizontalAlignment="Center"
+        <!-- ══════════════ Открытый чат ══════════════ -->
+        <Panel x:Name="ChatPane" Grid.Column="1" Background="{DynamicResource ChatBackgroundBrush}">
+
+            <ContentControl Content="{Binding ActiveChat}"
+                            IsVisible="{Binding HasActiveChat}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate DataType="vm:ChatViewModel">
+                        <views:ChatView />
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
+            <!-- Заглушка, пока чат не выбран -->
+            <StackPanel IsVisible="{Binding !HasActiveChat}"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="8">
-                <TextBlock Text="🔒"
-                           FontSize="48"
+                        Spacing="6">
+                <TextBlock Text="Выберите чат слева"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            HorizontalAlignment="Center" />
-                <TextBlock Text="Выберите чат"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <TextBlock Text="Все сообщения зашифрованы End-to-End"
-                           FontSize="13"
-                           Opacity="0.5"
-                           HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center" Opacity="0.8">
+                    <PathIcon Data="{StaticResource IconLock}"
+                              Width="11" Height="11"
+                              Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Classes="caption" Text="Сообщения защищены сквозным шифрованием" />
+                </StackPanel>
             </StackPanel>
-        </Grid>
+        </Panel>
 
     </Grid>
 

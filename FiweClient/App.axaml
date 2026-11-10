@@ -3,27 +3,25 @@
              xmlns:conv="clr-namespace:FiweClient.Converters"
              x:Class="FiweClient.App"
              RequestedThemeVariant="Default">
-	<!-- Default = следует системной теме -->
+	<!-- Default = следует системной теме; переключается в Настройках → Оформление -->
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://FiweClient.App/Styles/FiweStyles.axaml" />
     </Application.Styles>
 
     <Application.Resources>
-        <!-- Конвертеры -->
-        <conv:BoolToAlignmentConverter x:Key="BoolToAlignmentConverter" />
-        <conv:BubbleColorConverter x:Key="BubbleColorConverter" />
-        <conv:BubbleTextColorConverter x:Key="BubbleTextColorConverter" />
-        <conv:EqualityConverter x:Key="EqualityConverter" />
-        <conv:ChatMarkdownConverter x:Key="ChatMarkdownConverter" />
+        <ResourceDictionary>
+            <!-- Конвертеры -->
+            <conv:BoolToAlignmentConverter x:Key="BoolToAlignmentConverter" />
+            <conv:BubbleTextColorConverter x:Key="BubbleTextColorConverter" />
+            <conv:EqualityConverter x:Key="EqualityConverter" />
+            <conv:ChatMarkdownConverter x:Key="ChatMarkdownConverter" />
 
-        <!-- Цвета бренда -->
-        <Color x:Key="BrandColor">#5B6EF5</Color>
-        <Color x:Key="BrandColorLight">#7B8EFF</Color>
-
-		<!-- Цвета пузырей сообщений -->
-        <Color x:Key="MyMessageBubble">#5B6EF5</Color>
-        <Color x:Key="ContactMessageBubble">#3A3A4A</Color>
-        <Color x:Key="ContactMessageBubbleLight">#E8E8F0</Color>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://FiweClient.App/Styles/FiweTheme.axaml" />
+                <ResourceInclude Source="avares://FiweClient.App/Styles/FiweIcons.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

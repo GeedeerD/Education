@@ -41,6 +41,29 @@ public partial class SettingsViewModel : ObservableObject
 
     public string Username => _session.Username ?? "";
 
+    // ── Оформление ──
+    // Тема применяется сразу и сохраняется в настройках приложения.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSystemTheme), nameof(IsLightTheme), nameof(IsDarkTheme))]
+    private string _theme = "system";
+
+    public bool IsSystemTheme { get => Theme == "system"; set { if (value) Theme = "system"; } }
+    public bool IsLightTheme { get => Theme == "light"; set { if (value) Theme = "light"; } }
+    public bool IsDarkTheme { get => Theme == "dark"; set { if (value) Theme = "dark"; } }
+
+    partial void OnThemeChanged(string value)
+    {
+        App.ApplyTheme(value);
+        _appSettings.Theme = value;
+        _ = SaveSilentlyAsync();
+    }
+
+    private async Task SaveSilentlyAsync()
+    {
+        try { await _appSettings.SaveAsync(); }
+        catch (Exception ex) { ErrorMessage = $"Не удалось сохранить настройку: {ex.Message}"; }
+    }
+
     public SettingsViewModel(IUserApiService userApi, ISessionService session, ShellViewModel shell, IAppSettingsService appSettings)
     {
         _userApi = userApi;
@@ -49,6 +72,7 @@ public partial class SettingsViewModel : ObservableObject
         _appSettings = appSettings;
         _utcOffsetHours = appSettings.UtcOffsetHours;
         _markdownEnabled = appSettings.MarkdownEnabled;
+        _theme = appSettings.Theme; // через поле — чтобы не пересохранять настройки при открытии
     }
 
     [RelayCommand]
@@ -83,9 +107,17 @@ public partial class SettingsViewModel : ObservableObject
     private async Task SaveTimezoneAsync()
     {
         _appSettings.UtcOffsetHours = UtcOffsetHours;
-        await _appSettings.SaveAsync();
-        SuccessMessage = "Часовой пояс сохранён";
-        ErrorMessage = null;
+        try
+        {
+            await _appSettings.SaveAsync();
+            SuccessMessage = "Часовой пояс сохранён";
+            ErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            SuccessMessage = null;
+            ErrorMessage = $"Не удалось сохранить: {ex.Message}";
+        }
     }
 
     private async Task SaveMarkdownSettingAsync(bool value)

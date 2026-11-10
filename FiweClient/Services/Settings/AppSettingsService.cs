@@ -8,6 +8,10 @@ public interface IAppSettingsService
 
     /// <summary>Форматировать отправляемые сообщения как Markdown (переключатель M↓ в чате и пункт в настройках).</summary>
     bool MarkdownEnabled { get; set; }
+
+    /// <summary>Тема оформления: "system" (как в ОС), "light" или "dark".</summary>
+    string Theme { get; set; }
+
     Task LoadAsync();
     Task SaveAsync();
 }
@@ -20,6 +24,8 @@ public class AppSettingsService : IAppSettingsService
         TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).TotalHours;
 
     public bool MarkdownEnabled { get; set; } = true;
+
+    public string Theme { get; set; } = "system";
 
     public AppSettingsService()
     {
@@ -39,6 +45,7 @@ public class AppSettingsService : IAppSettingsService
             {
                 UtcOffsetHours = dto.UtcOffsetHours;
                 MarkdownEnabled = dto.MarkdownEnabled;
+                Theme = dto.Theme ?? "system";
             }
         }
         catch { }
@@ -46,7 +53,7 @@ public class AppSettingsService : IAppSettingsService
 
     public async Task SaveAsync()
     {
-        var json = JsonSerializer.Serialize(new SettingsDto(UtcOffsetHours, MarkdownEnabled));
+        var json = JsonSerializer.Serialize(new SettingsDto(UtcOffsetHours, MarkdownEnabled, Theme));
         await File.WriteAllTextAsync(_path, json);
     }
 
@@ -60,6 +67,6 @@ public class AppSettingsService : IAppSettingsService
 #endif
     }
 
-    // Значение по умолчанию нужно для старых appsettings.json, где MarkdownEnabled ещё нет
-    private record SettingsDto(double UtcOffsetHours, bool MarkdownEnabled = true);
+    // Значения по умолчанию нужны для старых appsettings.json, где этих полей ещё нет
+    private record SettingsDto(double UtcOffsetHours, bool MarkdownEnabled = true, string? Theme = "system");
 }
