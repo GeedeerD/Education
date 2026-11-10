@@ -4,68 +4,70 @@
     <!--
         Палитра Fiwe. Все экраны берут цвета только отсюда (через DynamicResource),
         поэтому светлая и тёмная темы переключаются на лету.
+        Нейтральные серые без синего оттенка и один спокойный акцент — без «неоновых» плашек.
     -->
 
     <!-- Акцент бренда — одинаковый в обеих темах -->
-    <Color x:Key="BrandColor">#5B6EF5</Color>
-    <Color x:Key="BrandColorLight">#7B8EFF</Color>
-    <SolidColorBrush x:Key="AccentBrush" Color="#5B6EF5" />
-    <SolidColorBrush x:Key="AccentHoverBrush" Color="#6C7DFF" />
-    <SolidColorBrush x:Key="AccentPressedBrush" Color="#4A5BE0" />
+    <Color x:Key="BrandColor">#1F7A68</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#1F7A68" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#248C77" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#19665A" />
     <SolidColorBrush x:Key="OnAccentBrush" Color="White" />
-    <SolidColorBrush x:Key="DangerBrush" Color="#E5484D" />
-    <SolidColorBrush x:Key="SuccessBrush" Color="#30A46C" />
-    <SolidColorBrush x:Key="WarningBrush" Color="#F5A524" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#D93F3F" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#2E8B57" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#C27C0E" />
 
-    <!-- Акцентные цвета Fluent-контролов (ToggleSwitch, Slider, CheckBox, выделение) — под бренд -->
-    <Color x:Key="SystemAccentColor">#5B6EF5</Color>
-    <Color x:Key="SystemAccentColorLight1">#6C7DFF</Color>
-    <Color x:Key="SystemAccentColorLight2">#8D9BFF</Color>
-    <Color x:Key="SystemAccentColorLight3">#B3BCFF</Color>
-    <Color x:Key="SystemAccentColorDark1">#4A5BE0</Color>
-    <Color x:Key="SystemAccentColorDark2">#3B4AC2</Color>
-    <Color x:Key="SystemAccentColorDark3">#2D399E</Color>
+    <!-- Акцентные цвета Fluent-контролов (ToggleSwitch, Slider, CheckBox, выделение текста) — под бренд -->
+    <Color x:Key="SystemAccentColor">#1F7A68</Color>
+    <Color x:Key="SystemAccentColorLight1">#248C77</Color>
+    <Color x:Key="SystemAccentColorLight2">#3FA58F</Color>
+    <Color x:Key="SystemAccentColorLight3">#6CC0AD</Color>
+    <Color x:Key="SystemAccentColorDark1">#19665A</Color>
+    <Color x:Key="SystemAccentColorDark2">#13544A</Color>
+    <Color x:Key="SystemAccentColorDark3">#0E433B</Color>
 
     <ResourceDictionary.ThemeDictionaries>
 
         <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F5FA" />
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F6F6F4" />
             <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#F0F1F7" />
-            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#E9EBF4" />
-            <SolidColorBrush x:Key="SidebarBrush" Color="#ECEEF6" />
-            <SolidColorBrush x:Key="DividerBrush" Color="#E2E4EE" />
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1D2A" />
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6F85" />
-            <SolidColorBrush x:Key="AccentSoftBrush" Color="#E5E8FF" />
-            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#3F50D8" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#EFEFEC" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#E8E8E4" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#E3E3DF" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1C1C1A" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6E6E69" />
+            <SolidColorBrush x:Key="AccentSoftBrush" Color="#E2F0EC" />
+            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#1F7A68" />
+            <SolidColorBrush x:Key="SelectedRowBrush" Color="#ECECE8" />
             <SolidColorBrush x:Key="BubbleOtherBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#E2E4EE" />
-            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#F4F5FA" />
-            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#EEF1FF" />
-            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF6E5" />
-            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FDECEC" />
-            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#E7F6EE" />
+            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#E3E3DF" />
+            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#F6F6F4" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#EFEFEC" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FBF1DE" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FBE8E8" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#E5F2EA" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#12131A" />
-            <SolidColorBrush x:Key="SurfaceBrush" Color="#1A1B24" />
-            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#23242F" />
-            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#2B2C39" />
-            <SolidColorBrush x:Key="SidebarBrush" Color="#15161E" />
-            <SolidColorBrush x:Key="DividerBrush" Color="#2A2B37" />
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#ECEDF3" />
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9A9DB2" />
-            <SolidColorBrush x:Key="AccentSoftBrush" Color="#2A2F5C" />
-            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#A9B3FF" />
-            <SolidColorBrush x:Key="BubbleOtherBrush" Color="#262734" />
-            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#262734" />
-            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#12131A" />
-            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#1E2342" />
-            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#33290F" />
-            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#3A1A1C" />
-            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#132E22" />
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#141414" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#1B1B1B" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#262626" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#2A2A2A" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#1B1B1B" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#2C2C2C" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#EDEDEA" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9A9A95" />
+            <SolidColorBrush x:Key="AccentSoftBrush" Color="#1D3A33" />
+            <SolidColorBrush x:Key="AccentSoftTextBrush" Color="#6CC0AD" />
+            <SolidColorBrush x:Key="SelectedRowBrush" Color="#2A2A2A" />
+            <SolidColorBrush x:Key="BubbleOtherBrush" Color="#242424" />
+            <SolidColorBrush x:Key="BubbleOtherBorderBrush" Color="#242424" />
+            <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#141414" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#262626" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#3A2F17" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#3A1D1D" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#1A3326" />
         </ResourceDictionary>
 
     </ResourceDictionary.ThemeDictionaries>

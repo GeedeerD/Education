@@ -13,19 +13,12 @@
                         HorizontalAlignment="Stretch">
 
                 <!-- Логотип -->
-                <StackPanel Spacing="10" HorizontalAlignment="Center">
-                    <Border Width="64" Height="64"
-                            CornerRadius="20"
-                            Background="{DynamicResource AccentBrush}"
-                            HorizontalAlignment="Center">
-                        <TextBlock Text="F"
-                                   FontSize="32"
-                                   FontWeight="Black"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Classes="h1" Text="Fiwe" HorizontalAlignment="Center" />
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="fiwe"
+                               FontSize="40"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource AccentBrush}"
+                               HorizontalAlignment="Center" />
                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                         <PathIcon Data="{StaticResource IconLock}"
                                   Width="12" Height="12"

@@ -30,7 +30,7 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid ColumnDefinitions="76, *">
+    <Grid ColumnDefinitions="60, *">
 
         <!-- ══════════════ Боковая панель ══════════════ -->
         <Border Grid.Column="0"
@@ -40,71 +40,57 @@
 
             <Grid RowDefinitions="Auto, *, Auto">
 
-                <!-- Логотип -->
-                <Border Grid.Row="0"
-                        Width="44" Height="44"
-                        Margin="0,16,0,20"
-                        CornerRadius="14"
-                        Background="{DynamicResource AccentBrush}"
-                        HorizontalAlignment="Center">
-                    <TextBlock Text="F"
-                               FontSize="22"
-                               FontWeight="Black"
-                               Foreground="White"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                </Border>
+                <!-- Логотип: просто строчная «f» цветом бренда -->
+                <TextBlock Grid.Row="0"
+                           Text="f"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource AccentBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,14" />
 
-                <!-- Разделы -->
-                <StackPanel Grid.Row="1" Spacing="4" Margin="8,0">
+                <!-- Разделы: только иконки, названия — во всплывающих подсказках -->
+                <StackPanel Grid.Row="1" Spacing="2">
                     <Button Classes="nav"
                             Classes.active="{Binding IsChatsActive}"
                             Command="{Binding OpenChatsCommand}"
-                            ToolTip.Tip="Чаты">
-                        <StackPanel Spacing="4">
-                            <PathIcon Data="{StaticResource IconChat}" />
-                            <TextBlock Text="Чаты" />
-                        </StackPanel>
+                            ToolTip.Tip="Чаты"
+                            ToolTip.Placement="Right">
+                        <PathIcon Data="{StaticResource IconChatOutline}" />
                     </Button>
 
                     <Button Classes="nav"
                             Classes.active="{Binding IsContactsActive}"
                             Command="{Binding OpenContactsCommand}"
-                            ToolTip.Tip="Контакты">
-                        <StackPanel Spacing="4">
-                            <PathIcon Data="{StaticResource IconContacts}" />
-                            <TextBlock Text="Контакты" />
-                        </StackPanel>
-                    </Button>
-
-                    <Button Classes="nav"
-                            Classes.active="{Binding IsSettingsActive}"
-                            Command="{Binding OpenSettingsCommand}"
-                            ToolTip.Tip="Настройки">
-                        <StackPanel Spacing="4">
-                            <PathIcon Data="{StaticResource IconSettings}" />
-                            <TextBlock Text="Настройки" />
-                        </StackPanel>
+                            ToolTip.Tip="Контакты"
+                            ToolTip.Placement="Right">
+                        <PathIcon Data="{StaticResource IconContactsOutline}" />
                     </Button>
                 </StackPanel>
 
-                <!-- Профиль и выход -->
-                <StackPanel Grid.Row="2" Spacing="10" Margin="8,0,8,14">
-                    <Button Classes="ghost"
-                            Padding="0"
-                            HorizontalAlignment="Center"
-                            CornerRadius="22"
+                <!-- Низ: настройки, профиль, выход -->
+                <StackPanel Grid.Row="2" Spacing="2" Margin="0,0,0,12">
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsSettingsActive}"
                             Command="{Binding OpenSettingsCommand}"
-                            ToolTip.Tip="{Binding Username}">
-                        <ctl:AvatarView DisplayName="{Binding Username}" Size="40" />
+                            ToolTip.Tip="Настройки"
+                            ToolTip.Placement="Right">
+                        <PathIcon Data="{StaticResource IconSettingsOutline}" />
                     </Button>
 
-                    <Button Classes="icon"
-                            HorizontalAlignment="Center"
+                    <Button Classes="nav"
                             Command="{Binding LogoutCommand}"
-                            ToolTip.Tip="Выйти из аккаунта">
-                        <PathIcon Data="{StaticResource IconLogout}" />
+                            ToolTip.Tip="Выйти из аккаунта"
+                            ToolTip.Placement="Right">
+                        <PathIcon Data="{StaticResource IconLogout}" Width="20" Height="20" />
                     </Button>
+
+                    <ctl:AvatarView DisplayName="{Binding Username}"
+                                    Size="32"
+                                    Margin="0,8,0,0"
+                                    HorizontalAlignment="Center"
+                                    ToolTip.Tip="{Binding Username}"
+                                    ToolTip.Placement="Right" />
                 </StackPanel>
 
             </Grid>

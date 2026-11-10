@@ -20,7 +20,7 @@
             <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
 
                 <!-- Заголовок -->
-                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,18,12,10">
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,12,12,8">
                     <TextBlock Classes="h2" Text="Чаты" VerticalAlignment="Center" />
                     <Button Grid.Column="1"
                             Classes="icon"
@@ -45,38 +45,34 @@
                 </TextBox>
 
                 <!-- Папки чатов: пока только «Все чаты» (задел под #41) -->
-                <StackPanel Grid.Row="2"
-                            Orientation="Horizontal"
-                            Spacing="6"
-                            Margin="16,0,16,8">
-                    <ItemsControl ItemsSource="{Binding Folders}">
+                <Grid Grid.Row="2"
+                      ColumnDefinitions="*, Auto"
+                      Margin="20,0,12,6">
+                    <ItemsControl ItemsSource="{Binding Folders}" VerticalAlignment="Bottom">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="6" />
+                                <StackPanel Orientation="Horizontal" Spacing="16" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatFolderViewModel">
-                                <ToggleButton Classes="chip"
+                                <ToggleButton Classes="tab"
                                               Content="{Binding Name}"
                                               IsChecked="True"
                                               IsHitTestVisible="False" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <Button Classes="ghost"
-                            Padding="8,4"
-                            MinHeight="28"
-                            CornerRadius="14"
+                    <Button Grid.Column="1"
+                            Classes="icon"
+                            Width="28" Height="28"
                             IsEnabled="False"
-                            ToolTip.Tip="Папки для группировки чатов — скоро"
+                            Opacity="0.5"
+                            ToolTip.Tip="Папки для группировки чатов — в разработке"
                             ToolTip.ShowOnDisabled="True">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <PathIcon Data="{StaticResource IconPlus}" Width="12" Height="12" />
-                            <TextBlock Text="Папка" FontSize="12" />
-                        </StackPanel>
+                        <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" />
                     </Button>
-                </StackPanel>
+                </Grid>
 
                 <!-- Загрузка / ошибка -->
                 <StackPanel Grid.Row="3">
@@ -97,10 +93,6 @@
                             Margin="24,40"
                             Spacing="12"
                             HorizontalAlignment="Center">
-                    <PathIcon Data="{StaticResource IconChat}"
-                              Width="40" Height="40"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              Opacity="0.5" />
                     <TextBlock Classes="caption"
                                Text="{Binding EmptyStateText}"
                                TextAlignment="Center"
@@ -165,19 +157,17 @@
             <StackPanel IsVisible="{Binding !HasActiveChat}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="10">
-                <Border Width="72" Height="72"
-                        CornerRadius="36"
-                        Background="{DynamicResource AccentSoftBrush}"
-                        HorizontalAlignment="Center">
-                    <PathIcon Data="{StaticResource IconLock}"
-                              Width="30" Height="30"
-                              Foreground="{DynamicResource AccentBrush}" />
-                </Border>
-                <TextBlock Classes="h3" Text="Выберите чат" HorizontalAlignment="Center" />
-                <TextBlock Classes="caption"
-                           Text="Все сообщения защищены сквозным шифрованием"
+                        Spacing="6">
+                <TextBlock Text="Выберите чат слева"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center" Opacity="0.8">
+                    <PathIcon Data="{StaticResource IconLock}"
+                              Width="11" Height="11"
+                              Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Classes="caption" Text="Сообщения защищены сквозным шифрованием" />
+                </StackPanel>
             </StackPanel>
         </Panel>
 

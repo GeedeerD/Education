@@ -29,16 +29,8 @@
                     Margin="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Spacing="12">
-            <Border Width="80" Height="80"
-                    CornerRadius="40"
-                    Background="{DynamicResource AccentSoftBrush}"
-                    HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource IconContacts}"
-                          Width="36" Height="36"
-                          Foreground="{DynamicResource AccentBrush}" />
-            </Border>
-            <TextBlock Classes="h3" Text="Список контактов пуст" HorizontalAlignment="Center" />
+                    Spacing="10">
+            <TextBlock Classes="h3" Text="Контактов пока нет" HorizontalAlignment="Center" />
             <TextBlock Classes="caption"
                        Text="Найдите собеседника по его публичному имени — после добавления с ним появится чат."
                        TextAlignment="Center" />

@@ -44,13 +44,13 @@
 		<Style Selector="Border.bubble">
 			<Setter Property="MaxWidth" Value="520" />
 			<Setter Property="Padding" Value="12,8" />
-			<Setter Property="CornerRadius" Value="16,16,16,4" />
+			<Setter Property="CornerRadius" Value="12,12,12,4" />
 			<Setter Property="Background" Value="{DynamicResource BubbleOtherBrush}" />
 			<Setter Property="BorderBrush" Value="{DynamicResource BubbleOtherBorderBrush}" />
 			<Setter Property="BorderThickness" Value="1" />
 		</Style>
 		<Style Selector="Border.bubble.mine">
-			<Setter Property="CornerRadius" Value="16,16,4,16" />
+			<Setter Property="CornerRadius" Value="12,12,4,12" />
 			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
 			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
 		</Style>

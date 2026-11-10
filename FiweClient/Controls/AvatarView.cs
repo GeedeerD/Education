@@ -24,12 +24,12 @@ public class AvatarView : Border
     public static readonly StyledProperty<double> SizeProperty =
         AvaloniaProperty.Register<AvatarView, double>(nameof(Size), 44);
 
-    // Приглушённые, хорошо читаемые с белым текстом цвета
+    // Спокойные приглушённые цвета, хорошо читаемые с белым текстом
     private static readonly Color[] Palette =
     [
-        Color.Parse("#5B6EF5"), Color.Parse("#E5484D"), Color.Parse("#30A46C"),
-        Color.Parse("#F76B15"), Color.Parse("#8E4EC6"), Color.Parse("#0090FF"),
-        Color.Parse("#D6409F"), Color.Parse("#12A594"), Color.Parse("#AB6400"),
+        Color.Parse("#4F7A74"), Color.Parse("#8D6E63"), Color.Parse("#5E7C9B"),
+        Color.Parse("#A0694B"), Color.Parse("#7A6A9A"), Color.Parse("#6B8752"),
+        Color.Parse("#9A5B6B"), Color.Parse("#4E7E95"), Color.Parse("#8C7A45"),
     ];
 
     private readonly TextBlock _initials = new()

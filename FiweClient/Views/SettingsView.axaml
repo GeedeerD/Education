@@ -6,30 +6,40 @@
              x:DataType="vm:SettingsViewModel">
 
     <UserControl.Styles>
-        <!-- Переключатель темы — три «плитки» -->
-        <Style Selector="RadioButton.tile">
+        <!-- Переключатель темы — сегменты в одной рамке -->
+        <Style Selector="RadioButton.segment">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Name="Tile"
-                            Background="{DynamicResource SurfaceAltBrush}"
-                            BorderBrush="Transparent"
-                            BorderThickness="2"
-                            CornerRadius="12"
-                            Padding="12,10">
+                    <Border Name="Seg"
+                            Background="Transparent"
+                            CornerRadius="6"
+                            Padding="10,7">
                         <ContentPresenter Content="{TemplateBinding Content}"
                                           HorizontalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
             </Setter>
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
-        <Style Selector="RadioButton.tile:pointerover /template/ Border#Tile">
+        <Style Selector="RadioButton.segment:pointerover /template/ Border#Seg">
             <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
         </Style>
-        <Style Selector="RadioButton.tile:checked /template/ Border#Tile">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+        <Style Selector="RadioButton.segment:checked /template/ Border#Seg">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        </Style>
+        <Style Selector="RadioButton.segment:checked TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <!-- Строка настройки внутри группы -->
+        <Style Selector="Border.row">
+            <Setter Property="Padding" Value="16,14" />
+        </Style>
+        <Style Selector="Border.rowDivider">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Margin" Value="16,0" />
         </Style>
     </UserControl.Styles>
 
@@ -40,183 +50,169 @@
         </Border>
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel Margin="20,20,20,32" Spacing="16" MaxWidth="560">
+            <StackPanel Margin="20,20,20,32" Spacing="8" MaxWidth="560">
 
                 <!-- Статус последнего действия -->
                 <Border Classes="notice success"
+                        Margin="0,0,0,8"
                         IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <TextBlock Text="{Binding SuccessMessage}" />
                 </Border>
                 <Border Classes="notice danger"
+                        Margin="0,0,0,8"
                         IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <TextBlock Text="{Binding ErrorMessage}" />
                 </Border>
 
                 <!-- ── Профиль ── -->
-                <Border Classes="card">
-                    <StackPanel Spacing="16">
-                        <TextBlock Classes="overline" Text="ПРОФИЛЬ" />
-
-                        <Grid ColumnDefinitions="Auto, *">
-                            <ctl:AvatarView DisplayName="{Binding Username}" Size="64" Margin="0,0,16,0" />
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
-                                <TextBlock Text="{Binding Username}"
-                                           FontSize="17"
-                                           FontWeight="SemiBold"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Classes="caption" Text="Имя аккаунта (логин)" />
+                <TextBlock Classes="section" Text="Профиль" />
+                <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                    <StackPanel>
+                        <Border Classes="row">
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                <ctl:AvatarView DisplayName="{Binding Username}" Size="48" Margin="0,0,14,0" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding Username}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Classes="caption" Text="Логин аккаунта" />
+                                </StackPanel>
                                 <!-- Задел под issue #42 «User Avatars»: загрузка фото профиля -->
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="secondary"
-                                            MinHeight="32"
-                                            Padding="12,0"
-                                            IsEnabled="False"
-                                            ToolTip.Tip="Загрузка фото профиля появится в следующих версиях"
-                                            ToolTip.ShowOnDisabled="True">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <PathIcon Data="{StaticResource IconCamera}" Width="14" Height="14" />
-                                            <TextBlock Text="Изменить фото" FontSize="12" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Border Classes="badge">
-                                        <TextBlock Text="СКОРО" />
-                                    </Border>
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-
-                        <StackPanel Spacing="8">
-                            <TextBlock Classes="h3" Text="Публичное имя" />
-                            <TextBlock Classes="caption"
-                                       Text="По публичному имени вас смогут найти другие пользователи. Оно не должно совпадать с именем аккаунта." />
-                            <Grid ColumnDefinitions="*, Auto">
-                                <TextBox Grid.Column="0"
-                                         Text="{Binding PublicName}"
-                                         Watermark="Например: john_doe" />
-                                <Button Grid.Column="1"
-                                        Classes="primary"
-                                        Content="Сохранить"
-                                        Command="{Binding SavePublicNameCommand}"
-                                        Margin="8,0,0,0"
-                                        IsEnabled="{Binding !IsBusy}" />
-                            </Grid>
-                            <ProgressBar IsIndeterminate="True"
-                                         IsVisible="{Binding IsBusy}"
-                                         Height="2" MinHeight="2" />
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- ── Оформление ── -->
-                <Border Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Classes="overline" Text="ОФОРМЛЕНИЕ" />
-                        <TextBlock Classes="h3" Text="Тема" />
-                        <Grid ColumnDefinitions="*, 8, *, 8, *">
-                            <RadioButton Classes="tile" GroupName="Theme" IsChecked="{Binding IsSystemTheme}">
-                                <StackPanel Spacing="6">
-                                    <Border Width="40" Height="26" CornerRadius="6" HorizontalAlignment="Center"
-                                            BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" ClipToBounds="True">
-                                        <Grid ColumnDefinitions="*, *">
-                                            <Border Background="#F4F5FA" />
-                                            <Border Grid.Column="1" Background="#1A1B24" />
-                                        </Grid>
-                                    </Border>
-                                    <TextBlock Text="Как в системе" FontSize="12" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton Grid.Column="2" Classes="tile" GroupName="Theme" IsChecked="{Binding IsLightTheme}">
-                                <StackPanel Spacing="6">
-                                    <Border Width="40" Height="26" CornerRadius="6" HorizontalAlignment="Center"
-                                            Background="#F4F5FA" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" />
-                                    <TextBlock Text="Светлая" FontSize="12" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton Grid.Column="4" Classes="tile" GroupName="Theme" IsChecked="{Binding IsDarkTheme}">
-                                <StackPanel Spacing="6">
-                                    <Border Width="40" Height="26" CornerRadius="6" HorizontalAlignment="Center"
-                                            Background="#1A1B24" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" />
-                                    <TextBlock Text="Тёмная" FontSize="12" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </RadioButton>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- ── Сообщения ── -->
-                <Border Classes="card">
-                    <StackPanel Spacing="16">
-                        <TextBlock Classes="overline" Text="СООБЩЕНИЯ" />
-
-                        <Grid ColumnDefinitions="*, Auto">
-                            <StackPanel Spacing="4" Margin="0,0,12,0">
-                                <TextBlock Classes="h3" Text="Форматирование Markdown" />
-                                <TextBlock Classes="caption"
-                                           Text="**Жирный**, *курсив*, `код`, ссылки, списки и цитаты. То же переключает кнопка M↓ над полем ввода. Одно сообщение без форматирования — Ctrl+Shift+Enter." />
-                            </StackPanel>
-                            <ToggleSwitch Grid.Column="1"
-                                          IsChecked="{Binding MarkdownEnabled}"
-                                          OnContent=""
-                                          OffContent=""
-                                          VerticalAlignment="Center" />
-                        </Grid>
-
-                        <Border Height="1" Background="{DynamicResource DividerBrush}" />
-
-                        <StackPanel Spacing="8">
-                            <TextBlock Classes="h3" Text="Часовой пояс" />
-                            <TextBlock Classes="caption"
-                                       Text="Смещение относительно UTC для времени сообщений." />
-                            <Grid ColumnDefinitions="*, Auto, Auto">
-                                <Slider Grid.Column="0"
-                                        Value="{Binding UtcOffsetHours}"
-                                        Minimum="-12"
-                                        Maximum="14"
-                                        TickFrequency="0.5"
-                                        IsSnapToTickEnabled="True"
-                                        VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding OffsetLabel}"
-                                           Width="76"
-                                           TextAlignment="Right"
-                                           VerticalAlignment="Center"
-                                           FontSize="14"
-                                           FontWeight="SemiBold" />
                                 <Button Grid.Column="2"
-                                        Classes="secondary"
-                                        Content="Сохранить"
-                                        Command="{Binding SaveTimezoneCommand}"
-                                        Margin="12,0,0,0" />
+                                        Classes="ghost"
+                                        Padding="10,6"
+                                        IsEnabled="False"
+                                        ToolTip.Tip="Загрузка фото профиля — в разработке"
+                                        ToolTip.ShowOnDisabled="True"
+                                        VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <PathIcon Data="{StaticResource IconCamera}" Width="14" Height="14" />
+                                        <TextBlock Text="Фото" FontSize="13" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </Grid>
-                        </StackPanel>
+                        </Border>
+
+                        <Border Classes="rowDivider" />
+
+                        <Border Classes="row">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="h3" Text="Публичное имя" />
+                                <TextBlock Classes="caption"
+                                           Text="По нему вас найдут другие пользователи. Не должно совпадать с логином." />
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding PublicName}"
+                                             Watermark="Например: john_doe" />
+                                    <Button Grid.Column="1"
+                                            Classes="primary"
+                                            Content="Сохранить"
+                                            Command="{Binding SavePublicNameCommand}"
+                                            Margin="8,0,0,0"
+                                            IsEnabled="{Binding !IsBusy}" />
+                                </Grid>
+                                <ProgressBar IsIndeterminate="True"
+                                             IsVisible="{Binding IsBusy}"
+                                             Height="2" MinHeight="2" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Оформление и сообщения ── -->
+                <TextBlock Classes="section" Text="Оформление и сообщения" />
+                <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                    <StackPanel>
+                        <Border Classes="row">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Classes="h3" Text="Тема" VerticalAlignment="Center" />
+                                <Border Grid.Column="1"
+                                        Background="{DynamicResource SurfaceAltBrush}"
+                                        CornerRadius="8"
+                                        Padding="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="2">
+                                        <RadioButton Classes="segment" GroupName="Theme" IsChecked="{Binding IsSystemTheme}">
+                                            <TextBlock Text="Системная" FontSize="13" />
+                                        </RadioButton>
+                                        <RadioButton Classes="segment" GroupName="Theme" IsChecked="{Binding IsLightTheme}">
+                                            <TextBlock Text="Светлая" FontSize="13" />
+                                        </RadioButton>
+                                        <RadioButton Classes="segment" GroupName="Theme" IsChecked="{Binding IsDarkTheme}">
+                                            <TextBlock Text="Тёмная" FontSize="13" />
+                                        </RadioButton>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="rowDivider" />
+
+                        <Border Classes="row">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Spacing="4" Margin="0,0,12,0">
+                                    <TextBlock Classes="h3" Text="Форматирование Markdown" />
+                                    <TextBlock Classes="caption"
+                                               Text="Жирный, курсив, код, ссылки, списки и цитаты. Одно сообщение без форматирования — Ctrl+Shift+Enter." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1"
+                                              IsChecked="{Binding MarkdownEnabled}"
+                                              OnContent=""
+                                              OffContent=""
+                                              MinWidth="0"
+                                              VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="rowDivider" />
+
+                        <Border Classes="row">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="h3" Text="Часовой пояс" />
+                                <TextBlock Classes="caption" Text="Смещение от UTC для времени сообщений." />
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <Slider Grid.Column="0"
+                                            Value="{Binding UtcOffsetHours}"
+                                            Minimum="-12"
+                                            Maximum="14"
+                                            TickFrequency="0.5"
+                                            IsSnapToTickEnabled="True"
+                                            VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding OffsetLabel}"
+                                               Width="76"
+                                               TextAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               FontSize="14"
+                                               FontWeight="SemiBold" />
+                                    <Button Grid.Column="2"
+                                            Classes="secondary"
+                                            Content="Сохранить"
+                                            Command="{Binding SaveTimezoneCommand}"
+                                            Margin="12,0,0,0" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- ── Безопасность ── -->
-                <Border Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Classes="overline" Text="БЕЗОПАСНОСТЬ" />
-                        <Grid ColumnDefinitions="Auto, *">
-                            <Border Width="40" Height="40"
-                                    CornerRadius="12"
-                                    Background="{DynamicResource AccentSoftBrush}"
-                                    Margin="0,0,12,0"
-                                    VerticalAlignment="Top">
-                                <PathIcon Data="{StaticResource IconKey}"
-                                          Width="20" Height="20"
-                                          Foreground="{DynamicResource AccentBrush}" />
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Classes="section" Text="Безопасность" />
+                <Border Classes="card" Padding="0">
+                    <Border Classes="row">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Spacing="4" Margin="0,0,12,0">
                                 <TextBlock Classes="h3" Text="Перенос ключей шифрования" />
                                 <TextBlock Classes="caption"
-                                           Text="Переносит ваши E2EE-ключи на новое устройство: покажите QR-код новому устройству во время входа в аккаунт." />
+                                           Text="Покажите QR-код новому устройству во время входа в аккаунт." />
                             </StackPanel>
+                            <Button Grid.Column="1"
+                                    Classes="secondary"
+                                    Content="Показать QR"
+                                    Command="{Binding OpenQrGeneratorCommand}"
+                                    VerticalAlignment="Center" />
                         </Grid>
-                        <Button Classes="secondary"
-                                Content="Показать QR для переноса ключей"
-                                Command="{Binding OpenQrGeneratorCommand}"
-                                HorizontalAlignment="Left" />
-                    </StackPanel>
+                    </Border>
                 </Border>
 
             </StackPanel>

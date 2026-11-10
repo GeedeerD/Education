@@ -83,15 +83,15 @@ App.OnFrameworkInitializationCompleted
 |------|-----------|
 | `Styles/FiweTheme.axaml` | Палитра: кисти `AppBackgroundBrush`, `SurfaceBrush`, `AccentBrush`, `TextSecondaryBrush` и т.д. для светлой и тёмной темы |
 | `Styles/FiweIcons.axaml` | Векторные иконки (`IconChat`, `IconSend`, …) для `PathIcon` |
-| `Styles/FiweStyles.axaml` | Классы: `Button.primary/.secondary/.ghost/.icon/.link/.nav`, `TextBlock.h1/.h2/.h3/.caption/.overline`, `Border.card/.notice/.badge/.header`, `ListBox.list` |
+| `Styles/FiweStyles.axaml` | Классы: `Button.primary/.secondary/.ghost/.icon/.link/.nav`, `TextBlock.h1/.h2/.h3/.caption/.section`, `Border.card/.notice/.header`, `ListBox.list`, `ToggleButton.tab` |
 | `Controls/AvatarView.cs` | Круглый аватар: инициалы на цветном фоне или картинка (`Source`) |
 
 Цвета берутся только через `{DynamicResource ...}` — тогда тема (Настройки → Оформление, `AppSettings.Theme`)
 переключается на лету.
 
 **Заготовки под будущие задачи** (интерфейс есть, логики нет):
-- #42 «User Avatars» — `AvatarView.Source`, `ChatPreviewViewModel.PictureUrl`, неактивная кнопка «Изменить фото» в настройках.
-- #41 «Группировка чатов» — `ChatFolderViewModel` и чипы папок над списком чатов (пока только «Все чаты»), неактивная кнопка «+ Папка».
+- #42 «User Avatars» — `AvatarView.Source`, `ChatPreviewViewModel.PictureUrl`, неактивная кнопка «Фото» в настройках.
+- #41 «Группировка чатов» — `ChatFolderViewModel` и вкладки папок над списком чатов (пока только «Все чаты»), неактивная кнопка «+».
 
 ---
 
