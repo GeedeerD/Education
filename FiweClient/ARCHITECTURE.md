@@ -11,6 +11,7 @@
 | `FiweClient/` (`FiweClient.App.csproj`) | Основное приложение: UI, ViewModels, сервисы |
 | `FiweClient.Crypto/` | Библиотека криптографии (X25519 + AES-256-GCM) |
 | `FiweClient.Droid/` | Android-точка входа (тонкая обёртка над `FiweClient.App`) |
+| `FiweClient.iOS/` | iOS-точка входа (`AppDelegate`, `Info.plist`, сканер QR камерой через AVFoundation) |
 
 Решение: `FiweClient/FiweClient.sln`
 
@@ -216,6 +217,10 @@ dotnet run --project FiweClient/FiweClient.App.csproj
 
 # Android APK
 dotnet build FiweClient.Droid/FiweClient.Droid.csproj -f net8.0-android
+
+# iOS: C# собирается и на Windows, но .app, симулятор и запуск на iPhone — только на Mac с Xcode
+# (или из Visual Studio на Windows с подключённым по сети Mac)
+dotnet build FiweClient.iOS/FiweClient.iOS.csproj -r iossimulator-arm64
 ```
 
 Тестов нет. Проверка — ручная через запуск приложения.

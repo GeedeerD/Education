@@ -5,9 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository Structure
 
 This is a mixed repository containing:
-- **`FiweClient/`** — the main Avalonia cross-platform messenger app (desktop + Android)
+- **`FiweClient/`** — the main Avalonia cross-platform messenger app (desktop + Android + iOS)
 - **`FiweClient.Crypto/`** — E2EE cryptography library used by FiweClient
 - **`FiweClient.Droid/`** — Android entry-point project (thin wrapper over FiweClient.App)
+- **`FiweClient.iOS/`** — iOS entry-point project (thin wrapper over FiweClient.App: `AppDelegate`, `Info.plist`, camera QR scanner)
 - Various educational/exercise projects (`Enums/`, `DZ11/`, `sea-battle/`, etc.) — standalone C# console apps
 
 The primary active project is **FiweClient**, governed by `FiweClient/FiweClient.sln`.
@@ -23,6 +24,9 @@ dotnet run --project FiweClient/FiweClient.App.csproj
 
 # Build for Android (produces .apk via FiweClient.Droid)
 dotnet build FiweClient.Droid/FiweClient.Droid.csproj -f net8.0-android
+
+# Build for iOS (C# compiles on Windows; the .app bundle, simulator and device need a Mac with Xcode)
+dotnet build FiweClient.iOS/FiweClient.iOS.csproj -r iossimulator-arm64
 
 # Build a specific educational project
 dotnet build <ProjectFolder>/<Project>.csproj
@@ -41,7 +45,7 @@ There are no automated tests in this repository.
 - **API base URL**: `https://fiwe-api-dgabh9axgnhagqhg.italynorth-01.azurewebsites.net/`
 
 ### Project Split: Desktop vs Android
-`FiweClient.App.csproj` targets `net8.0` (desktop) and `net8.0-android`. `Program.cs` is compiled only for `net8.0`. `FiweClient.Droid` is the Android-specific executable entry point that references `FiweClient.App`.
+`FiweClient.App.csproj` targets `net8.0` (desktop), `net8.0-android` and `net8.0-ios`. `Program.cs` is compiled only for `net8.0`. `FiweClient.Droid` and `FiweClient.iOS` are the platform executable entry points that reference `FiweClient.App`. Mobile-only code uses `#if ANDROID || IOS`; the camera QR scanner is reached through `QrScanBridge.ScanFunc`, which each platform project sets at startup.
 
 In `App.OnFrameworkInitializationCompleted`:
 - `IClassicDesktopStyleApplicationLifetime` → creates `MainWindow` (desktop)

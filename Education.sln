@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiweClient.App", "FiweClien
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiweClient.Droid", "FiweClient.Droid\FiweClient.Droid.csproj", "{EFCEB731-7C74-5DE6-46CA-1565B0AD4ABE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiweClient.iOS", "FiweClient.iOS\FiweClient.iOS.csproj", "{3B9E0206-0C79-43AC-8E78-6CE1CB7F8122}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{EFCEB731-7C74-5DE6-46CA-1565B0AD4ABE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFCEB731-7C74-5DE6-46CA-1565B0AD4ABE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EFCEB731-7C74-5DE6-46CA-1565B0AD4ABE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{3B9E0206-0C79-43AC-8E78-6CE1CB7F8122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B9E0206-0C79-43AC-8E78-6CE1CB7F8122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B9E0206-0C79-43AC-8E78-6CE1CB7F8122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B9E0206-0C79-43AC-8E78-6CE1CB7F8122}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

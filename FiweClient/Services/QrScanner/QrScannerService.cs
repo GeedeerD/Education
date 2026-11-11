@@ -1,14 +1,16 @@
 namespace FiweClient.Services.QrScanner;
 
-#if ANDROID
-// Статический делегат, который MainActivity регистрирует при старте.
-// Позволяет обойти круговую зависимость FiweClient.App <-> FiweClient.Droid.
+#if ANDROID || IOS
+// Статический делегат, который платформенный проект (MainActivity на Android,
+// AppDelegate на iOS) регистрирует при старте.
+// Позволяет обойти круговую зависимость FiweClient.App <-> FiweClient.Droid / FiweClient.iOS.
 public static class QrScanBridge
 {
     public static Func<Task<string?>>? ScanFunc { get; set; }
 }
 
-public class AndroidQrScannerService : IQrScannerService
+/// <summary>Сканер камерой на телефоне: сам скан делает платформенный проект через <see cref="QrScanBridge"/>.</summary>
+public class MobileQrScannerService : IQrScannerService
 {
     public bool IsAvailable => QrScanBridge.ScanFunc != null;
 

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-ios</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+
+		<ApplicationId>com.wwork.fiwe</ApplicationId>
+		<ApplicationTitle>Fiwe</ApplicationTitle>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+
+		<!-- Avalonia на iOS работает через AOT, интерпретатор не нужен -->
+		<UseInterpreter>false</UseInterpreter>
+	</PropertyGroup>
+
+	<!-- Симулятор на Mac с Apple Silicon и на Intel -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<RuntimeIdentifiers>iossimulator-arm64;iossimulator-x64;ios-arm64</RuntimeIdentifiers>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
+		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.1.0" />
+		<PackageReference Include="Avalonia.iOS" Version="11.1.0" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.0" />
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\FiweClient\FiweClient.App.csproj" />
+	</ItemGroup>
+</Project>

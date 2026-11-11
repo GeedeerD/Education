@@ -154,8 +154,8 @@ public partial class ChatView : UserControl
             return;
         }
 
-        // На Android у экранной клавиатуры нет Shift+Enter — там Enter переносит строку, а отправка кнопкой
-        if (e.Key == Key.Enter && !shift && !ctrl && !OperatingSystem.IsAndroid())
+        // На Android и iOS у экранной клавиатуры нет Shift+Enter — там Enter переносит строку, а отправка кнопкой
+        if (e.Key == Key.Enter && !shift && !ctrl && !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS())
         {
             e.Handled = true;
             if (vm.SendMessageCommand.CanExecute(null))

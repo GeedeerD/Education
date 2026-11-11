@@ -145,8 +145,8 @@ public class App : Application
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
 
         // ── QR-сканер ─────────────────────────────────
-#if ANDROID
-        services.AddSingleton<IQrScannerService, AndroidQrScannerService>();
+#if ANDROID || IOS
+        services.AddSingleton<IQrScannerService, MobileQrScannerService>();
 #else
         services.AddSingleton<IQrScannerService, DesktopQrScannerService>();
 #endif
