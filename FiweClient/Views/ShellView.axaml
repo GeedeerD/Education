@@ -85,7 +85,7 @@
                         <PathIcon Data="{StaticResource IconLogout}" Width="20" Height="20" />
                     </Button>
 
-                    <ctl:AvatarView DisplayName="{Binding Username}"
+                    <ctl:AvatarView DisplayName="{Binding Username}" Source="{Binding MyAvatar}"
                                     Size="32"
                                     Margin="0,8,0,0"
                                     HorizontalAlignment="Center"

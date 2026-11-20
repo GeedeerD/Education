@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Media.Imaging;
+using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
@@ -19,12 +22,17 @@ public partial class ShellViewModel : ObservableObject
     private readonly ISessionService _session;
     private readonly ITokenStorage _tokenStorage;
     private readonly IRealtimeService _realtime;
+    private readonly IUserApiService _userApi;
+    private readonly IAvatarService _avatars;
 
     // Текущий контент в правой области
     [ObservableProperty] private ObservableObject? _currentContent;
 
     // Имя пользователя в шапке боковой панели
     [ObservableProperty] private string _username = "";
+
+    /// <summary>Свой аватар (боковая панель и настройки). null — показываются инициалы.</summary>
+    [ObservableProperty] private Bitmap? _myAvatar;
 
     // Активная вкладка для подсветки в меню
     [ObservableProperty]
@@ -39,12 +47,16 @@ public partial class ShellViewModel : ObservableObject
         INavigationService navigation,
         ISessionService session,
         ITokenStorage tokenStorage,
-        IRealtimeService realtime)
+        IRealtimeService realtime,
+        IUserApiService userApi,
+        IAvatarService avatars)
     {
         _navigation = navigation;
         _session = session;
         _tokenStorage = tokenStorage;
         _realtime = realtime;
+        _userApi = userApi;
+        _avatars = avatars;
 
         Username = session.Username ?? "";
     }
@@ -113,6 +125,7 @@ public partial class ShellViewModel : ObservableObject
         // Закрываем открытый чат, чтобы он отписался от входящих сообщений
         (App.Services.GetService(typeof(ChatListViewModel)) as ChatListViewModel)?.Reset();
 
+        MyAvatar = null;
         await _realtime.DisconnectAsync();
         await _tokenStorage.ClearAsync();
         _session.Clear();
@@ -126,6 +139,22 @@ public partial class ShellViewModel : ObservableObject
     {
         // Shell — синглтон: после выхода и входа под другим аккаунтом имя нужно обновить
         Username = _session.Username ?? "";
+        MyAvatar = null;
         OpenChats();
+        _ = LoadMyAvatarAsync();
+    }
+
+    private async Task LoadMyAvatarAsync()
+    {
+        if (string.IsNullOrEmpty(_session.UserId)) return;
+        try
+        {
+            var url = await _userApi.GetAvatarUrlAsync(_session.UserId);
+            MyAvatar = await _avatars.GetAsync(url);
+        }
+        catch
+        {
+            // Не загрузился аватар — остаются инициалы, это не мешает работе
+        }
     }
 }

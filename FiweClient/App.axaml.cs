@@ -2,6 +2,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using FiweClient.Crypto;
 using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
@@ -157,6 +158,9 @@ public class App : Application
 
         // ── Настройки приложения ──────────────────────
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
+
+        // ── Аватары (#42) ─────────────────────────────
+        services.AddSingleton<IAvatarService, AvatarService>();
 
         // ── QR-сканер ─────────────────────────────────
 #if ANDROID

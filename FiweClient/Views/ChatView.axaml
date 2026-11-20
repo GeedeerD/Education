@@ -89,6 +89,7 @@
 
 					<ctl:AvatarView Grid.Column="1"
 									DisplayName="{Binding ChatName}"
+									Source="{Binding ChatAvatar}"
 									Size="40"
 									Margin="0,0,12,0" />
 

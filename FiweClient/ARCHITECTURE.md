@@ -90,7 +90,6 @@ App.OnFrameworkInitializationCompleted
 переключается на лету.
 
 **Заготовки под будущие задачи** (интерфейс есть, логики нет):
-- #42 «User Avatars» — `AvatarView.Source`, `ChatPreviewViewModel.PictureUrl`, неактивная кнопка «Фото» в настройках.
 - #41 «Группировка чатов» — `ChatFolderViewModel` и вкладки папок над списком чатов (пока только «Все чаты»), неактивная кнопка «+».
 
 ---
@@ -243,3 +242,16 @@ dotnet build FiweClient.Droid/FiweClient.Droid.csproj -f net8.0-android
 ```
 
 Тестов нет. Проверка — ручная через запуск приложения.
+
+---
+
+## Аватары (#42)
+
+Аватар — обычная картинка из `Images/Upload`, публичная (не шифруется), как и вложения.
+
+1. Настройки → «Фото» (или клик по аватару): выбор файла → `AvatarService.PrepareForUpload` обрезает по центру до квадрата 320×320 PNG.
+2. `Images/Upload` → `imageId` → `Users/SetAvatar` (сервер проверяет, что картинку загрузил этот же пользователь) → в `UserDto.AvatarUrls` добавляется `Images/{imageId}/Download`.
+3. «Убрать» → `Users/RemoveAvatar` очищает `AvatarUrls`.
+
+Где сервер отдаёт аватары: `Users/{userId}/Avatar` (свой — по своему userId), `ChatDto.PictureUrl` в списке чатов (аватар собеседника), `UserSearchResult.AvatarUrl` в поиске контактов.
+На клиенте `IAvatarService` скачивает их с кэшем в памяти, `AvatarView.Source` показывает картинку вместо инициалов.

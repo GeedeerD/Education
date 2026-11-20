@@ -11,6 +11,9 @@ namespace fiwe.Services
     {
         Task<string> UploadImageAsync(string userId, IFormFile file);
         Task<ImageDownloadResult?> GetImageAsync(string imageId);
+
+        /// <summary>Есть ли такое изображение и загрузил ли его этот пользователь.</summary>
+        Task<bool> IsUploadedByAsync(string imageId, string userId);
     }
 
     public class ImageService : IImageService
@@ -55,6 +58,17 @@ namespace fiwe.Services
             }
 
             return new ImageDownloadResult(image.Data, image.ContentType, image.FileName);
+        }
+
+        public async Task<bool> IsUploadedByAsync(string imageId, string userId)
+        {
+            if (!ObjectId.TryParse(imageId, out var imageObjectId) || !ObjectId.TryParse(userId, out var userObjectId))
+            {
+                return false;
+            }
+
+            var image = await _imageRepository.GetImageByIdAsync(imageObjectId);
+            return image != null && image.UploadedByUserObjectId == userObjectId;
         }
     }
 }

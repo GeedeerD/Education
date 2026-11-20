@@ -49,6 +49,9 @@ public partial class ChatViewModel : ObservableObject
     // ── Состояние ─────────────────────────────────────────────────
     [ObservableProperty] private string _chatId = "";
     [ObservableProperty] private string _chatName = "";
+
+    /// <summary>Аватар собеседника для шапки чата (#42); null — инициалы.</summary>
+    [ObservableProperty] private Bitmap? _chatAvatar;
     [ObservableProperty] private string _messageInput = "";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _errorMessage;

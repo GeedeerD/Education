@@ -128,5 +128,27 @@ namespace DataBase
             var user = await _users.Find(u => u.Id == userId).FirstAsync();
             return user.PublicUserName;
         }
+
+        public async Task SetAvatarUrlAsync(ObjectId userId, string? avatarUrl)
+        {
+            // У старых пользователей AvatarUrls в базе равен null, а $push в null-поле падает —
+            // поэтому собираем новый список сами и перезаписываем поле целиком.
+            List<string> avatars = [];
+            if (avatarUrl != null)
+            {
+                var user = await _users.Find(u => u.Id == userId).FirstAsync();
+                avatars = user.AvatarUrls?.Where(a => !string.IsNullOrEmpty(a)).ToList() ?? [];
+                avatars.Add(avatarUrl);
+            }
+
+            var update = Builders<UserDto>.Update.Set(u => u.AvatarUrls, avatars);
+            await _users.UpdateOneAsync(u => u.Id == userId, update);
+        }
+
+        public async Task<string?> GetAvatarUrlAsync(ObjectId userId)
+        {
+            var user = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+            return user?.AvatarUrls?.LastOrDefault(a => !string.IsNullOrEmpty(a));
+        }
     }
 }

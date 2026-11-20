@@ -113,7 +113,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatPreviewViewModel">
                             <Grid ColumnDefinitions="Auto, *, Auto">
-                                <ctl:AvatarView DisplayName="{Binding Name}" Size="46" Margin="0,0,12,0" />
+                                <ctl:AvatarView DisplayName="{Binding Name}" Source="{Binding Avatar}" Size="46" Margin="0,0,12,0" />
 
                                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Name}"

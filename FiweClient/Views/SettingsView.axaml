@@ -70,27 +70,47 @@
                     <StackPanel>
                         <Border Classes="row">
                             <Grid ColumnDefinitions="Auto, *, Auto">
-                                <ctl:AvatarView DisplayName="{Binding Username}" Size="48" Margin="0,0,14,0" />
+                                <!-- Клик по аватару — тоже выбор нового фото -->
+                                <Button Classes="ghost"
+                                        Padding="0"
+                                        CornerRadius="32"
+                                        Margin="0,0,14,0"
+                                        Click="OnChangeAvatarClick"
+                                        IsEnabled="{Binding !IsAvatarBusy}"
+                                        ToolTip.Tip="Изменить фото">
+                                    <ctl:AvatarView DisplayName="{Binding Username}"
+                                                    Source="{Binding Shell.MyAvatar}"
+                                                    Size="56" />
+                                </Button>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock Text="{Binding Username}"
                                                FontSize="15"
                                                FontWeight="SemiBold"
                                                TextTrimming="CharacterEllipsis" />
                                     <TextBlock Classes="caption" Text="Логин аккаунта" />
+                                    <ProgressBar IsIndeterminate="True"
+                                                 IsVisible="{Binding IsAvatarBusy}"
+                                                 Height="2" MinHeight="2"
+                                                 Margin="0,4,0,0" />
                                 </StackPanel>
-                                <!-- Задел под issue #42 «User Avatars»: загрузка фото профиля -->
-                                <Button Grid.Column="2"
-                                        Classes="ghost"
-                                        Padding="10,6"
-                                        IsEnabled="False"
-                                        ToolTip.Tip="Загрузка фото профиля — в разработке"
-                                        ToolTip.ShowOnDisabled="True"
-                                        VerticalAlignment="Center">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <PathIcon Data="{StaticResource IconCamera}" Width="14" Height="14" />
-                                        <TextBlock Text="Фото" FontSize="13" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                                    <Button Classes="ghost"
+                                            Padding="10,6"
+                                            Click="OnChangeAvatarClick"
+                                            IsEnabled="{Binding !IsAvatarBusy}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="{StaticResource IconCamera}" Width="14" Height="14" />
+                                            <TextBlock Text="Фото" FontSize="13" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="ghost danger"
+                                            Padding="10,6"
+                                            Content="Убрать"
+                                            FontSize="13"
+                                            Command="{Binding RemoveAvatarCommand}"
+                                            IsEnabled="{Binding !IsAvatarBusy}"
+                                            IsVisible="{Binding Shell.MyAvatar, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                </StackPanel>
                             </Grid>
                         </Border>
 

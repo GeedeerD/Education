@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Settings;
 
@@ -70,11 +71,11 @@ public partial class ChatPreviewViewModel : ObservableObject
     public string? ContactUserId { get; init; }
     public double UtcOffsetHours { get; init; }
 
-    /// <summary>
-    /// Ссылка на картинку чата от сервера (ChatDto.PictureUrl). Пока не загружается —
-    /// задел под issue #42 «User Avatars»: загрузить Bitmap и отдать его в AvatarView.Source.
-    /// </summary>
+    /// <summary>Аватар собеседника: относительный URL от сервера (ChatDto.PictureUrl) или null.</summary>
     public string? PictureUrl { get; init; }
+
+    /// <summary>Скачанный аватар; пока null — в списке показываются инициалы.</summary>
+    [ObservableProperty] private Bitmap? _avatar;
 
     /// <summary>Сегодня — время, на этой неделе — день недели, раньше — дата.</summary>
     public string TimeLabel
@@ -106,6 +107,7 @@ public partial class ChatListViewModel : ObservableObject
 {
     private readonly IMessageApiService _messageApi;
     private readonly IAppSettingsService _appSettings;
+    private readonly IAvatarService _avatars;
 
     // Полный список с сервера; Chats — отфильтрованный поиском
     private List<ChatPreviewViewModel> _allChats = [];
@@ -138,11 +140,21 @@ public partial class ChatListViewModel : ObservableObject
 
     [ObservableProperty] private ChatFolderViewModel? _selectedFolder;
 
-    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings)
+    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings, IAvatarService avatars)
     {
         _messageApi = messageApi;
         _appSettings = appSettings;
+        _avatars = avatars;
         _selectedFolder = Folders[0];
+    }
+
+    /// <summary>Аватары догружаются фоном после списка, чтобы он не ждал картинок.</summary>
+    private async Task LoadAvatarAsync(ChatPreviewViewModel chat)
+    {
+        var bitmap = await _avatars.GetAsync(chat.PictureUrl);
+        chat.Avatar = bitmap;
+        if (ActiveChat?.ChatId == chat.ChatId)
+            ActiveChat.ChatAvatar = bitmap;
     }
 
     [RelayCommand]
@@ -167,6 +179,9 @@ public partial class ChatListViewModel : ObservableObject
                 .OrderByDescending(c => c.LastActive)
                 .ToList();
             ApplyFilter();
+
+            foreach (var chat in _allChats.Where(c => !string.IsNullOrEmpty(c.PictureUrl)))
+                _ = LoadAvatarAsync(chat);
         }
         catch (Exception ex)
         {
@@ -216,6 +231,7 @@ public partial class ChatListViewModel : ObservableObject
         ActiveChat = vm;
 
         var preview = Chats.FirstOrDefault(c => c.ChatId == chatId);
+        vm.ChatAvatar = preview?.Avatar;
         if (!ReferenceEquals(SelectedChat, preview))
             SelectedChat = preview;
     }
