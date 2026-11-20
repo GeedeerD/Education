@@ -122,6 +122,11 @@
                             IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock Text="{Binding ErrorMessage}" />
                     </Border>
+                    <Border Classes="notice success"
+                            Margin="16,4"
+                            IsVisible="{Binding InfoMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding InfoMessage}" />
+                    </Border>
                 </StackPanel>
 
                 <!-- Пусто -->

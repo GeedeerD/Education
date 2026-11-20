@@ -105,14 +105,26 @@ public partial class ChatListView : UserControl
         if (sender is not Control { DataContext: ChatPreviewViewModel chat } control || _vm is null)
             return;
 
+        // Пункт всегда активен: если имени нет, по клику объясняем почему (серый неактивный пункт легко не заметить)
         var hasPublicName = !string.IsNullOrEmpty(chat.RecipientPublicName);
         var copyName = new MenuItem
         {
-            Header = hasPublicName ? $"Скопировать публичное имя ({chat.RecipientPublicName})" : "Публичное имя недоступно",
+            Header = hasPublicName ? $"Скопировать публичное имя ({chat.RecipientPublicName})" : "Скопировать публичное имя",
             Icon = Icon("IconCopy"),
-            IsEnabled = hasPublicName,
         };
-        copyName.Click += async (_, _) => await CopyToClipboardAsync(chat.RecipientPublicName!);
+        copyName.Click += async (_, _) =>
+        {
+            if (!hasPublicName)
+            {
+                _vm.ReportPublicNameUnavailable(chat);
+                return;
+            }
+
+            if (await CopyToClipboardAsync(chat.RecipientPublicName!))
+                _vm.ShowInfo($"Публичное имя «{chat.RecipientPublicName}» скопировано — отправьте его, чтобы этого человека нашли через поиск");
+            else
+                _vm.ErrorMessage = "Не удалось скопировать: буфер обмена недоступен";
+        };
 
         var folderItems = new List<Control>();
         foreach (var folder in _vm.UserFolders.ToList())
@@ -147,10 +159,13 @@ public partial class ChatListView : UserControl
         Height = 14,
     };
 
-    private async Task CopyToClipboardAsync(string text)
+    private async Task<bool> CopyToClipboardAsync(string text)
     {
-        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
-            await clipboard.SetTextAsync(text);
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+            return false;
+
+        await clipboard.SetTextAsync(text);
+        return true;
     }
 
     private static void OpenMenu(Control target, IEnumerable<Control> items)

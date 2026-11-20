@@ -443,6 +443,40 @@ public partial class ChatListViewModel : ObservableObject
         ContactToDelete = null;
     }
 
+    // ── Публичное имя собеседника ─────────────────────────────────
+
+    /// <summary>Короткое зелёное сообщение над списком («скопировано»); само пропадает через несколько секунд.</summary>
+    [ObservableProperty] private string? _infoMessage;
+
+    private CancellationTokenSource? _infoCts;
+
+    public async void ShowInfo(string message)
+    {
+        _infoCts?.Cancel();
+        var cts = _infoCts = new CancellationTokenSource();
+        ErrorMessage = null;
+        InfoMessage = message;
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(4), cts.Token);
+            InfoMessage = null;
+        }
+        catch (TaskCanceledException)
+        {
+            // Показали новое сообщение — старое уже заменено
+        }
+    }
+
+    /// <summary>«Скопировать публичное имя», а имени нет: объясняем, почему.</summary>
+    public void ReportPublicNameUnavailable(ChatPreviewViewModel chat)
+    {
+        InfoMessage = null;
+        var isNotes = string.IsNullOrEmpty(chat.ContactUserId) || chat.ContactUserId.All(c => c == '0');
+        ErrorMessage = isNotes
+            ? "Невозможно скопировать публичное имя: это ваши заметки, у них нет собеседника."
+            : "Невозможно скопировать публичное имя: сервер его не прислал. Скорее всего, на сервере старая версия — его нужно обновить.";
+    }
+
     // ── Удаление контакта ─────────────────────────────────────────
     // Из меню чата: сначала спрашиваем подтверждение, потом удаляем.
 
