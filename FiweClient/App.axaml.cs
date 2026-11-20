@@ -3,6 +3,7 @@ using Avalonia.Markup.Xaml;
 using FiweClient.Crypto;
 using FiweClient.Services.Api;
 using FiweClient.Services.Avatars;
+using FiweClient.Services.Folders;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
@@ -161,6 +162,9 @@ public class App : Application
 
         // ── Аватары (#42) ─────────────────────────────
         services.AddSingleton<IAvatarService, AvatarService>();
+
+        // ── Папки чатов (#41) ─────────────────────────
+        services.AddSingleton<IChatFolderService, ChatFolderService>();
 
         // ── QR-сканер ─────────────────────────────────
 #if ANDROID

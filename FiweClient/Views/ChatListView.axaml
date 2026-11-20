@@ -44,35 +44,72 @@
                     </TextBox.InnerLeftContent>
                 </TextBox>
 
-                <!-- Папки чатов: пока только «Все чаты» (задел под #41) -->
-                <Grid Grid.Row="2"
-                      ColumnDefinitions="*, Auto"
-                      Margin="20,0,12,6">
-                    <ItemsControl ItemsSource="{Binding Folders}" VerticalAlignment="Bottom">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="16" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ChatFolderViewModel">
-                                <ToggleButton Classes="tab"
-                                              Content="{Binding Name}"
-                                              IsChecked="True"
-                                              IsHitTestVisible="False" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <Button Grid.Column="1"
-                            Classes="icon"
-                            Width="28" Height="28"
-                            IsEnabled="False"
-                            Opacity="0.5"
-                            ToolTip.Tip="Папки для группировки чатов — в разработке"
-                            ToolTip.ShowOnDisabled="True">
-                        <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" />
-                    </Button>
-                </Grid>
+                <!-- Папки чатов (#41): вкладки, «+» — новая папка, правый клик по вкладке — переименовать/удалить -->
+                <StackPanel Grid.Row="2" Margin="20,0,12,6" Spacing="8">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      VerticalAlignment="Bottom">
+                            <ItemsControl ItemsSource="{Binding Folders}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="16" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ChatFolderViewModel">
+                                        <Button Classes="tab"
+                                                Classes.selected="{Binding IsSelected}"
+                                                Content="{Binding Name}"
+                                                Command="{Binding $parent[UserControl].((vm:ChatListViewModel)DataContext).SelectFolderCommand}"
+                                                CommandParameter="{Binding}"
+                                                ContextRequested="OnFolderContextRequested" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Width="28" Height="28"
+                                Margin="8,0,0,0"
+                                Command="{Binding StartCreateFolderCommand}"
+                                ToolTip.Tip="Новая папка">
+                            <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Название новой папки / переименование: Enter — сохранить, Esc — отмена -->
+                    <Grid ColumnDefinitions="*, Auto, Auto"
+                          Margin="-4,0,4,0"
+                          IsVisible="{Binding IsFolderEditorOpen}">
+                        <TextBox x:Name="FolderNameBox"
+                                 Text="{Binding FolderEditorText}"
+                                 Watermark="{Binding FolderEditorWatermark}"
+                                 MaxLength="32"
+                                 MinHeight="34"
+                                 Padding="10,6">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding SaveFolderEditorCommand}" />
+                                <KeyBinding Gesture="Escape" Command="{Binding CancelFolderEditorCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Width="32" Height="32"
+                                Margin="4,0,0,0"
+                                Command="{Binding SaveFolderEditorCommand}"
+                                ToolTip.Tip="Сохранить">
+                            <PathIcon Data="{StaticResource IconCheck}" Width="16" Height="16" />
+                        </Button>
+                        <Button Grid.Column="2"
+                                Classes="icon"
+                                Width="32" Height="32"
+                                Command="{Binding CancelFolderEditorCommand}"
+                                ToolTip.Tip="Отмена">
+                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+                </StackPanel>
 
                 <!-- Загрузка / ошибка -->
                 <StackPanel Grid.Row="3">
@@ -100,6 +137,7 @@
                     <Button Classes="secondary"
                             Content="Найти собеседника"
                             HorizontalAlignment="Center"
+                            IsVisible="{Binding ShowFindContactButton}"
                             Command="{Binding FindContactCommand}" />
                 </StackPanel>
 
@@ -112,7 +150,10 @@
                          SelectionMode="Single">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatPreviewViewModel">
-                            <Grid ColumnDefinitions="Auto, *, Auto">
+                            <!-- Правый клик (на телефоне — долгое нажатие): меню «В папку» -->
+                            <Grid ColumnDefinitions="Auto, *, Auto"
+                                  Background="Transparent"
+                                  ContextRequested="OnChatContextRequested">
                                 <ctl:AvatarView DisplayName="{Binding Name}" Source="{Binding Avatar}" Size="46" Margin="0,0,12,0" />
 
                                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">

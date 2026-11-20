@@ -4,7 +4,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
 using FiweClient.Services.Avatars;
+using FiweClient.Services.Folders;
 using FiweClient.Services.Navigation;
+using FiweClient.Services.Session;
 using FiweClient.Services.Settings;
 
 namespace FiweClient.ViewModels.Chats;
@@ -94,13 +96,28 @@ public partial class ChatPreviewViewModel : ObservableObject
 }
 
 /// <summary>
-/// Папка чатов. Задел под issue #41 «Add opportunity groupping chats»:
-/// сейчас есть только «Все чаты», создание своих папок ещё не реализовано.
+/// Вкладка папки над списком чатов (issue #41). Первая вкладка — «Все чаты» (Model == null),
+/// остальные — папки пользователя.
 /// </summary>
-public class ChatFolderViewModel
+public partial class ChatFolderViewModel : ObservableObject
 {
-    public required string Name { get; init; }
-    public bool IsAll { get; init; }
+    public const string AllChatsName = "Все чаты";
+
+    public ChatFolderViewModel(ChatFolder? model)
+    {
+        Model = model;
+        _name = model?.Name ?? AllChatsName;
+    }
+
+    /// <summary>Сохраняемая папка; null — вкладка «Все чаты».</summary>
+    public ChatFolder? Model { get; }
+
+    public bool IsAll => Model is null;
+
+    [ObservableProperty] private string _name;
+    [ObservableProperty] private bool _isSelected;
+
+    public bool Contains(string chatId) => IsAll || Model!.ChatIds.Contains(chatId);
 }
 
 public partial class ChatListViewModel : ObservableObject
@@ -108,6 +125,8 @@ public partial class ChatListViewModel : ObservableObject
     private readonly IMessageApiService _messageApi;
     private readonly IAppSettingsService _appSettings;
     private readonly IAvatarService _avatars;
+    private readonly IChatFolderService _folderService;
+    private readonly ISessionService _session;
 
     // Полный список с сервера; Chats — отфильтрованный поиском
     private List<ChatPreviewViewModel> _allChats = [];
@@ -130,22 +149,179 @@ public partial class ChatListViewModel : ObservableObject
     public bool HasActiveChat => ActiveChat is not null;
 
     public bool ShowEmptyState => !IsBusy && Chats.Count == 0;
-    public string EmptyStateText => string.IsNullOrWhiteSpace(SearchQuery)
-        ? "Пока нет чатов. Найдите собеседника в разделе «Контакты»."
-        : "Ничего не найдено";
 
-    // ── Папки (заготовка под #41) ──
-    public IReadOnlyList<ChatFolderViewModel> Folders { get; } =
-        [new ChatFolderViewModel { Name = "Все чаты", IsAll = true }];
+    public string EmptyStateText
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+                return "Ничего не найдено";
+            if (!SelectedFolder.IsAll)
+                return $"В папке «{SelectedFolder.Name}» пока нет чатов. Нажмите на чат во «Всех чатах» правой кнопкой " +
+                       "(на телефоне — долгим нажатием) и выберите эту папку.";
+            return "Пока нет чатов. Найдите собеседника в разделе «Контакты».";
+        }
+    }
 
-    [ObservableProperty] private ChatFolderViewModel? _selectedFolder;
+    public bool ShowFindContactButton => SelectedFolder.IsAll && string.IsNullOrWhiteSpace(SearchQuery);
 
-    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings, IAvatarService avatars)
+    public ChatListViewModel(
+        IMessageApiService messageApi,
+        IAppSettingsService appSettings,
+        IAvatarService avatars,
+        IChatFolderService folderService,
+        ISessionService session)
     {
         _messageApi = messageApi;
         _appSettings = appSettings;
         _avatars = avatars;
+        _folderService = folderService;
+        _session = session;
+
+        Folders = [new ChatFolderViewModel(null) { IsSelected = true }];
         _selectedFolder = Folders[0];
+    }
+
+    // ── Папки чатов (#41) ─────────────────────────────────────────
+
+    /// <summary>Вкладки над списком: «Все чаты» и папки пользователя.</summary>
+    public ObservableCollection<ChatFolderViewModel> Folders { get; }
+
+    /// <summary>Папки пользователя без «Все чаты» — для меню «В папку» у чата.</summary>
+    public IEnumerable<ChatFolderViewModel> UserFolders => Folders.Where(f => !f.IsAll);
+
+    [ObservableProperty] private ChatFolderViewModel _selectedFolder;
+
+    // Для какого аккаунта загружены папки (ViewModel — синглтон и переживает смену пользователя)
+    private string? _foldersUserId;
+
+    partial void OnSelectedFolderChanged(ChatFolderViewModel value)
+    {
+        foreach (var folder in Folders)
+            folder.IsSelected = ReferenceEquals(folder, value);
+        ApplyFilter();
+    }
+
+    [RelayCommand]
+    private void SelectFolder(ChatFolderViewModel? folder)
+    {
+        if (folder is not null)
+            SelectedFolder = folder;
+    }
+
+    // Строка ввода имени папки под вкладками: создание новой или переименование
+    private ChatFolderViewModel? _editingFolder;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FolderEditorWatermark))]
+    private bool _isFolderEditorOpen;
+
+    [ObservableProperty] private string _folderEditorText = "";
+
+    public string FolderEditorWatermark => _editingFolder is null ? "Название новой папки" : "Новое название папки";
+
+    public const int MaxFolderNameLength = 32;
+
+    [RelayCommand]
+    private void StartCreateFolder()
+    {
+        _editingFolder = null;
+        FolderEditorText = "";
+        IsFolderEditorOpen = true;
+        OnPropertyChanged(nameof(FolderEditorWatermark));
+    }
+
+    public void StartRenameFolder(ChatFolderViewModel folder)
+    {
+        if (folder.IsAll) return;
+        _editingFolder = folder;
+        FolderEditorText = folder.Name;
+        IsFolderEditorOpen = true;
+        OnPropertyChanged(nameof(FolderEditorWatermark));
+    }
+
+    [RelayCommand]
+    private void CancelFolderEditor() => IsFolderEditorOpen = false;
+
+    [RelayCommand]
+    private async Task SaveFolderEditorAsync()
+    {
+        var name = FolderEditorText.Trim();
+        if (name.Length == 0) return;
+        if (name.Length > MaxFolderNameLength) name = name[..MaxFolderNameLength];
+
+        if (_editingFolder is null)
+        {
+            var folder = new ChatFolderViewModel(new ChatFolder { Name = name });
+            Folders.Add(folder);
+            SelectedFolder = folder;
+        }
+        else
+        {
+            _editingFolder.Name = name;
+            _editingFolder.Model!.Name = name;
+            OnPropertyChanged(nameof(EmptyStateText));
+        }
+
+        IsFolderEditorOpen = false;
+        await SaveFoldersAsync();
+    }
+
+    public async Task DeleteFolderAsync(ChatFolderViewModel folder)
+    {
+        if (folder.IsAll) return;
+
+        if (ReferenceEquals(SelectedFolder, folder))
+            SelectedFolder = Folders[0];
+        Folders.Remove(folder);
+        await SaveFoldersAsync();
+    }
+
+    /// <summary>Добавить чат в папку или убрать из неё (меню «В папку» у чата).</summary>
+    public async Task ToggleChatInFolderAsync(ChatPreviewViewModel chat, ChatFolderViewModel folder)
+    {
+        if (folder.IsAll) return;
+
+        var ids = folder.Model!.ChatIds;
+        if (!ids.Remove(chat.ChatId))
+            ids.Add(chat.ChatId);
+
+        if (ReferenceEquals(SelectedFolder, folder))
+            ApplyFilter();
+        await SaveFoldersAsync();
+    }
+
+    private async Task LoadFoldersAsync()
+    {
+        var userId = _session.UserId;
+        if (string.IsNullOrEmpty(userId) || userId == _foldersUserId) return;
+        _foldersUserId = userId;
+
+        var saved = await _folderService.LoadAsync(userId);
+        ResetFolders();
+        foreach (var folder in saved)
+            Folders.Add(new ChatFolderViewModel(folder));
+    }
+
+    private async Task SaveFoldersAsync()
+    {
+        if (string.IsNullOrEmpty(_foldersUserId)) return;
+        try
+        {
+            await _folderService.SaveAsync(_foldersUserId, UserFolders.Select(f => f.Model!).ToList());
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Не удалось сохранить папки: {ex.Message}";
+        }
+    }
+
+    private void ResetFolders()
+    {
+        while (Folders.Count > 1)
+            Folders.RemoveAt(Folders.Count - 1);
+        SelectedFolder = Folders[0];
+        IsFolderEditorOpen = false;
     }
 
     /// <summary>Аватары догружаются фоном после списка, чтобы он не ждал картинок.</summary>
@@ -164,6 +340,7 @@ public partial class ChatListViewModel : ObservableObject
         ErrorMessage = null;
         try
         {
+            await LoadFoldersAsync();
             var dtos = await _messageApi.GetAllMyChatsAsync();
             _allChats = dtos
                 .Select(d => new ChatPreviewViewModel
@@ -198,9 +375,11 @@ public partial class ChatListViewModel : ObservableObject
     private void ApplyFilter()
     {
         var q = SearchQuery.Trim();
-        var filtered = string.IsNullOrEmpty(q)
-            ? _allChats
-            : _allChats.Where(c => c.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+        var folder = SelectedFolder;
+        var filtered = _allChats
+            .Where(c => folder.Contains(c.ChatId))
+            .Where(c => q.Length == 0 || c.Name.Contains(q, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
         // Не теряем выделение открытого чата при фильтрации
         var activeId = ActiveChat?.ChatId;
@@ -209,6 +388,7 @@ public partial class ChatListViewModel : ObservableObject
 
         OnPropertyChanged(nameof(ShowEmptyState));
         OnPropertyChanged(nameof(EmptyStateText));
+        OnPropertyChanged(nameof(ShowFindContactButton));
     }
 
     /// <summary>Клик по чату в списке — открываем его справа.</summary>
@@ -251,6 +431,8 @@ public partial class ChatListViewModel : ObservableObject
         _allChats = [];
         SearchQuery = "";
         Chats = [];
+        _foldersUserId = null;
+        ResetFolders();
     }
 
     [RelayCommand]
