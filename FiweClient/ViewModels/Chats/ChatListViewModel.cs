@@ -71,6 +71,9 @@ public partial class ChatPreviewViewModel : ObservableObject
     public string? LastMessage { get; init; }
     public DateTime LastActive { get; init; }
     public string? ContactUserId { get; init; }
+
+    /// <summary>Публичное имя собеседника (им можно поделиться); null — у «Notes» или старая версия сервера.</summary>
+    public string? RecipientPublicName { get; init; }
     public double UtcOffsetHours { get; init; }
 
     /// <summary>Аватар собеседника: относительный URL от сервера (ChatDto.PictureUrl) или null.</summary>
@@ -127,6 +130,7 @@ public partial class ChatListViewModel : ObservableObject
     private readonly IAvatarService _avatars;
     private readonly IChatFolderService _folderService;
     private readonly ISessionService _session;
+    private readonly IContactApiService _contactApi;
 
     // Полный список с сервера; Chats — отфильтрованный поиском
     private List<ChatPreviewViewModel> _allChats = [];
@@ -170,13 +174,15 @@ public partial class ChatListViewModel : ObservableObject
         IAppSettingsService appSettings,
         IAvatarService avatars,
         IChatFolderService folderService,
-        ISessionService session)
+        ISessionService session,
+        IContactApiService contactApi)
     {
         _messageApi = messageApi;
         _appSettings = appSettings;
         _avatars = avatars;
         _folderService = folderService;
         _session = session;
+        _contactApi = contactApi;
 
         Folders = [new ChatFolderViewModel(null) { IsSelected = true }];
         _selectedFolder = Folders[0];
@@ -350,6 +356,7 @@ public partial class ChatListViewModel : ObservableObject
                     LastMessage = d.LastMessagePreview,
                     LastActive = DateTime.SpecifyKind(d.LastActiveDateTime, DateTimeKind.Utc),
                     ContactUserId = d.RecipientId,
+                    RecipientPublicName = d.RecipientPublicName,
                     PictureUrl = d.PictureUrl,
                     UtcOffsetHours = _appSettings.UtcOffsetHours,
                 })
@@ -433,6 +440,66 @@ public partial class ChatListViewModel : ObservableObject
         Chats = [];
         _foldersUserId = null;
         ResetFolders();
+        ContactToDelete = null;
+    }
+
+    // ── Удаление контакта ─────────────────────────────────────────
+    // Из меню чата: сначала спрашиваем подтверждение, потом удаляем.
+
+    /// <summary>Чат, для которого показано подтверждение «Удалить контакт?»; null — подтверждение скрыто.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDeleteConfirmOpen), nameof(DeleteConfirmText))]
+    private ChatPreviewViewModel? _contactToDelete;
+
+    [ObservableProperty] private bool _isDeletingContact;
+
+    public bool IsDeleteConfirmOpen => ContactToDelete is not null;
+
+    public string DeleteConfirmText => ContactToDelete is null
+        ? ""
+        : $"Удалить контакт «{ContactToDelete.Name}»? Чат пропадёт из вашего списка, у собеседника он останется. " +
+          "Если собеседник напишет снова или вы снова добавите его, чат вернётся вместе с перепиской.";
+
+    public void RequestDeleteContact(ChatPreviewViewModel chat) => ContactToDelete = chat;
+
+    [RelayCommand]
+    private void CancelDeleteContact() => ContactToDelete = null;
+
+    [RelayCommand]
+    private async Task ConfirmDeleteContactAsync()
+    {
+        if (ContactToDelete is not { } chat) return;
+
+        IsDeletingContact = true;
+        try
+        {
+            await _contactApi.DeleteContactAsync(chat.ChatId);
+
+            if (ActiveChat?.ChatId == chat.ChatId)
+                CloseChat();
+            _allChats.Remove(chat);
+
+            // Из папок тоже убираем — иначе вернувшийся чат «магически» окажется в старых папках
+            if (UserFolders.Any(f => f.Model!.ChatIds.Remove(chat.ChatId)))
+                await SaveFoldersAsync();
+
+            ApplyFilter();
+            ContactToDelete = null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            ContactToDelete = null;
+            ErrorMessage = "Сервер не нашёл этот чат или ещё не поддерживает удаление контактов (тогда сервер нужно обновить).";
+        }
+        catch (Exception ex)
+        {
+            ContactToDelete = null;
+            ErrorMessage = $"Не удалось удалить контакт: {ex.Message}";
+        }
+        finally
+        {
+            IsDeletingContact = false;
+        }
     }
 
     [RelayCommand]

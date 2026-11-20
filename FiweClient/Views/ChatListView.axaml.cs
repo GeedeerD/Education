@@ -95,40 +95,62 @@ public partial class ChatListView : UserControl
     }
 
     /// <summary>
-    /// Правый клик / долгое нажатие по чату: список папок с галочкой у тех, где чат уже есть.
-    /// Клик по папке добавляет чат в неё или убирает из неё.
+    /// Правый клик / долгое нажатие по чату:
+    ///   «Скопировать публичное имя» — чтобы поделиться контактом;
+    ///   «В папку ▸» — папки с галочкой у тех, где чат уже есть (клик добавляет / убирает);
+    ///   «Удалить контакт» — с подтверждением.
     /// </summary>
     private void OnChatContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         if (sender is not Control { DataContext: ChatPreviewViewModel chat } control || _vm is null)
             return;
 
-        var items = new List<Control>
+        var hasPublicName = !string.IsNullOrEmpty(chat.RecipientPublicName);
+        var copyName = new MenuItem
         {
-            new MenuItem { Header = "В папку", IsEnabled = false },
+            Header = hasPublicName ? $"Скопировать публичное имя ({chat.RecipientPublicName})" : "Публичное имя недоступно",
+            Icon = Icon("IconCopy"),
+            IsEnabled = hasPublicName,
         };
+        copyName.Click += async (_, _) => await CopyToClipboardAsync(chat.RecipientPublicName!);
 
+        var folderItems = new List<Control>();
         foreach (var folder in _vm.UserFolders.ToList())
         {
-            var inFolder = folder.Contains(chat.ChatId);
             var item = new MenuItem
             {
                 Header = folder.Name,
-                Icon = inFolder
-                    ? new PathIcon { Data = (Geometry)this.FindResource("IconCheck")!, Width = 14, Height = 14 }
-                    : null,
+                Icon = folder.Contains(chat.ChatId) ? Icon("IconCheck") : null,
             };
             item.Click += async (_, _) => await _vm.ToggleChatInFolderAsync(chat, folder);
-            items.Add(item);
+            folderItems.Add(item);
         }
-
-        items.Add(new Separator());
-        var create = new MenuItem { Header = "Новая папка…" };
+        if (folderItems.Count > 0)
+            folderItems.Add(new Separator());
+        var create = new MenuItem { Header = "Новая папка…", Icon = Icon("IconPlus") };
         create.Click += (_, _) => _vm.StartCreateFolderCommand.Execute(null);
-        items.Add(create);
+        folderItems.Add(create);
 
-        OpenMenu(control, items);
+        var toFolder = new MenuItem { Header = "В папку", Icon = Icon("IconFolder"), ItemsSource = folderItems };
+
+        var delete = new MenuItem { Header = "Удалить контакт", Icon = Icon("IconDelete"), Classes = { "danger" } };
+        delete.Click += (_, _) => _vm.RequestDeleteContact(chat);
+
+        OpenMenu(control, [copyName, toFolder, new Separator(), delete]);
         e.Handled = true;
+    }
+
+    private PathIcon Icon(string key) => new()
+    {
+        Data = (Geometry)this.FindResource(key)!,
+        Width = 14,
+        Height = 14,
+    };
+
+    private async Task CopyToClipboardAsync(string text)
+    {
+        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+            await clipboard.SetTextAsync(text);
     }
 
     private static void OpenMenu(Control target, IEnumerable<Control> items)

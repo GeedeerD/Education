@@ -70,6 +70,19 @@
         <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
         <Setter Property="Opacity" Value="0.5" />
     </Style>
+    <!-- Красная основная кнопка для необратимых действий («Удалить») -->
+    <Style Selector="Button.primary.danger">
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <Style Selector="Button.primary.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+        <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="Button.primary.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+        <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
     <Style Selector="Button.primary PathIcon">
         <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
     </Style>

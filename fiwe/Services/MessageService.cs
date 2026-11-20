@@ -33,21 +33,19 @@ namespace fiwe.Services
             var chats = await _messageRepository.GetChatsAsync(ObjectId.Parse(userId));
             var chatsFromDB = chats.Select(c => ChatViewModel.WrapModel(c, userId)).ToList();
 
-            foreach (var chat in chatsFromDB) 
+            foreach (var chat in chatsFromDB)
             {
+                var recipient = ObjectId.Parse(chat.RecipientId);
+
+                // Публичное имя собеседника нужно и для названия чата, и для «Скопировать публичное имя»
+                if (recipient != ObjectId.Empty)
+                {
+                    chat.RecipientPublicName = await _userRepository.GetUserPublicNameByUserIdAsync(recipient);
+                }
+
                 if (string.IsNullOrEmpty(chat.Name))
                 {
-                    var newChatName = string.Empty;
-                    var recipient = ObjectId.Parse(chat.RecipientId);
-                    if (recipient == ObjectId.Empty)
-                    {
-                        newChatName = "Notes";
-                    }
-                    else 
-                    {
-                        newChatName = await _userRepository.GetUserPublicNameByUserIdAsync(recipient);
-                    }
-                    chat.Name = newChatName;
+                    chat.Name = recipient == ObjectId.Empty ? "Notes" : chat.RecipientPublicName ?? string.Empty;
                 }
 
                 // Картинка диалога — аватар собеседника (для «Notes» RecipientId пустой — аватара нет)

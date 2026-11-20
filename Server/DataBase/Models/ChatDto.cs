@@ -13,6 +13,12 @@ namespace DataBase.Models
         public ChatType ChatType { get; set; }
         public DateTime ActiveDate { get; set; }
         public bool IsPrivate { get; set; }
+
+        /// <summary>
+        /// Кто удалил этот диалог у себя («Удалить контакт»). Чат общий, поэтому он не удаляется,
+        /// а только скрывается из списка этих пользователей — до нового сообщения или повторного добавления.
+        /// </summary>
+        public List<ObjectId> HiddenForUserObjectIds { get; set; } = [];
     }
 
     public enum ChatType : byte

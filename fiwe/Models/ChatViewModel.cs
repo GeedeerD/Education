@@ -11,6 +11,9 @@ namespace fiwe.Models
         public string LastMessagePreview { get; set; }
         public string RecipientId { get; set; }
 
+        /// <summary>Публичное имя собеседника — им можно поделиться, чтобы другие нашли этого человека.</summary>
+        public string? RecipientPublicName { get; set; }
+
         public static ChatViewModel WrapModel(ChatModelDto modelDto, string userId) {
             return new ChatViewModel
             {

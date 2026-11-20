@@ -37,8 +37,10 @@ namespace DataBase
                 var existingChat = await _chats.Find(x => x.UserObjectIds.Contains(userId) && chat.UserObjectIds.Count() == x.UserObjectIds.Count() && x.UserObjectIds.All(o => chat.UserObjectIds.Contains(o))).FirstOrDefaultAsync();
                 if (existingChat != null)
                 {
+                    // Повторное добавление контакта возвращает скрытый диалог в список
                     var update = Builders<ChatModelDto>.Update
-                        .Set(u => u.ActiveDate, DateTime.UtcNow);
+                        .Set(u => u.ActiveDate, DateTime.UtcNow)
+                        .Pull(u => u.HiddenForUserObjectIds, userId);
                     await _chats.FindOneAndUpdateAsync(x => x.ObjectId == existingChat.ObjectId, update);
                     chat.ActiveDate = DateTime.UtcNow;
                     chat.ObjectId = existingChat.ObjectId;
@@ -116,14 +118,25 @@ namespace DataBase
 
         public async Task<IEnumerable<ChatModelDto>> GetChatsAsync(ObjectId userId)
         {
-            var chats = await _chats.Find(x => x.UserObjectIds.Contains(userId)).ToListAsync();
+            // Диалоги, которые пользователь удалил у себя, не показываем (у старых чатов поля нет — это «не скрыт»)
+            var chats = await _chats
+                .Find(x => x.UserObjectIds.Contains(userId) && !x.HiddenForUserObjectIds.Contains(userId))
+                .ToListAsync();
             return chats.OrderByDescending(x => x.ActiveDate);
+        }
+
+        public async Task HideChatForUserAsync(ObjectId userId, ObjectId chatId)
+        {
+            var update = Builders<ChatModelDto>.Update.AddToSet(u => u.HiddenForUserObjectIds, userId);
+            await _chats.UpdateOneAsync(x => x.ObjectId == chatId && x.UserObjectIds.Contains(userId), update);
         }
 
         private async Task UpdateChatAvtiveDateAsync(ObjectId chatId)
         {
+            // Новое сообщение возвращает диалог всем, кто его скрыл
             var update = Builders<ChatModelDto>.Update
-                .Set(u => u.ActiveDate, DateTime.UtcNow);
+                .Set(u => u.ActiveDate, DateTime.UtcNow)
+                .Set(u => u.HiddenForUserObjectIds, new List<ObjectId>());
             var chat = await _chats.FindOneAndUpdateAsync(x => x.ObjectId == chatId, update);
         }
 

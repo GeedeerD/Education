@@ -14,7 +14,8 @@ public record ChatDto(
     string? PictureUrl,
     DateTime LastActiveDateTime,
     string? LastMessagePreview,
-    string? RecipientId
+    string? RecipientId,
+    string? RecipientPublicName = null   // публичное имя собеседника — для «Скопировать публичное имя»
 );
 
 // ── Messages ──────────────────────────────────────────────────────

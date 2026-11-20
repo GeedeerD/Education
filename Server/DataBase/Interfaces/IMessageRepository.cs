@@ -15,5 +15,10 @@ namespace DataBase.Interfaces
         Task<string> GetMessageByIdAsync(ObjectId userId, ObjectId messageId);
         Task RemoveOldMessagesAsync(ObjectId userId);
         Task DeleteMessagesAsync(ObjectId userId, IEnumerable<ObjectId> messageIds);
+
+        /// <summary>Скрыть диалог из списка чатов пользователя (у собеседника он остаётся).</summary>
+        Task HideChatForUserAsync(ObjectId userId, ObjectId chatId);
+
+        Task<ChatModelDto> GetChatAsync(ObjectId chatId);
     }
 }

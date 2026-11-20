@@ -73,6 +73,9 @@ public interface IContactApiService
 {
     Task<IEnumerable<UserSearchResult>> FindUsersAsync(string publicUserName);
     Task<string?> AddContactAsync(string userId, string contactName);
+
+    /// <summary>Удалить контакт: его диалог пропадает из моего списка (у собеседника остаётся).</summary>
+    Task DeleteContactAsync(string chatId);
 }
 
 public class ContactApiService : BaseApiService, IContactApiService
@@ -85,6 +88,9 @@ public class ContactApiService : BaseApiService, IContactApiService
 
     public Task<string?> AddContactAsync(string userId, string contactName)
         => PostAsync<string>("Contacts/AddContact", new AddContactRequest(userId, contactName));
+
+    public Task DeleteContactAsync(string chatId)
+        => PostAsync("Contacts/DeleteContact", chatId);
 }
 
 // ── Users ─────────────────────────────────────────────────────────

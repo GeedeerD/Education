@@ -32,5 +32,13 @@ namespace fiwe.Controllers
 
             return Ok(newContactId);
         }
+
+        /// <summary>Удалить контакт по id его диалога: диалог пропадает из списка только у вызывающего.</summary>
+        [HttpPost, Route("DeleteContact")]
+        public async Task<IActionResult> DeleteContactAsync([FromBody] string chatId)
+        {
+            var deleted = await _contactService.DeleteContactByChatAsync(CurrentUserId, chatId);
+            return deleted ? Ok() : NotFound();
+        }
     }
 }

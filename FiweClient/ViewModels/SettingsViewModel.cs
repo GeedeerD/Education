@@ -113,6 +113,11 @@ public partial class SettingsViewModel : ObservableObject
             _shell.MyAvatar = preview;
             SuccessMessage = "Фото профиля обновлено";
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            // Старая версия сервера без Users/SetAvatar
+            ErrorMessage = "Сервер ещё не поддерживает аватары — нужно задеплоить новую версию сервера.";
+        }
         catch (Exception ex)
         {
             ErrorMessage = $"Не удалось обновить фото: {ex.Message}";
