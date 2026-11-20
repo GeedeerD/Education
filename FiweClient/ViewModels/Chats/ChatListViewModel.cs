@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Settings;
 
@@ -69,41 +70,122 @@ public partial class ChatPreviewViewModel : ObservableObject
     public DateTime LastActive { get; init; }
     public string? ContactUserId { get; init; }
     public double UtcOffsetHours { get; init; }
-    public string TimeLabel => LastActive.AddHours(UtcOffsetHours).ToString("HH:mm");
+
+    /// <summary>Аватар собеседника: относительный URL от сервера (ChatDto.PictureUrl) или null.</summary>
+    public string? PictureUrl { get; init; }
+
+    /// <summary>Скачанный аватар; пока null — в списке показываются инициалы.</summary>
+    [ObservableProperty] private Bitmap? _avatar;
+
+    /// <summary>Сегодня — время, на этой неделе — день недели, раньше — дата.</summary>
+    public string TimeLabel
+    {
+        get
+        {
+            var local = LastActive.AddHours(UtcOffsetHours);
+            var today = DateTime.UtcNow.AddHours(UtcOffsetHours).Date;
+            if (local.Date == today) return local.ToString("HH:mm");
+            if (local.Date > today.AddDays(-7)) return local.ToString("ddd", Ru);
+            return local.ToString(local.Year == today.Year ? "d MMM" : "dd.MM.yy", Ru);
+        }
+    }
+
+    private static readonly System.Globalization.CultureInfo Ru = new("ru-RU");
+}
+
+/// <summary>
+/// Папка чатов. Задел под issue #41 «Add opportunity groupping chats»:
+/// сейчас есть только «Все чаты», создание своих папок ещё не реализовано.
+/// </summary>
+public class ChatFolderViewModel
+{
+    public required string Name { get; init; }
+    public bool IsAll { get; init; }
 }
 
 public partial class ChatListViewModel : ObservableObject
 {
     private readonly IMessageApiService _messageApi;
     private readonly IAppSettingsService _appSettings;
+    private readonly IAvatarService _avatars;
+
+    // Полный список с сервера; Chats — отфильтрованный поиском
+    private List<ChatPreviewViewModel> _allChats = [];
 
     [ObservableProperty] private ObservableCollection<ChatPreviewViewModel> _chats = [];
-    [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private ChatPreviewViewModel? _selectedChat;
 
-    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings)
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
+    private bool _isBusy;
+
+    [ObservableProperty] private ChatPreviewViewModel? _selectedChat;
+    [ObservableProperty] private string _searchQuery = "";
+    [ObservableProperty] private string? _errorMessage;
+
+    /// <summary>Чат, открытый справа от списка (null — показывается заглушка «Выберите чат»).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasActiveChat))]
+    private ChatViewModel? _activeChat;
+
+    public bool HasActiveChat => ActiveChat is not null;
+
+    public bool ShowEmptyState => !IsBusy && Chats.Count == 0;
+    public string EmptyStateText => string.IsNullOrWhiteSpace(SearchQuery)
+        ? "Пока нет чатов. Найдите собеседника в разделе «Контакты»."
+        : "Ничего не найдено";
+
+    // ── Папки (заготовка под #41) ──
+    public IReadOnlyList<ChatFolderViewModel> Folders { get; } =
+        [new ChatFolderViewModel { Name = "Все чаты", IsAll = true }];
+
+    [ObservableProperty] private ChatFolderViewModel? _selectedFolder;
+
+    public ChatListViewModel(IMessageApiService messageApi, IAppSettingsService appSettings, IAvatarService avatars)
     {
         _messageApi = messageApi;
         _appSettings = appSettings;
+        _avatars = avatars;
+        _selectedFolder = Folders[0];
+    }
+
+    /// <summary>Аватары догружаются фоном после списка, чтобы он не ждал картинок.</summary>
+    private async Task LoadAvatarAsync(ChatPreviewViewModel chat)
+    {
+        var bitmap = await _avatars.GetAsync(chat.PictureUrl);
+        chat.Avatar = bitmap;
+        if (ActiveChat?.ChatId == chat.ChatId)
+            ActiveChat.ChatAvatar = bitmap;
     }
 
     [RelayCommand]
     public async Task LoadChatsAsync()
     {
         IsBusy = true;
+        ErrorMessage = null;
         try
         {
             var dtos = await _messageApi.GetAllMyChatsAsync();
-            Chats = new ObservableCollection<ChatPreviewViewModel>(
-                dtos.Select(d => new ChatPreviewViewModel
+            _allChats = dtos
+                .Select(d => new ChatPreviewViewModel
                 {
                     ChatId = d.ChatId,
                     Name = d.Name ?? "Без имени",
                     LastMessage = d.LastMessagePreview,
                     LastActive = DateTime.SpecifyKind(d.LastActiveDateTime, DateTimeKind.Utc),
                     ContactUserId = d.RecipientId,
+                    PictureUrl = d.PictureUrl,
                     UtcOffsetHours = _appSettings.UtcOffsetHours,
-                }));
+                })
+                .OrderByDescending(c => c.LastActive)
+                .ToList();
+            ApplyFilter();
+
+            foreach (var chat in _allChats.Where(c => !string.IsNullOrEmpty(c.PictureUrl)))
+                _ = LoadAvatarAsync(chat);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Не удалось загрузить чаты: {ex.Message}";
         }
         finally
         {
@@ -111,14 +193,70 @@ public partial class ChatListViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Клик по чату — открываем через Shell чтобы боковая панель не пропала
-    /// </summary>
+    partial void OnSearchQueryChanged(string value) => ApplyFilter();
+
+    private void ApplyFilter()
+    {
+        var q = SearchQuery.Trim();
+        var filtered = string.IsNullOrEmpty(q)
+            ? _allChats
+            : _allChats.Where(c => c.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        // Не теряем выделение открытого чата при фильтрации
+        var activeId = ActiveChat?.ChatId;
+        Chats = new ObservableCollection<ChatPreviewViewModel>(filtered);
+        SelectedChat = Chats.FirstOrDefault(c => c.ChatId == activeId);
+
+        OnPropertyChanged(nameof(ShowEmptyState));
+        OnPropertyChanged(nameof(EmptyStateText));
+    }
+
+    /// <summary>Клик по чату в списке — открываем его справа.</summary>
     partial void OnSelectedChatChanged(ChatPreviewViewModel? value)
     {
-        if (value is null) return;
+        if (value is null || value.ChatId == ActiveChat?.ChatId) return;
+        OpenChat(value.ChatId, value.Name, value.ContactUserId);
+    }
 
+    /// <summary>Открыть чат в правой панели (из списка или из другого раздела через Shell).</summary>
+    public void OpenChat(string chatId, string chatName, string? contactUserId = null)
+    {
+        if (ActiveChat?.ChatId == chatId) return;
+
+        if (App.Services.GetService(typeof(ChatViewModel)) is not ChatViewModel vm) return;
+
+        ActiveChat?.Deactivate();
+        vm.Initialize(chatId, chatName, contactUserId);
+        vm.CloseRequested += CloseChat;
+        ActiveChat = vm;
+
+        var preview = Chats.FirstOrDefault(c => c.ChatId == chatId);
+        vm.ChatAvatar = preview?.Avatar;
+        if (!ReferenceEquals(SelectedChat, preview))
+            SelectedChat = preview;
+    }
+
+    [RelayCommand]
+    public void CloseChat()
+    {
+        ActiveChat?.Deactivate();
+        ActiveChat = null;
+        SelectedChat = null;
+    }
+
+    /// <summary>Сброс при выходе из аккаунта: ViewModel — синглтон и переживает смену пользователя.</summary>
+    public void Reset()
+    {
+        CloseChat();
+        _allChats = [];
+        SearchQuery = "";
+        Chats = [];
+    }
+
+    [RelayCommand]
+    private void FindContact()
+    {
         var shell = App.Services.GetService(typeof(ShellViewModel)) as ShellViewModel;
-        shell?.OpenChat(value.ChatId, value.Name, value.ContactUserId);
+        shell?.OpenContactSearch();
     }
 }

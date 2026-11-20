@@ -16,6 +16,12 @@ namespace fiwe.Services
         Task UpdateUserInfoAsync(string userId, string phone, string email, string publicUserName);
         Task SetUserPublicKeyAsync(string userId, string publicKey);
         Task<string> GetUserPublicKeyAsync(string currentUserId, string userId);
+
+        /// <summary>Ставит аватар из уже загруженного изображения; imageId == null — убрать аватар.</summary>
+        Task SetAvatarAsync(string userId, string? imageId);
+
+        /// <summary>Относительный URL аватара (например "Images/{id}/Download") или null.</summary>
+        Task<string?> GetAvatarUrlAsync(string userId);
     }
     public class UserService : IUserService
     {
@@ -88,6 +94,23 @@ namespace fiwe.Services
         {
             
             return await _userRepository.GetUserPublicKeyAsync(ObjectId.Parse(userId) != default ? ObjectId.Parse(userId) : ObjectId.Parse(currentUserId));
+        }
+
+        public async Task SetAvatarAsync(string userId, string? imageId)
+        {
+            // Храним готовый относительный URL — клиент скачивает его тем же запросом, что и картинки в чате
+            var avatarUrl = imageId == null ? null : $"Images/{imageId}/Download";
+            await _userRepository.SetAvatarUrlAsync(ObjectId.Parse(userId), avatarUrl);
+        }
+
+        public async Task<string?> GetAvatarUrlAsync(string userId)
+        {
+            if (!ObjectId.TryParse(userId, out var objectId) || objectId == ObjectId.Empty)
+            {
+                return null;
+            }
+
+            return await _userRepository.GetAvatarUrlAsync(objectId);
         }
     }
 }

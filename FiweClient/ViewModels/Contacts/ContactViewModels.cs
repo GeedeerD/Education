@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Media.Imaging;
 using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 
 namespace FiweClient.ViewModels.Contacts;
@@ -17,9 +19,12 @@ public partial class AddContactViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusMessage;
 
-    public AddContactViewModel(IContactApiService contactApi)
+    private readonly IAvatarService _avatars;
+
+    public AddContactViewModel(IContactApiService contactApi, IAvatarService avatars)
     {
         _contactApi = contactApi;
+        _avatars = avatars;
     }
 
     [RelayCommand]
@@ -29,12 +34,25 @@ public partial class AddContactViewModel : ObservableObject
 
         IsBusy = true;
         SearchResults.Clear();
+        StatusMessage = null;
 
         try
         {
-            var results = await _contactApi.FindUsersAsync(SearchQuery);
+            var results = await _contactApi.FindUsersAsync(SearchQuery.Trim());
             foreach (var r in results)
-                SearchResults.Add(new UserSearchResultViewModel(r, this));
+            {
+                var item = new UserSearchResultViewModel(r, this);
+                SearchResults.Add(item);
+                _ = LoadAvatarAsync(item, r.AvatarUrl);
+            }
+
+            if (SearchResults.Count == 0)
+                SetStatus("Никого не нашли — проверьте публичное имя", isError: true);
+        }
+        catch (Exception ex)
+        {
+            // Раньше исключение из поиска не перехватывалось и роняло команду
+            SetStatus($"Ошибка поиска: {ex.Message}", isError: true);
         }
         finally
         {
@@ -47,12 +65,24 @@ public partial class AddContactViewModel : ObservableObject
         try
         {
             await _contactApi.AddContactAsync(userId, userName);
-            StatusMessage = $"✓ {userName} добавлен в контакты";
+            SetStatus($"{userName} добавлен в контакты — чат появится в разделе «Чаты»", isError: false);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Ошибка: {ex.Message}";
+            SetStatus($"Ошибка: {ex.Message}", isError: true);
         }
+    }
+
+    private async Task LoadAvatarAsync(UserSearchResultViewModel item, string? avatarUrl)
+        => item.Avatar = await _avatars.GetAsync(avatarUrl);
+
+    /// <summary>Ошибка подсвечивается красным, успех — зелёным.</summary>
+    [ObservableProperty] private bool _isStatusError;
+
+    private void SetStatus(string message, bool isError)
+    {
+        IsStatusError = isError;
+        StatusMessage = message;
     }
 
     [RelayCommand]
@@ -71,6 +101,9 @@ public partial class UserSearchResultViewModel : ObservableObject
 
     public string UserId { get; }
     public string UserName { get; }
+
+    /// <summary>Аватар найденного пользователя (#42); null — инициалы.</summary>
+    [ObservableProperty] private Bitmap? _avatar;
 
     public UserSearchResultViewModel(UserSearchResult dto, AddContactViewModel parent)
     {

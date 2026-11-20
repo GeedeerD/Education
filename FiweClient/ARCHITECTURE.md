@@ -65,9 +65,32 @@ App.OnFrameworkInitializationCompleted
    - `LoginView` → `RegisterView` → `ShellView` (или `KeyTransferView`)
 
 2. **Внутри Shell** (`ShellViewModel.CurrentContent`):
-   - Chats (`ChatListView` / `ChatView`)
+   - Chats (`ChatListView`, открытый чат — `ChatListViewModel.ActiveChat` → `ChatView` в правой панели)
    - Contacts (`ContactListView` / `AddContactView`)
-   - Settings (`SettingsView`)
+   - Settings (`SettingsView` / `QrGeneratorView`)
+
+Раздел «Чаты» двухпанельный: список слева, открытый чат справа. Уже 720 px (телефон, узкое окно)
+показывается что-то одно — переключение в `ChatListView.axaml.cs → UpdateLayoutMode`.
+Открытый чат при закрытии или переключении вызывает `ChatViewModel.Deactivate()` и отписывается от SignalR.
+
+---
+
+## Дизайн-система
+
+Все цвета, иконки и общие стили лежат в `Styles/`, экраны их только используют:
+
+| Файл | Что внутри |
+|------|-----------|
+| `Styles/FiweTheme.axaml` | Палитра: кисти `AppBackgroundBrush`, `SurfaceBrush`, `AccentBrush`, `TextSecondaryBrush` и т.д. для светлой и тёмной темы |
+| `Styles/FiweIcons.axaml` | Векторные иконки (`IconChat`, `IconSend`, …) для `PathIcon` |
+| `Styles/FiweStyles.axaml` | Классы: `Button.primary/.secondary/.ghost/.icon/.link/.nav`, `TextBlock.h1/.h2/.h3/.caption/.section`, `Border.card/.notice/.header`, `ListBox.list`, `ToggleButton.tab` |
+| `Controls/AvatarView.cs` | Круглый аватар: инициалы на цветном фоне или картинка (`Source`) |
+
+Цвета берутся только через `{DynamicResource ...}` — тогда тема (Настройки → Оформление, `AppSettings.Theme`)
+переключается на лету.
+
+**Заготовки под будущие задачи** (интерфейс есть, логики нет):
+- #41 «Группировка чатов» — `ChatFolderViewModel` и вкладки папок над списком чатов (пока только «Все чаты»), неактивная кнопка «+».
 
 ---
 
@@ -219,3 +242,16 @@ dotnet build FiweClient.Droid/FiweClient.Droid.csproj -f net8.0-android
 ```
 
 Тестов нет. Проверка — ручная через запуск приложения.
+
+---
+
+## Аватары (#42)
+
+Аватар — обычная картинка из `Images/Upload`, публичная (не шифруется), как и вложения.
+
+1. Настройки → «Фото» (или клик по аватару): выбор файла → `AvatarService.PrepareForUpload` обрезает по центру до квадрата 320×320 PNG.
+2. `Images/Upload` → `imageId` → `Users/SetAvatar` (сервер проверяет, что картинку загрузил этот же пользователь) → в `UserDto.AvatarUrls` добавляется `Images/{imageId}/Download`.
+3. «Убрать» → `Users/RemoveAvatar` очищает `AvatarUrls`.
+
+Где сервер отдаёт аватары: `Users/{userId}/Avatar` (свой — по своему userId), `ChatDto.PictureUrl` в списке чатов (аватар собеседника), `UserSearchResult.AvatarUrl` в поиске контактов.
+На клиенте `IAvatarService` скачивает их с кэшем в памяти, `AvatarView.Source` показывает картинку вместо инициалов.

@@ -5,7 +5,8 @@
              xmlns:shell="clr-namespace:FiweClient.ViewModels"
              xmlns:views="clr-namespace:FiweClient.Views"
              x:Class="FiweClient.Views.MainView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainWindowViewModel"
+             Background="{DynamicResource AppBackgroundBrush}">
 
 	<UserControl.DataTemplates>
 		<DataTemplate DataType="auth:LoginViewModel">

@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Media.Imaging;
+using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
@@ -19,6 +22,8 @@ public partial class ShellViewModel : ObservableObject
     private readonly ISessionService _session;
     private readonly ITokenStorage _tokenStorage;
     private readonly IRealtimeService _realtime;
+    private readonly IUserApiService _userApi;
+    private readonly IAvatarService _avatars;
 
     // Текущий контент в правой области
     [ObservableProperty] private ObservableObject? _currentContent;
@@ -26,19 +31,32 @@ public partial class ShellViewModel : ObservableObject
     // Имя пользователя в шапке боковой панели
     [ObservableProperty] private string _username = "";
 
+    /// <summary>Свой аватар (боковая панель и настройки). null — показываются инициалы.</summary>
+    [ObservableProperty] private Bitmap? _myAvatar;
+
     // Активная вкладка для подсветки в меню
-    [ObservableProperty] private string _activeTab = "chats";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsChatsActive), nameof(IsContactsActive), nameof(IsSettingsActive))]
+    private string _activeTab = "chats";
+
+    public bool IsChatsActive => ActiveTab == "chats";
+    public bool IsContactsActive => ActiveTab == "contacts";
+    public bool IsSettingsActive => ActiveTab == "settings";
 
     public ShellViewModel(
         INavigationService navigation,
         ISessionService session,
         ITokenStorage tokenStorage,
-        IRealtimeService realtime)
+        IRealtimeService realtime,
+        IUserApiService userApi,
+        IAvatarService avatars)
     {
         _navigation = navigation;
         _session = session;
         _tokenStorage = tokenStorage;
         _realtime = realtime;
+        _userApi = userApi;
+        _avatars = avatars;
 
         Username = session.Username ?? "";
     }
@@ -87,15 +105,15 @@ public partial class ShellViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Открыть конкретный чат — вызывается из ChatListViewModel
+    /// Открыть конкретный чат. Чат показывается справа от списка чатов (двухпанельный режим),
+    /// поэтому переключаемся в раздел «Чаты» и просим список открыть чат у себя.
     /// </summary>
     public void OpenChat(string chatId, string chatName, string? contactUserId = null)
     {
         ActiveTab = "chats";
-        var vm = App.Services.GetService(typeof(ChatViewModel)) as ChatViewModel;
-        if (vm is null) return;
-        vm.Initialize(chatId, chatName, contactUserId);
-        CurrentContent = vm;
+        if (App.Services.GetService(typeof(ChatListViewModel)) is not ChatListViewModel list) return;
+        CurrentContent = list;
+        list.OpenChat(chatId, chatName, contactUserId);
     }
 
     /// <summary>
@@ -104,6 +122,10 @@ public partial class ShellViewModel : ObservableObject
     [RelayCommand]
     private async Task LogoutAsync()
     {
+        // Закрываем открытый чат, чтобы он отписался от входящих сообщений
+        (App.Services.GetService(typeof(ChatListViewModel)) as ChatListViewModel)?.Reset();
+
+        MyAvatar = null;
         await _realtime.DisconnectAsync();
         await _tokenStorage.ClearAsync();
         _session.Clear();
@@ -113,5 +135,26 @@ public partial class ShellViewModel : ObservableObject
     /// <summary>
     /// Вызывается при первом показе Shell — открываем чаты по умолчанию
     /// </summary>
-    public void Initialize() => OpenChats();
+    public void Initialize()
+    {
+        // Shell — синглтон: после выхода и входа под другим аккаунтом имя нужно обновить
+        Username = _session.Username ?? "";
+        MyAvatar = null;
+        OpenChats();
+        _ = LoadMyAvatarAsync();
+    }
+
+    private async Task LoadMyAvatarAsync()
+    {
+        if (string.IsNullOrEmpty(_session.UserId)) return;
+        try
+        {
+            var url = await _userApi.GetAvatarUrlAsync(_session.UserId);
+            MyAvatar = await _avatars.GetAsync(url);
+        }
+        catch
+        {
+            // Не загрузился аватар — остаются инициалы, это не мешает работе
+        }
+    }
 }

@@ -39,7 +39,12 @@ namespace DataBase.Models
         public string AvatarUrl { get; set; }
         public static UserSearchResultDto WrapModel(UserDto user)
         {
-            return new UserSearchResultDto { UserId = user.Id, PublicUserName = user.PublicUserName, AvatarUrl = user.AvatarUrls?.LastOrDefault() };
+            return new UserSearchResultDto
+            {
+                UserId = user.Id,
+                PublicUserName = user.PublicUserName,
+                AvatarUrl = user.AvatarUrls?.LastOrDefault(a => !string.IsNullOrEmpty(a))
+            };
         }
     }
 }

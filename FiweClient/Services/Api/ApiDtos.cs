@@ -31,7 +31,8 @@ public record DeleteMessagesRequest(List<string> MessageIds);
 
 // ── Contacts ──────────────────────────────────────────────────────
 
-public record UserSearchResult(string UserId, string UserName);
+// AvatarUrl — относительный URL картинки аватара на сервере (например "Images/{id}/Download") или null
+public record UserSearchResult(string UserId, string UserName, string? AvatarUrl = null);
 public record AddContactRequest(string UserId, string ContactName);
 
 // ── Images ────────────────────────────────────────────────────────
@@ -42,3 +43,7 @@ public record UploadImageResponse(string ImageId);
 
 public record SetPublicKeyRequest(string PublicKeyBase64);
 public record PublicKeyResponse(string PublicKeyBase64);
+
+// ── Avatars ───────────────────────────────────────────────────────
+
+public record AvatarResponse(string? AvatarUrl);

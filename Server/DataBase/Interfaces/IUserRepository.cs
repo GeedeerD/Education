@@ -15,5 +15,11 @@ namespace DataBase.Interfaces
         Task SetUserPublicKeyAsync(ObjectId userId, string publicKey);
         Task<string> GetUserPublicKeyAsync(ObjectId userId);
         Task<string> GetUserPublicNameByUserIdAsync(ObjectId userId);
+
+        /// <summary>Ставит аватар (относительный URL картинки) или убирает его, если avatarUrl == null.</summary>
+        Task SetAvatarUrlAsync(ObjectId userId, string? avatarUrl);
+
+        /// <summary>Текущий аватар пользователя (последний из AvatarUrls) или null.</summary>
+        Task<string?> GetAvatarUrlAsync(ObjectId userId);
     }
 }

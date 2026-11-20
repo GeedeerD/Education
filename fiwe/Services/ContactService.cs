@@ -14,10 +14,11 @@ namespace fiwe.Services
     {
         public string UserId { get; set; }
         public string UserName { get; set; }
+        public string? AvatarUrl { get; set; }
 
         public static UserViewModel WrapModel(UserSearchResultDto user)
         {
-            return new UserViewModel { UserId = user.UserId.ToString(), UserName = user.PublicUserName };
+            return new UserViewModel { UserId = user.UserId.ToString(), UserName = user.PublicUserName, AvatarUrl = user.AvatarUrl };
         }
     }
 

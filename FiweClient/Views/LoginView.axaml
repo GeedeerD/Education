@@ -4,65 +4,81 @@
              x:Class="FiweClient.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
-    <Grid RowDefinitions="*, Auto, *">
-        <StackPanel Grid.Row="1"
-                    Width="360"
-                    Spacing="16"
-                    HorizontalAlignment="Center">
+    <ScrollViewer>
+        <Grid RowDefinitions="*, Auto, *" MinHeight="560">
+            <StackPanel Grid.Row="1"
+                        MaxWidth="400"
+                        Margin="20,32"
+                        Spacing="24"
+                        HorizontalAlignment="Stretch">
 
-            <!-- Логотип / заголовок -->
-            <TextBlock Text="Fiwe"
-                       FontSize="36"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemAccentColor}" />
+                <!-- Логотип -->
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="fiwe"
+                               FontSize="40"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource AccentBrush}"
+                               HorizontalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                        <PathIcon Data="{StaticResource IconLock}"
+                                  Width="12" Height="12"
+                                  Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <TextBlock Classes="caption" Text="Мессенджер со сквозным шифрованием" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Text="Зашифрованный мессенджер"
-                       FontSize="13"
-                       HorizontalAlignment="Center"
-                       Opacity="0.6" />
+                <!-- Форма -->
+                <Border Classes="card" Padding="24">
+                    <StackPanel Spacing="14">
+                        <TextBlock Classes="h3" Text="Вход в аккаунт" />
 
-            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumBrush}" Opacity="0.2" Margin="0,8" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="caption" Text="Имя пользователя" />
+                            <TextBox x:Name="UsernameBox"
+                                     Text="{Binding Username}"
+                                     Watermark="Логин" />
+                        </StackPanel>
 
-            <!-- Поля ввода -->
-            <TextBox Text="{Binding Username}"
-                     Watermark="Имя пользователя"
-                     Height="44" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="caption" Text="Пароль" />
+                            <TextBox Text="{Binding Password}"
+                                     Watermark="Пароль"
+                                     PasswordChar="●"
+                                     RevealPassword="{Binding #ShowPassword.IsChecked}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding LoginCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <CheckBox x:Name="ShowPassword" Content="Показать пароль" FontSize="12" />
+                        </StackPanel>
 
-            <TextBox Text="{Binding Password}"
-                     Watermark="Пароль"
-                     PasswordChar="●"
-                     Height="44" />
+                        <Border Classes="notice danger"
+                                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding ErrorMessage}" />
+                        </Border>
 
-            <!-- Ошибка -->
-            <TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="Red"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                       FontSize="13"
-                       TextWrapping="Wrap" />
+                        <Button Classes="primary"
+                                Content="Войти"
+                                Command="{Binding LoginCommand}"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding !IsBusy}" />
 
-            <!-- Кнопка входа -->
-            <Button Content="Войти"
-                    Command="{Binding LoginCommand}"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Height="44"
-                    IsEnabled="{Binding !IsBusy}" />
+                        <ProgressBar IsIndeterminate="True"
+                                     IsVisible="{Binding IsBusy}"
+                                     Height="3" MinHeight="3" />
+                    </StackPanel>
+                </Border>
 
-            <!-- Индикатор загрузки -->
-            <ProgressBar IsIndeterminate="True"
-                         IsVisible="{Binding IsBusy}"
-                         Height="3" />
+                <!-- Переход к регистрации -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                    <TextBlock Classes="caption" Text="Нет аккаунта?" VerticalAlignment="Center" />
+                    <Button Classes="link"
+                            Content="Зарегистрироваться"
+                            Command="{Binding GoToRegisterCommand}" />
+                </StackPanel>
 
-            <!-- Переход к регистрации -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Text="Нет аккаунта?" Opacity="0.6" />
-                <Button Content="Зарегистрироваться"
-                        Command="{Binding GoToRegisterCommand}"
-                        Classes="Hyperlink" />
             </StackPanel>
-
-        </StackPanel>
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 
 </UserControl>

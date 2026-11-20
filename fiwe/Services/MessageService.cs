@@ -49,6 +49,9 @@ namespace fiwe.Services
                     }
                     chat.Name = newChatName;
                 }
+
+                // Картинка диалога — аватар собеседника (для «Notes» RecipientId пустой — аватара нет)
+                chat.PictureUrl = await _userRepository.GetAvatarUrlAsync(ObjectId.Parse(chat.RecipientId));
             }
 
             return chatsFromDB;

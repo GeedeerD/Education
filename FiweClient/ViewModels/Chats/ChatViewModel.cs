@@ -49,6 +49,9 @@ public partial class ChatViewModel : ObservableObject
     // ── Состояние ─────────────────────────────────────────────────
     [ObservableProperty] private string _chatId = "";
     [ObservableProperty] private string _chatName = "";
+
+    /// <summary>Аватар собеседника для шапки чата (#42); null — инициалы.</summary>
+    [ObservableProperty] private Bitmap? _chatAvatar;
     [ObservableProperty] private string _messageInput = "";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _errorMessage;
@@ -173,6 +176,22 @@ public partial class ChatViewModel : ObservableObject
         CloseImageViewer();
     }
 
+    /// <summary>Вызывается, когда пользователь закрывает чат (кнопка «назад» в шапке).</summary>
+    public event Action? CloseRequested;
+
+    [RelayCommand]
+    private void Close() => CloseRequested?.Invoke();
+
+    /// <summary>
+    /// Чат больше не показывается — отписываемся от входящих сообщений.
+    /// Раньше ChatViewModel не отписывался, и каждый открытый за сессию чат продолжал получать события.
+    /// </summary>
+    public void Deactivate()
+    {
+        _realtime.MessageReceived -= OnMessageReceived;
+        CloseRequested = null;
+    }
+
     // ── Режим выделения ───────────────────────────────────────────
 
     [RelayCommand]
@@ -278,6 +297,11 @@ public partial class ChatViewModel : ObservableObject
             var sharedSecret = await GetOrComputeSharedSecretAsync();
             await _realtime.JoinChatAsync(ChatId);
             var dtos = await _messageApi.GetMessagesAsync(ChatId);
+
+            // Открытый чат живёт дольше своего View (переход в Настройки и обратно пересоздаёт View
+            // и заново грузит историю) — без очистки сообщения задвоились бы
+            Messages.Clear();
+            ErrorMessage = null;
 
             foreach (var dto in dtos)
             {
@@ -509,8 +533,9 @@ public partial class ChatViewModel : ObservableObject
 
     private async void OnMessageReceived(string chatId, IEnumerable<string> recipients, string messageId)
     {
-        // Фильтруем — только сообщения в текущий открытый чат
-        // if (chatId != ChatId) return;
+        // Только сообщения текущего чата: сервер шлёт в группу SignalR с id чата,
+        // а клиент состоит в группах всех открытых за сессию чатов
+        if (chatId != ChatId) return;
 
         // Своё сообщение уже добавлено локально — пропускаем
         if (!recipients.Contains(_session.UserId)) return;
@@ -524,7 +549,11 @@ public partial class ChatViewModel : ObservableObject
             // UI поток — Avalonia требует обновления коллекций из UI потока
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                var bubble = CreateBubble("", decrypted, "", DateTime.UtcNow, isMine: false);
+                // Чат могли закрыть или переключить, пока сообщение расшифровывалось
+                if (chatId != ChatId) return;
+
+                // С messageId входящее сообщение можно удалить, не перезаходя в чат
+                var bubble = CreateBubble(messageId, decrypted, "", DateTime.UtcNow, isMine: false);
                 Messages.Add(bubble);
                 LoadBubbleImages(bubble);
             });

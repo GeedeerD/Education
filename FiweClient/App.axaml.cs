@@ -2,6 +2,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using FiweClient.Crypto;
 using FiweClient.Services.Api;
+using FiweClient.Services.Avatars;
 using FiweClient.Services.Navigation;
 using FiweClient.Services.Realtime;
 using FiweClient.Services.Session;
@@ -87,6 +88,7 @@ public class App : Application
         var appSettings = Services.GetRequiredService<IAppSettingsService>();
 
         await appSettings.LoadAsync();
+        ApplyTheme(appSettings.Theme);
         var saved = await tokenStorage.LoadTokenAsync();
 
         if (saved is not null && session.IsTokenValid(saved.Token))
@@ -112,6 +114,19 @@ public class App : Application
             await tokenStorage.ClearAsync();
             nav.NavigateTo<LoginViewModel>();
         }
+    }
+
+    /// <summary>Применяет тему оформления: "light", "dark" или любое другое значение — как в системе.</summary>
+    public static void ApplyTheme(string? theme)
+    {
+        if (Current is null) return;
+
+        Current.RequestedThemeVariant = theme switch
+        {
+            "light" => Avalonia.Styling.ThemeVariant.Light,
+            "dark" => Avalonia.Styling.ThemeVariant.Dark,
+            _ => Avalonia.Styling.ThemeVariant.Default,
+        };
     }
 
     private static void ConfigureServices(IServiceCollection services)
@@ -143,6 +158,9 @@ public class App : Application
 
         // ── Настройки приложения ──────────────────────
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
+
+        // ── Аватары (#42) ─────────────────────────────
+        services.AddSingleton<IAvatarService, AvatarService>();
 
         // ── QR-сканер ─────────────────────────────────
 #if ANDROID
