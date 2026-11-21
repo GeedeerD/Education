@@ -65,9 +65,30 @@ App.OnFrameworkInitializationCompleted
    - `LoginView` → `RegisterView` → `ShellView` (или `KeyTransferView`)
 
 2. **Внутри Shell** (`ShellViewModel.CurrentContent`):
-   - Chats (`ChatListView` / `ChatView`)
+   - Chats (`ChatListView`, открытый чат — `ChatListViewModel.ActiveChat` → `ChatView` в правой панели)
    - Contacts (`ContactListView` / `AddContactView`)
-   - Settings (`SettingsView`)
+   - Settings (`SettingsView` / `QrGeneratorView`)
+
+Раздел «Чаты» двухпанельный: список слева, открытый чат справа. Уже 720 px (телефон, узкое окно)
+показывается что-то одно — переключение в `ChatListView.axaml.cs → UpdateLayoutMode`.
+Открытый чат при закрытии или переключении вызывает `ChatViewModel.Deactivate()` и отписывается от SignalR.
+
+---
+
+## Дизайн-система
+
+Все цвета, иконки и общие стили лежат в `Styles/`, экраны их только используют:
+
+| Файл | Что внутри |
+|------|-----------|
+| `Styles/FiweTheme.axaml` | Палитра: кисти `AppBackgroundBrush`, `SurfaceBrush`, `AccentBrush`, `TextSecondaryBrush` и т.д. для светлой и тёмной темы |
+| `Styles/FiweIcons.axaml` | Векторные иконки (`IconChat`, `IconSend`, …) для `PathIcon` |
+| `Styles/FiweStyles.axaml` | Классы: `Button.primary/.secondary/.ghost/.icon/.link/.nav`, `TextBlock.h1/.h2/.h3/.caption/.section`, `Border.card/.notice/.header`, `ListBox.list`, `ToggleButton.tab` |
+| `Controls/AvatarView.cs` | Круглый аватар: инициалы на цветном фоне или картинка (`Source`) |
+
+Цвета берутся только через `{DynamicResource ...}` — тогда тема (Настройки → Оформление, `AppSettings.Theme`)
+переключается на лету.
+
 
 ---
 
@@ -219,3 +240,30 @@ dotnet build FiweClient.Droid/FiweClient.Droid.csproj -f net8.0-android
 ```
 
 Тестов нет. Проверка — ручная через запуск приложения.
+
+---
+
+## Аватары (#42)
+
+Аватар — обычная картинка из `Images/Upload`, публичная (не шифруется), как и вложения.
+
+1. Настройки → «Фото» (или клик по аватару): выбор файла → `AvatarService.PrepareForUpload` обрезает по центру до квадрата 320×320 PNG.
+2. `Images/Upload` → `imageId` → `Users/SetAvatar` (сервер проверяет, что картинку загрузил этот же пользователь) → в `UserDto.AvatarUrls` добавляется `Images/{imageId}/Download`.
+3. «Убрать» → `Users/RemoveAvatar` очищает `AvatarUrls`.
+
+Где сервер отдаёт аватары: `Users/{userId}/Avatar` (свой — по своему userId), `ChatDto.PictureUrl` в списке чатов (аватар собеседника), `UserSearchResult.AvatarUrl` в поиске контактов.
+На клиенте `IAvatarService` скачивает их с кэшем в памяти, `AvatarView.Source` показывает картинку вместо инициалов.
+
+---
+
+## Папки чатов (#41)
+
+Папки хранятся на устройстве, отдельно для каждого аккаунта: `folders-{userId}.json` рядом с `appsettings.json`
+(`IChatFolderService`). На сервер не уходят — на другом устройстве папки свои.
+
+- Вкладки над списком чатов: «Все чаты» + папки пользователя (`ChatListViewModel.Folders`), выбранная фильтрует список вместе с поиском.
+- «+» — строка ввода названия (Enter — сохранить, Esc — отмена). Правый клик / долгое нажатие по вкладке — переименовать или удалить.
+- Правый клик / долгое нажатие по чату — меню:
+  - «Скопировать публичное имя» собеседника (сервер отдаёт его в `ChatDto.RecipientPublicName`) — чтобы поделиться контактом;
+  - «В папку ▸» с галочками: клик добавляет чат в папку или убирает из неё; чат может быть в нескольких папках;
+  - «Удалить контакт» с подтверждением: `Contacts/DeleteContact` помечает контакт удалённым и скрывает диалог только у этого пользователя (`ChatModelDto.HiddenForUserObjectIds`). Переписка остаётся; новое сообщение или повторное добавление контакта возвращает чат.

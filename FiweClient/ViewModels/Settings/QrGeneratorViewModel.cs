@@ -23,6 +23,11 @@ public partial class QrGeneratorViewModel : ObservableObject
         _session = session;
     }
 
+    /// <summary>Кнопка «назад» в шапке — раньше с этого экрана можно было уйти только через боковое меню.</summary>
+    [RelayCommand]
+    private void GoBack()
+        => (App.Services.GetService(typeof(ViewModels.ShellViewModel)) as ViewModels.ShellViewModel)?.OpenSettings();
+
     [RelayCommand]
     public async Task LoadAsync()
     {

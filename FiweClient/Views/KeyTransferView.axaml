@@ -4,25 +4,33 @@
              x:Class="FiweClient.Views.KeyTransferView"
              x:DataType="vm:KeyTransferViewModel">
 
+    <ScrollViewer>
     <Grid RowDefinitions="*, Auto, *">
         <StackPanel Grid.Row="1"
-                    Width="400"
-                    Spacing="20"
-                    HorizontalAlignment="Center">
+                    MaxWidth="420"
+                    Margin="20,32"
+                    Spacing="18"
+                    HorizontalAlignment="Stretch">
 
             <!-- Иконка -->
-            <TextBlock Text="🔐"
-                       FontSize="48"
-                       HorizontalAlignment="Center" />
+            <Border Width="64" Height="64"
+                    CornerRadius="20"
+                    Background="{DynamicResource AccentSoftBrush}"
+                    HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource IconKey}"
+                          Width="30" Height="30"
+                          Foreground="{DynamicResource AccentBrush}" />
+            </Border>
 
             <!-- Заголовок -->
-            <TextBlock Text="Перенос ключей шифрования"
-                       FontSize="22"
-                       FontWeight="Bold"
+            <TextBlock Classes="h2"
+                       Text="Перенос ключей шифрования"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
                        HorizontalAlignment="Center" />
 
             <!-- Описание -->
-            <Border Background="#1A2196F3"
+            <Border Classes="notice"
                     CornerRadius="8"
                     Padding="16,12">
                 <TextBlock TextWrapping="Wrap"
@@ -34,7 +42,7 @@
             </Border>
 
             <Border Height="1"
-                    Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    Background="{DynamicResource DividerBrush}"
                     Opacity="0.2" />
 
             <!-- Поле ввода кода -->
@@ -49,7 +57,7 @@
             </StackPanel>
 
             <!-- Кнопка сканирования (только на Android, где есть камера) -->
-            <Button Content="Сканировать QR-код"
+            <Button Classes="secondary" Content="Сканировать QR-код"
                     Command="{Binding ScanQrCommand}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
@@ -59,11 +67,11 @@
 
             <!-- Ошибка -->
             <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                    Background="#1AF44336"
+                    Classes="notice danger"
                     CornerRadius="6"
                     Padding="12,8">
                 <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="#F44336"
+                           Foreground="{DynamicResource DangerBrush}"
                            FontSize="13"
                            TextWrapping="Wrap" />
             </Border>
@@ -74,7 +82,7 @@
                          Height="3" />
 
             <!-- Кнопка импорта -->
-            <Button Content="Импортировать ключи"
+            <Button Classes="primary" Content="Импортировать ключи"
                     Command="{Binding ImportKeyCommand}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
@@ -84,24 +92,24 @@
             <!-- Разделитель -->
             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
                 <Border Width="100" Height="1"
-                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Background="{DynamicResource DividerBrush}"
                         Opacity="0.2"
                         VerticalAlignment="Center" />
                 <TextBlock Text="или" Opacity="0.5" FontSize="12" />
                 <Border Width="100" Height="1"
-                        Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Background="{DynamicResource DividerBrush}"
                         Opacity="0.2"
                         VerticalAlignment="Center" />
             </StackPanel>
 
             <!-- Новые ключи (деструктивное действие) -->
             <StackPanel Spacing="8">
-                <Button Content="Создать новые ключи (история переписки недоступна)"
+                <Button Classes="ghost danger" Content="Создать новые ключи (история переписки недоступна)"
                         Command="{Binding GenerateNewKeyCommand}"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
                         Height="44"
-                        Foreground="#F44336"
+                        Foreground="{DynamicResource DangerBrush}"
                         IsEnabled="{Binding !IsBusy}" />
                 <TextBlock Text="Старые зашифрованные сообщения нельзя будет расшифровать."
                            FontSize="11"
@@ -112,5 +120,6 @@
 
         </StackPanel>
     </Grid>
+    </ScrollViewer>
 
 </UserControl>
